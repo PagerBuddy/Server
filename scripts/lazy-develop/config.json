@@ -27,7 +27,7 @@
   "ALERT_TIME_ZONE": "Europe/Berlin",
   "PORT": 3000,
   "KATSYS": {
-    "CERTIFICATE": "./katsys-cloud.pem",
+    "CERTIFICATE": "",
     "MASTER_TOKEN": "",
     "SUB_TOKEN": "",
     "DECODE_CHANNELS": [ "456", "RD_ER" ]
