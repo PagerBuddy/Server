@@ -1,0 +1,47 @@
+{
+    "DATABASE_LOCATION": "./data/data.db",
+    "BACKUP_LOCATION": "./backup",
+    "CONFIDENTIAL_MODE": false,
+    "TELEGRAM": {
+        "BOT_TOKEN": "<TOKEN obtained from BotFather>",
+        "BOT_NAME": "<NAME set in BotFather>",
+        "comment_ADMIN_GROUPS": "Add list of chatIDs that are allowed to perform admin operations via Telegram ([-1234567, -7654321])",
+        "ADMIN_GROUPS": [],
+        "RESPONSE_OVERVIEW": {
+            "ENABLED": true,
+            "ENABLED_FOR_ALL_CHATS": false,
+            "ENABLED_DURING_TEST_ALARM": true,
+            "CHAT_IDS": [],
+            "COOLDOWN_MS": 900000,
+            "REACT_TIMEOUT_MS": 3000,
+            "PIN_MESSAGES": false
+        }
+    },
+    "TIMEOUTS": {
+        "HISTORY_TIMEOUT_MS": 120000,
+        "HEALTH_TIMEOUT_MS": 30000,
+        "RADIO_TIMEOUT_MS": 108000000,
+        "INTERNET_TIMEOUT_MS": 5000
+    },
+    "ALERT_TIME_ZONE": "Europe/Berlin",
+    "PORT": 3000,
+    "KATSYS": {
+        "CERTIFICATE": "./katsys-cloud.pem",
+        "MASTER_TOKEN": "",
+        "SUB_TOKEN": "",
+        "DECODE_CHANNELS": [ "123", "RD_NN" ]
+    },
+    "comment_FCM_CREDENTIALS": "Credentials obtained from https://console.cloud.google.com/iam-admin/serviceaccounts by adding a service account for FCM and creating a key.",
+    "FCM_CREDENTIALS": {
+        "type": "service_account",
+        "project_id": "pagerbuddy",
+        "private_key_id": "<private ID>",
+        "private_key": "<private key>",
+        "client_email": "<service account email>",
+        "client_id": "<service account ID>",
+        "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+        "token_uri": "https://oauth2.googleapis.com/token",
+        "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+        "client_x509_cert_url": "<service account cert URL>"
+    }
+}

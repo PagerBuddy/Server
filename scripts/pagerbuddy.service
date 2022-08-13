@@ -1,0 +1,15 @@
+[Unit]
+Description=PagerBuddy
+
+[Service]
+ExecStart=/usr/bin/node %pagerbuddy%/scripts/start.mjs
+Restart=always
+RestartSec=2
+User=nobody
+Group=nogroup
+Type=simple
+Environment=NODE_PORT=3000
+WorkingDirectory=%pagerbuddy%
+
+[Install]
+WantedBy=multi-user.target

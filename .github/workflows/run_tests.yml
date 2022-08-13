@@ -1,0 +1,17 @@
+name: Run Jest Tests
+on: [push]
+jobs:
+  jest:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v3
+      - run: echo "💡 The ${{ github.repository }} repository has been cloned to the runner."
+      - name: echo "Checking for deprecation"
+        continue-on-error: true
+        run: npm outdated
+      - name: echo "Installing the dependencies"
+        run: NO_SERVICE=true npm install
+      - name: Run the Jest tests
+        run: npm test
+      - run: echo "🍏 This job's status is ${{ job.status }}."

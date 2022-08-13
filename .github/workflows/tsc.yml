@@ -1,0 +1,14 @@
+name: Compile TypeScript
+on: [push]
+jobs:
+  tsc:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v3
+      - run: echo "💡 The ${{ github.repository }} repository has been cloned to the runner."
+      - name: echo "Installing the dependencies"
+        run: NO_SERVICE=true npm install
+      - name: Run tsc
+        uses: icrawl/action-tsc@v1
+      - run: echo "🍏 This job's status is ${{ job.status }}."
