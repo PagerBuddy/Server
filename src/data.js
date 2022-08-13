@@ -278,7 +278,7 @@ export async function get_check_users_list() {
 /**
  * Gets the FCM device tokens and chatIDs linked to a given ZVEI unit.
  * @param {number} zvei_id ID of a ZVEI unit.
- * @returns {Promise<Array<{token: string, chat_id: string, user_id: number}>|[]>} List of device tokens, chat IDs and user IDs linked to the ZVEI unit.
+ * @returns {Promise<Array<{token: string, chat_id: string, user_id: number}>>} List of device tokens, chat IDs and user IDs linked to the ZVEI unit.
  */
 export async function get_device_ids_from_zvei(zvei_id) {
 
@@ -353,7 +353,7 @@ export async function is_test_time(zvei_id, timestamp) {
         `;
     let params = [zvei_id];
     
-    /**@type {{test_day: number, test_time_start: string, test_time_end: string}[]} */
+    /**@type {Array.<{test_day: number, test_time_start: string, test_time_end: string}>} */
     let rows = await sql_query(sql, params);
 
     if (rows.length < 1) {

@@ -46,7 +46,7 @@ export class Config {
      * 
      * @param {string} file 
      * @param {boolean} continue_on_error This should only be used with utmost care!
-     * @returns 
+     * @returns {void}
      */
     #load_config(file, continue_on_error = false) {
         if (!fs.existsSync(file)) {
@@ -157,7 +157,7 @@ export class Config {
     /**
      * 
      * @param {string} timezone 
-     * @return {boolean} If timezone could be parsed without error.
+     * @returns {boolean} If timezone could be parsed without error.
      */
     #check_valid_timezone(timezone){
         try{
@@ -181,6 +181,7 @@ export class Config {
      * 
      * @param {number} reason 
      * @param {boolean} ignore_exit 
+     * @returns {void}
      */
     #conditional_exit(reason, ignore_exit = false){
         if(!ignore_exit){
