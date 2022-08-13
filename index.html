@@ -49,24 +49,67 @@
 
     <section class="readme">
         <article><h1>PagerBuddy-Server <a href="https://github.com/PagerBuddy/Server/actions/workflows/run_tests.yml"><img src="https://github.com/PagerBuddy/Server/actions/workflows/run_tests.yml/badge.svg" alt="Run Jest Tests"></a> <a href="https://github.com/PagerBuddy/Server/actions/workflows/tsc.yml"><img src="https://github.com/PagerBuddy/Server/actions/workflows/tsc.yml/badge.svg" alt="Compile TypeScript"></a></h1>
-<hr>
-<p>Install:</p>
-<pre><code>//Before install adapt config-template.json and save as config.json or add config.json to lazy-develop
-
-npm install             //creates dependencies
-npm run postinstall     //checkes for config.json and data.db - creates from scripts/lazy-develop if available and necessary, installs and enables service
+<p>PagerBuddy is an OpenSource project to propagate alerts for members of emergency services (firebrigades, medical, catastrophe response, ...). The project consists of three components: &quot;Interfaces&quot; forward incoming external alerts (f.e. from a physical pager) or generated alerts to the server. The &quot;server&quot; handles incoming information from many different interfaces, aggregates alerts and sends notifications to users (currently supporting Telegram and PagerBuddy-App). Users can optionally install the &quot;app&quot; to be notified in an urgent manner about alerts on their smartphone.</p>
+<p>This repo is for the &quot;server&quot; component.</p>
+<p>Currently supported:</p>
+<ul>
+<li>Incoming alerts: Websocket, <a href="https://www.fuf-frey.de/katsys/">KatSys</a></li>
+<li>PagerBuddy administration: <a href="https://telegram.org/">Telegram</a> (through bot commands and inline actions)</li>
+<li>Outgoing alerts: <a href="https://firebase.google.com/docs/cloud-messaging">Firebase Cloud Messaging</a> (FCM), <a href="https://developer.apple.com/documentation/usernotifications">Apple Push Notification service</a> (routed through FCM), Telegram</li>
+</ul>
+<h2>Installation</h2>
+<ol>
+<li>
+<p>Install Node.js (<a href="https://nodejs.org/en/download/">download installer</a>, <a href="https://nodejs.org/en/download/package-manager/">use package manager</a>)</p>
+</li>
+<li>
+<p>Clone this repository (if you have <a href="https://git-scm.com/downloads">git</a>)</p>
+<pre class="prettyprint source"><code>git clone https://github.com/PagerBuddy/Server.git
 </code></pre>
-<p>Service:</p>
-<pre><code>npm run startservice    //service is installed and enabled in postinstall on linux
+<p>or <a href="https://github.com/PagerBuddy/Server/archive/refs/heads/main.zip">download ZIP</a> and unpack to a location of your choice</p>
+</li>
+<li>
+<p>Create a config.json with your settings (or edit <a href="https://github.com/PagerBuddy/Server/blob/main/config-template.json">config-template.json</a> and save as config.json)</p>
+<p>Required parameters:</p>
+<ul>
+<li>DATABASE_LOCATION - Where your database file should live (relative to code). Usually the template default should be fine.</li>
+<li>TELEGRAM
+<ul>
+<li>BOT_TOKEN and BOT_NAME - You will have to create a Telegram bot with <a href="https://core.telegram.org/bots#6-botfather">BotFather</a> to get these. Do not worry, it is really simple.</li>
+<li>ADMIN_GROUPS - An array of Telegram chat ids (like -123456, bots like @raw_data_bot can help you find this) that are authorised to manage the server. Best to use a group.</li>
+</ul>
+</li>
+<li>ALERT_TIME_ZONE - An IANA timezone string (<a href="https://nodatime.org/TimeZones">Zone ID list</a>). Outgoing alerts will be set in this timezone.</li>
+</ul>
+<p>All other parameters are optional and only have to be set if you want to use that functionality.</p>
+</li>
+<li>
+<p>Install dependencies</p>
+<pre class="prettyprint source"><code>npm install
 </code></pre>
-<p>View logs/status (linux service):</p>
-<pre><code>sudo systemctl status pagerbuddyserver.service
-journalctl -f -u pagerbuddyserver.service
+<p>On linux systems this will also add a systemd service to automatically start the server on boot (add <code>NO_SERVICE=true</code> to install without service). After install the service is in the stopped state. Some useful commands when working with the service are</p>
+<pre class="prettyprint source"><code>sudo systemctl start pagerbuddy //start the service
+sudo systemctl stop pagerbuddy //stop the service
+journalctl -f -u pagerbuddy //View the service log, updating live
 </code></pre>
-<p>Start manually:</p>
-<pre><code>npm start
+</li>
+<li>
+<p>You are good to go. If you are not using the service you can start the server with</p>
+<pre class="prettyprint source"><code>npm start
 </code></pre>
-<hr></article>
+</li>
+</ol>
+<h2>Documentation</h2>
+<p>We are working on a wiki and compiled version of the code markup. Hang tight!
+In the meantime feel free to ask any questions or problems you may have in the form of an issue...</p>
+<h2>Apps</h2>
+<p>Currently the apps for iOS and Android can only be used with the &quot;original&quot; server instance. This will change very soon - making the app usable for any server operator. You will however have to operate a FCM project for your server (free). Untill then have a look at the apps (currently in Beta, moving to production release soon):</p>
+<ul>
+<li>Androoid: <a href="https://play.google.com/store/apps/details?id=de.bartunik.pagerbuddy&amp;hl=en&amp;gl=US">PlayStore</a></li>
+<li>iOS: <a href="https://testflight.apple.com/join/C0bsfa5g">TestFlight in App Store</a></li>
+</ul>
+<h2>Legal</h2>
+<p>It may not be legal to forward messages/alerts to people that are not intended recipients in your location (f.e. Germany). It is your responsibility to ensure you only use PagerBuddy in a legal way!</p></article>
     </section>
 
 
@@ -79,7 +122,7 @@ journalctl -f -u pagerbuddyserver.service
 <br class="clear">
 
 <footer>
-    Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.7</a> on Sat Aug 13 2022 16:51:58 GMT+0000 (Coordinated Universal Time) using the Minami theme.
+    Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.7</a> on Sat Aug 13 2022 18:49:43 GMT+0000 (Coordinated Universal Time) using the Minami theme.
 </footer>
 
 <script>prettyPrint();</script>
