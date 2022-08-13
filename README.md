@@ -51,7 +51,7 @@ In the meantime feel free to ask any questions or problems you may have in the f
 
 ## Apps
 Currently the apps for iOS and Android can only be used with the "original" server instance. This will change very soon - making the app usable for any server operator. You will however have to operate a FCM project for your server (free). Untill then have a look at the apps (currently in Beta, moving to production release soon):
-* Androoid: [PlayStore](https://play.google.com/store/apps/details?id=de.bartunik.pagerbuddy&hl=en&gl=US)
+* Android: [PlayStore](https://play.google.com/store/apps/details?id=de.bartunik.pagerbuddy&hl=en&gl=US)
 * iOS: [TestFlight in App Store](https://testflight.apple.com/join/C0bsfa5g)
 
 ## Legal
