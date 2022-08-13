@@ -17,7 +17,7 @@ Currently supported:
    ```
    git clone https://github.com/PagerBuddy/Server.git
    ```
-   or [download ZIP](https://github.com/PagerBuddy/Server/archive/refs/heads/main.zip) and unpack to a location of your choice
+   or [download release](https://github.com/PagerBuddy/Server/releases/latest) and unpack to a location of your choice
 
 3. Create a config.json with your settings (or edit [config-template.json](https://github.com/PagerBuddy/Server/blob/main/config-template.json) and save as config.json)
 
