@@ -95,7 +95,6 @@ export function stop() {
 
 if (process.argv.length == 3) {
     const what = process.argv[2];
-    console.log(`what: ${what}`)
     switch (what) {
         case "install":
             install_service();
