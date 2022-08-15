@@ -1,4 +1,3 @@
-"use strict";
 import * as os from 'os';
 import * as fs from 'fs';
 import { exec } from "child_process";
@@ -80,3 +79,19 @@ export function start() {
     exec("sudo systemctl start pagerbuddy");
 }
 
+if (process.argv.length == 3) {
+    const what = process.argv[2];
+    console.log(`what: ${what}`)
+    switch (what) {
+        case "install":
+            install_service();
+            break;
+        case "start":
+            start();
+            break;
+        case "uninstall":
+            uninstall_service();
+            break;
+        default:
+    }
+}
