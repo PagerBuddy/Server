@@ -14,7 +14,7 @@ export class ZVEIID {
         }
 
         if (zvei_id < 0 || zvei_id > 99999) {
-            throw new Error(`ZVEIID ${zvei_id} out of range [0,9999]`)
+            throw new Error(`Can't create ZVEIID: ${zvei_id} out of range [0,9999]`)
         }
         this.id = zvei_id;
 
