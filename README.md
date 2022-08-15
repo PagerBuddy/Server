@@ -32,9 +32,9 @@ Currently supported:
 
 4. Install dependencies
    ```
-   npm install
+   sudo npm install
    ```
-   On linux systems this will also add a systemd service to automatically start the server on boot (add ```NO_SERVICE=true``` to install without service). After install the service is in the stopped state. Some useful commands when working with the service are
+   On linux systems this will also add a systemd service to automatically start the server on boot (add ```NO_SERVICE=true``` to install without service). After install the service is in the stopped state. Sudo is required for service and database creation. Some useful commands when working with the service are
       ```
       sudo systemctl start pagerbuddy //start the service
       sudo systemctl stop pagerbuddy //stop the service
