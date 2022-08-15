@@ -1,9 +1,7 @@
 import * as fs from 'fs';
 import sqlite3 from 'sqlite3';
-import * as service from "./service.mjs";
 import * as path from "path";
 import * as os from 'os';
-import { exec } from "child_process";
 
 const config_path = "./config.json";
 
@@ -37,9 +35,21 @@ function initialise_database() {
     const config = JSON.parse(fs.readFileSync(config_path).toString())
     const db_location = config['DATABASE_LOCATION']
 
+    const db_path = path.dirname(db_location);
+
+    if (does_file_exist(db_location)) {
+        if (os.platform() == "linux") {
+            //Have to set DB permissions
+            fs.chmod(db_location, 0o777, () => { });
+            fs.chmod(db_path, 0o777, () => { });
+        }
+        console.log("Databse file found, using it...")
+        return;
+    }
+
     //DB file does not exist - lets initialise it
     console.log("No database file found, creating a new one...");
-    fs.mkdir(path.dirname(db_location), { recursive: true }, (err) => {
+    fs.mkdir(db_path, { recursive: true }, (err) => {
         if (err) {
             console.error(err);
         }
@@ -63,6 +73,12 @@ function initialise_database() {
     });
 
     db.close();
+
+    if (os.platform() == "linux") {
+        //Have to set DB permissions
+        fs.chmod(db_path, 0o777, () => { });
+        fs.chmod(db_location, 0o777, () => { });
+    }
 }
 
 
