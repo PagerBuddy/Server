@@ -37,15 +37,6 @@ function initialise_database() {
     const config = JSON.parse(fs.readFileSync(config_path).toString())
     const db_location = config['DATABASE_LOCATION']
 
-    if (does_file_exist(db_location)) {
-        if (os.platform() == "linux") {
-            //Have to set DB permissions
-            exec("sudo chmod 777 " + db_location);
-            exec("sudo chmod 777 " + path.dirname(db_location));
-        }
-        return;
-    }
-
     //DB file does not exist - lets initialise it
     console.log("No database file found, creating a new one...");
     fs.mkdir(path.dirname(db_location), { recursive: true }, (err) => {
@@ -72,12 +63,6 @@ function initialise_database() {
     });
 
     db.close();
-
-    if (os.platform() == "linux") {
-        //Have to set DB permissions
-        exec("sudo chmod 777 " + db_location);
-        exec("sudo chmod 777 " + path.dirname(db_location));
-    }
 }
 
 
@@ -132,4 +117,3 @@ function does_file_exist(file) {
 apply_lazy_files();
 check_config();
 initialise_database();
-service.install_service();
