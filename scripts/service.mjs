@@ -14,12 +14,7 @@ function check_platform() {
 
     const is_linux = os.platform() == "linux";
 
-    let is_deactivated = false;
-    if (process.env.NO_SERVICE) {
-        is_deactivated = true;
-    }
-
-    return is_linux && !is_deactivated;
+    return is_linux;
 }
 
 /**
@@ -38,8 +33,6 @@ export function install_service() {
     let servicedata = fs.readFileSync(service_file, "utf-8");
     let outdata = servicedata.replace(/%pagerbuddy%/g, path.resolve("./"));
     fs.writeFileSync(service_location, outdata, "utf-8");
-
-    start();
 
     console.log("Installed and enabled pagerbuddy service. Service will start automaticall on boot. Call 'npm startservice' to start now.")
 }
