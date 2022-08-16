@@ -4,8 +4,9 @@ Description=PagerBuddy
 [Service]
 ExecStart=/usr/bin/node %pagerbuddy%/scripts/start.mjs
 Restart=always
+RestartPreventExitStatus=1000
 RestartSec=2
-User=nobody
+DynamicUser=yes
 Group=nogroup
 Type=simple
 Environment=NODE_PORT=3000
