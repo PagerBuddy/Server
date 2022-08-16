@@ -33,7 +33,10 @@
         "debug": "node scripts/start.mjs",
         "postinstall": "node scripts/postinstall.mjs",
         "cleanup": "node scripts/cleanup.mjs",
-        "startservice": "node -e 'require(\"./scripts/service\").start()'",
+        "installservice": "sudo node scripts/service.mjs install",
+        "uninstallservice": "sudo node scripts/service.mjs uninstall",
+        "startservice": "sudo node scripts/service.mjs start",
+        "stopservice": "sudo node scripts/service.mjs stop",
         "test": "jest --runInBand --config=test/jest.config.mjs"
     },
     "devDependencies": {

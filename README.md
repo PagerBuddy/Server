@@ -34,11 +34,12 @@ Currently supported:
    ```
    sudo npm install
    ```
-   On linux systems this will also add a systemd service to automatically start the server on boot (add ```NO_SERVICE=true``` to install without service). After install the service is in the stopped state. Sudo is required for service and database creation. Some useful commands when working with the service are
+   On linux systems, it is possible to install PagerBuddy as a systemd service via `npm run installservice` (you will be asked to enter your root password). The service will be enabled, but not automatically started. You can do so via `npm run startservice`. Some useful commands when working with the service are
       ```
-      sudo systemctl start pagerbuddy //start the service
-      sudo systemctl stop pagerbuddy //stop the service
-      journalctl -f -u pagerbuddy //View the service log, updating live
+      npm run startservice // start the service
+      npm run stopservice // stop the service
+      npm run uninstallservice // stops and removes the service
+      journalctl -f -u pagerbuddy // View the service log, updating live
       ```
 5. You are good to go. If you are not using the service you can start the server with
    ```
