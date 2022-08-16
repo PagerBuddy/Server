@@ -34,6 +34,8 @@ export function install_service() {
     let outdata = servicedata.replace(/%pagerbuddy%/g, path.resolve("./"));
     fs.writeFileSync(service_location, outdata, "utf-8");
 
+    exec("systemctl enable pagerbuddy");
+
     console.log("Installed and enabled pagerbuddy service. Service will start automaticall on boot. Call 'npm startservice' to start now.")
 }
 
