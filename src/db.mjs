@@ -2,8 +2,9 @@ import sqlite3 from 'sqlite3';
 import logger from './logging.mjs'
 import { existsSync } from 'fs'
 import * as Z from './model/zvei.mjs'
+import Optional from 'optional-js'
 
-class database {
+export class database {
     /**
      * 
      * @param {string} timezone 
@@ -57,17 +58,40 @@ class database {
                 return Z.mk_zvei(r.zvei_id, r.description, r.test_day, r.test_time_start, r.test_time_end);
             })
         });
-
+        console.log(`zveis ${zveis}`)
         return zveis;
+    }
+
+    /**
+     * Returns the ZVEI for a given ZVEI ID or empty if no ZVEI for the ID exists.
+     * @param {Z.ZVEIID} zvei_id 
+     * @returns {Promise<Optional<Z.ZVEI>>}
+     */
+    async get_ZVEI(zvei_id) {
+        const sql = `
+        SELECT *
+        FROM ZVEI
+        WHERE zvei_id = ?
+        `;
+
+        let params = [zvei_id.id];
+        let rows = await this.sql_query(sql, params);
+        if (rows.length != 1) {
+            return Optional.empty();
+        } else {
+            const r = rows[0];
+            const zvei = Z.mk_zvei(r.zvei_id, r.description, r.test_day, r.test_time_start, r.test_time_end);
+            return Optional.of(zvei);
+        }
     }
 
 
     /**
      * Get the ZVEI description.
      * @param {Z.ZVEIID} zvei_id ID of the ZVEI unit.
-     * @returns {Promise<string>} The ZVEI description or "".
+     * @returns {Promise<Optional<String>>} The ZVEI description (if the ZVEI exists)
      */
-    async get_zvei_details(zvei_id) {
+    async get_ZVEI_details(zvei_id) {
 
         let sql = `
         SELECT description
@@ -77,13 +101,50 @@ class database {
         let params = [zvei_id.id];
         let rows = await this.sql_query(sql, params);
         if (rows.length != 1) {
-            return "";
+            return Optional.empty();
         } else {
             const desc = rows[0].description;
-            return desc;
+            return Optional.of(desc);
         }
     }
+
+    /**
+     * 
+     * @param {Z.ZVEI} zvei 
+     * @returns 
+     */
+    async add_ZVEI(zvei) {
+        let sql = `
+        INSERT INTO ZVEI(zvei_id, description, test_day, test_time_start, test_time_end)
+        VALUES (?, ?, ?, ?, ?)
+        `;
+        let params = [zvei.id.id, zvei.description, zvei.test_day, zvei.test_time_start, zvei.test_time_end];
+        await this.sql_query(sql, params);
+    }
+
+/**
+ * Removes a given ZVEI and all alarms for the ZVEI from the database
+ * @param {Z.ZVEI} zvei 
+ */
+    async remove_ZVEI(zvei) {
+        let sql = `
+        DELETE FROM ZVEI
+        WHERE zvei_id = ?
+        `;
+        let params = [zvei.id.id];
+        await this.sql_query(sql, params);
+    
+        // 2. Remove all linked alarms.
+        let sql2 = `
+        DELETE FROM Alarms
+        WHERE zvei_id = ?
+        `
+
+        await this.sql_query(sql2, params)
+    }
 }
+
+
 
 /**
  * 
@@ -92,7 +153,7 @@ class database {
  * @param {string} db_path 
  * @returns {Promise<database>} 
  */
-export default async function create_database(timezone, history_timeout, db_path) {
+export async function create_database(timezone, history_timeout, db_path) {
     const log = logger("DBClass");
 
     log.debug(`Connecting to DB in file '${db_path}'`);
