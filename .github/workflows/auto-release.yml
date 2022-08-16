@@ -24,3 +24,4 @@ jobs:
             LICENSE
             config-template.json
             package.json
+            test/*
