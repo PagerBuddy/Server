@@ -11,7 +11,7 @@ jobs:
         continue-on-error: true
         run: npm outdated
       - name: echo "Installing the dependencies"
-        run: NO_SERVICE=true npm install
+        run: npm install
       - name: Run the Jest tests
         run: npm test
       - run: echo "🍏 This job's status is ${{ job.status }}."
