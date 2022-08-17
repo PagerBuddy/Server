@@ -1,4 +1,5 @@
 import * as validator from './validation.mjs'
+import Optional from 'optional-js'
 export class ZVEIID {
     /**
      * 
@@ -6,11 +7,34 @@ export class ZVEIID {
      */
     constructor(zvei_id) {
 
-        const validated_id = validator.is_valid_zvei_id(zvei_id)
+        const validated_id = ZVEIID.validate(zvei_id)
         if (!validated_id.isPresent()) {
             throw new Error(`"Can't create ZVEIID: ${zvei_id}" is not a number or not from the range [0,99999]`)
         }
         this.id = validated_id.get();
+    }
+
+/**
+ * Check whether the input is  a valid ZVEI ID and, if so, returns it as a number
+ * 
+ * An ID is valid if it is a number from the range [0,9999]. The method tries to parse strings using `parseInt`.
+ * 
+ * @param {string|number} zvei_id 
+ * @returns {Optional<number>} empty optional if the ID was not valid; optional containing the number if it was a valid ID
+ */
+    static validate(zvei_id) {
+        if (typeof (zvei_id) == "string") {
+            zvei_id = parseInt(zvei_id)
+            if (isNaN(zvei_id)) {
+                return Optional.empty();
+            }
+        }
+
+        if (zvei_id < 0 || zvei_id > 99999) {
+            return Optional.empty();
+        }
+
+        return Optional.of(zvei_id);
     }
 }
 
@@ -31,7 +55,7 @@ export class ZVEI {
         }
         this.description = description;
 
-        if(test_day < 0 || test_day >= 7) {
+        if (test_day < 0 || test_day >= 7) {
             throw new Error(`Test day '${test_day}' is not from the range [0,6]`);
         }
         this.test_day = test_day;
@@ -57,14 +81,14 @@ export class ZVEI {
 
         const date = new Date(time_)
         const day = date.getDay();
-        
+
         // TODO this returns a string and we compare it against another string. why/how does this work?
-        const time = date.toLocaleTimeString("de-DE", {timeZone : timezone}) 
+        const time = date.toLocaleTimeString("de-DE", { timeZone: timezone })
 
         const right_day = day === this.test_day;
         const in_time_range = this.test_time_start <= time && time <= this.test_time_end;
 
-          return right_day && in_time_range;
+        return right_day && in_time_range;
     }
 }
 /**

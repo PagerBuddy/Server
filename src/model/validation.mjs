@@ -13,27 +13,7 @@ export function is_text_safe(text) {
     return res;
 }
 
-/**
- * Check whether the input is  a valid ZVEI ID.
- * 
- * An ID is valid if it is a number from the range [0,9999]. The method tries to parse strings using `parseInt`.
- * @param {string|number} zvei_id 
- * @returns {Optional<number>} empty optional if the ID was not valid; optional containing the number if it was a valid ID
- */
-export function is_valid_zvei_id(zvei_id) {
-    if (typeof (zvei_id) == "string") {
-        zvei_id = parseInt(zvei_id)
-        if (isNaN(zvei_id)) {
-            return Optional.empty();
-        }
-    }
 
-    if (zvei_id < 0 || zvei_id > 99999) {
-        return Optional.empty();
-    }
-
-    return Optional.of(zvei_id);
-}
 
 
 /**
