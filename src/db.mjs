@@ -26,7 +26,7 @@ export class database {
      * @param {Array<string|number>} params list of parameters.
      * @returns {Promise<boolean>} True iff the sql query succeeded
     */
-     sql_run(sql, params) {
+     #sql_run(sql, params) {
 
         return new Promise((resolve, _) => {
             this.db.all(sql, params, (/** @type {any} */err, /** @type {any} */rows) => {
@@ -43,12 +43,12 @@ export class database {
 
 
     /** 
-     * Executes an SQL query with the given parameters.
+     * Executes an SQL query with the given parameters und returns the results
      * @param {string} sql SQL query to be executed.
      * @param {Array<string|number>} params list of parameters.
      * @returns {Promise<Array<Object.<String,String|number>>>} result rows.
     */
-    sql_query(sql, params) {
+    #sql_query(sql, params) {
 
         // log.debug("Query: " + sql + "; Params: " + params);
         return new Promise((resolve, _) => {
@@ -74,7 +74,7 @@ export class database {
      SELECT *
      FROM Groups
      `;
-        const rows = this.sql_query(sql, []);
+        const rows = this.#sql_query(sql, []);
         const groups = rows.then(res => {
             return res.map(r => {
                 return new Group(r.group_id, r.description, r.chat_id, r.auth_token);
@@ -93,7 +93,7 @@ export class database {
         FROM ZVEI
         `;
 
-        const rows = this.sql_query(sql, []);
+        const rows = this.#sql_query(sql, []);
         const zveis = rows.then(res => {
             return res.map(r => {
                 return Z.mk_zvei(r.zvei_id, r.description, r.test_day, r.test_time_start, r.test_time_end);
@@ -115,7 +115,7 @@ export class database {
         `;
 
         let params = [zvei_id.id];
-        let rows = await this.sql_query(sql, params);
+        let rows = await this.#sql_query(sql, params);
         if (rows.length != 1) {
             return Optional.empty();
         } else {
@@ -139,7 +139,7 @@ export class database {
         WHERE zvei_id = ?
     `;
         let params = [zvei_id.id];
-        let rows = await this.sql_query(sql, params);
+        let rows = await this.#sql_query(sql, params);
         if (rows.length != 1) {
             return Optional.empty();
         } else {
@@ -159,7 +159,7 @@ export class database {
         VALUES (?, ?, ?, ?, ?)
         `;
         let params = [zvei.id.id, zvei.description, zvei.test_day, zvei.test_time_start, zvei.test_time_end];
-        return this.sql_run(sql, params);
+        return this.#sql_run(sql, params);
     }
 
     /**
@@ -173,7 +173,7 @@ export class database {
         WHERE zvei_id = ?
         `;
         let params = [zvei.id.id];
-        await this.sql_query(sql, params);
+        await this.#sql_query(sql, params);
 
         // 2. Remove all linked alarms.
         let sql2 = `
@@ -181,7 +181,7 @@ export class database {
         WHERE zvei_id = ?
         `
 
-        return this.sql_run(sql2, params)
+        return this.#sql_run(sql2, params)
     }
 }
 
