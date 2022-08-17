@@ -3,6 +3,7 @@ import logger from './logging.mjs'
 import { existsSync } from 'fs'
 import * as Z from './model/zvei.mjs'
 import Optional from 'optional-js'
+import { Group } from './model/group.mjs';
 
 export class database {
     /**
@@ -19,13 +20,34 @@ export class database {
         this.db = db;
     }
 
+    /** 
+     * Executes an SQL query with the given parameters returning whether the query succeeded
+     * @param {string} sql SQL query to be executed.
+     * @param {Array<string|number>} params list of parameters.
+     * @returns {Promise<boolean>} True iff the sql query succeeded
+    */
+     sql_run(sql, params) {
+
+        return new Promise((resolve, _) => {
+            this.db.all(sql, params, (/** @type {any} */err, /** @type {any} */rows) => {
+                if (err) {
+                    this.logger.error(err.message);
+                    this.logger.error("An error occured trying to perform a query.");
+                    resolve(false);
+                } else {
+                    resolve(true);
+                }
+            })
+        })
+    }
+
 
     /** 
- * Executes an SQL query with the given parameters.
- * @param {string} sql SQL query to be executed.
- * @param {Array<string|number>} params list of parameters.
- * @returns {Promise<Array<Object.<String,String|number>>>} result rows.
-*/
+     * Executes an SQL query with the given parameters.
+     * @param {string} sql SQL query to be executed.
+     * @param {Array<string|number>} params list of parameters.
+     * @returns {Promise<Array<Object.<String,String|number>>>} result rows.
+    */
     sql_query(sql, params) {
 
         // log.debug("Query: " + sql + "; Params: " + params);
@@ -43,6 +65,25 @@ export class database {
     }
 
     /**
+ * Get the complete group table.
+ * @returns {Promise<Group[]>}
+ */
+    get_groups() {
+
+        let sql = `
+     SELECT *
+     FROM Groups
+     `;
+        const rows = this.sql_query(sql, []);
+        const groups = rows.then(res => {
+            return res.map(r => {
+                return new Group(r.group_id, r.description, r.chat_id, r.auth_token);
+            });
+        });
+        return groups;
+    }
+
+    /**
      * Returns all ZVEI units
      * @returns {Promise<Z.ZVEI[]>}
      */
@@ -56,9 +97,8 @@ export class database {
         const zveis = rows.then(res => {
             return res.map(r => {
                 return Z.mk_zvei(r.zvei_id, r.description, r.test_day, r.test_time_start, r.test_time_end);
-            })
+            });
         });
-        console.log(`zveis ${zveis}`)
         return zveis;
     }
 
@@ -122,10 +162,10 @@ export class database {
         await this.sql_query(sql, params);
     }
 
-/**
- * Removes a given ZVEI and all alarms for the ZVEI from the database
- * @param {Z.ZVEI} zvei 
- */
+    /**
+     * Removes a given ZVEI and all alarms for the ZVEI from the database
+     * @param {Z.ZVEI} zvei 
+     */
     async remove_ZVEI(zvei) {
         let sql = `
         DELETE FROM ZVEI
@@ -133,7 +173,7 @@ export class database {
         `;
         let params = [zvei.id.id];
         await this.sql_query(sql, params);
-    
+
         // 2. Remove all linked alarms.
         let sql2 = `
         DELETE FROM Alarms
