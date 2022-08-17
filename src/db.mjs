@@ -151,7 +151,7 @@ export class database {
     /**
      * 
      * @param {Z.ZVEI} zvei 
-     * @returns 
+     * @returns {Promise<boolean>}
      */
     async add_ZVEI(zvei) {
         let sql = `
@@ -159,12 +159,13 @@ export class database {
         VALUES (?, ?, ?, ?, ?)
         `;
         let params = [zvei.id.id, zvei.description, zvei.test_day, zvei.test_time_start, zvei.test_time_end];
-        await this.sql_query(sql, params);
+        return this.sql_run(sql, params);
     }
 
     /**
      * Removes a given ZVEI and all alarms for the ZVEI from the database
      * @param {Z.ZVEI} zvei 
+     * @returns {Promise<boolean>}
      */
     async remove_ZVEI(zvei) {
         let sql = `
@@ -180,7 +181,7 @@ export class database {
         WHERE zvei_id = ?
         `
 
-        await this.sql_query(sql2, params)
+        return this.sql_run(sql2, params)
     }
 }
 
