@@ -212,7 +212,7 @@ export class database {
                     /**
                     * @type {Group}
                     */
-                    const g = new Group(this.lastID, description, "", auth_token);
+                    const g = new Group(this.lastID, description, null, auth_token);
                     resolve(Optional.of(g));
                 }
             });
@@ -244,12 +244,12 @@ export class database {
 
     /**
      * Removes a group and all linked alarms.
-     * @param {number} group_id group ID of the group to be removed.
+     * @param {Group} group group ID of the group to be removed.
      * @returns {Promise<boolean>} Success
      */
-    async remove_group(group_id) {
+    async remove_group(group) {
 
-        //let group_id = parseInt(group_id_);
+        const group_id = group.id
 
         // 1. Check if group ID is safe
         if (!validator.is_numeric_safe(group_id)) {
@@ -279,7 +279,7 @@ export class database {
         return new Promise(resolve => {
             this.db.serialize(() => {
                 // the second run() should only be executed when the first did not fail
-                this.db.run(sql_delete_group, params,(error) => {
+                this.db.run(sql_delete_group, params, (error) => {
                     if (error) {
                         resolve(false);
                     }
@@ -320,21 +320,30 @@ export class database {
             return Optional.empty();
         }
 
+        console.log("initial tests passed", auth_token)
+
+
         let sqlCheck = `
     SELECT *
     FROM Groups
     WHERE auth_token = ?
     `;
 
-        let group = null;
+        console.log("hier")
+        let group_id = -1
         const group_res = await this.#sql_query(sqlCheck, [auth_token]);
+        console.log("weiterhin")
         if (group_res.length != 1) {
             this.logger.warn(`Auth token "${auth_token}" has ${group_res.length} associated groups (must be exactly 1)`);
+            console.log(`Auth token "${auth_token}" has ${group_res.length} associated groups (must be exactly 1)`)
             return Optional.empty();
         }
         else {
-            group = this.#row_to_group(group_res[0]);
+            console.log("found group")
+            group_id = group_res[0].id;
         }
+
+        console.log("Found group for auth token")
 
         let sqlSingleChatCheck = `
     SELECT group_id
@@ -349,6 +358,8 @@ export class database {
             return Optional.empty();
         }
 
+        console.log("Chat ID not used")
+
         let sql = `
     UPDATE Groups
     SET chat_id = ?, auth_token = NULL
@@ -360,7 +371,8 @@ export class database {
             return Optional.empty();
         }
 
-        return Optional.of(group);
+        // return the updated group
+        return this.get_group(group_id)
     }
 
     /**
@@ -473,7 +485,7 @@ export class database {
         DELETE FROM ZVEI
         WHERE zvei_id = ?
         `;
-   
+
         // 2. Remove all linked alarms.
         const sql_delete_alarms = `
         DELETE FROM Alarms
@@ -484,7 +496,7 @@ export class database {
                 // the second run() should only be executed when the first did not fail
                 // the doubling of the error callback is probably unnecessary but I can't find
                 // any examples on how to use this correctly
-                this.db.run(sql_delete_zvei, params,(error) => {
+                this.db.run(sql_delete_zvei, params, (error) => {
                     if (error) {
                         resolve(false);
                     }

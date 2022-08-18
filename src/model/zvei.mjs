@@ -86,7 +86,7 @@ export class ZVEI {
         const date = new Date(time_)
         const day = date.getDay();
 
-        // TODO this returns a string and we compare it against another string. why/how does this work?
+        //TODO this returns a string and we compare it against another string. why/how does this work?
         const time = date.toLocaleTimeString("de-DE", { timeZone: timezone })
 
         const right_day = day === this.test_day;

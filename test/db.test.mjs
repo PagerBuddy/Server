@@ -1,4 +1,4 @@
-import { describe, expect, test, beforeAll, afterAll, jest } from '@jest/globals'
+import { describe, expect, test, beforeAll, beforeEach, afterAll, jest } from '@jest/globals'
 import { TestConfig } from './testConfig.js';
 import Optional from 'optional-js'
 
@@ -7,6 +7,7 @@ import { mk_zvei, ZVEIID } from '../src/model/zvei.mjs';
 
 
 import * as Z from '../src/model/zvei.mjs'
+import { Group } from '../src/model/group.mjs';
 
 const config = new TestConfig();
 const db_location = config.files.database_location;
@@ -74,8 +75,143 @@ describe('Connecting to an existing DB', () => {
 
 
 describe('Groups', () => {
+    /**
+     * @type {Group?}
+     */
+    let g1 = null
+    /**
+     * @type {Group?}
+     */
+    let g2 = null
+
+    beforeAll(async () => {
+        g1 = await (await db.add_group("Test Group 1")).get()
+        g2 = await (await db.add_group("Test Group 2")).get()
+    });
+
+    afterAll(async () => {
+        await db?.remove_group(g1);
+        await db?.remove_group(g2);
+    });
+
+    test("The initial groups are present in the DB", async () => {
+
+        const grps = [g1, g2];
+        const groups = await db?.get_groups();
+        await groups?.forEach(g => {
+            const found = grps.reduce((acc, curr) => { return acc || deepEqual(g, curr); } ,false)
+            expect(found).toBeTruthy()
+        });
+    });
+
+    test("Retrieving individual initial groups should work", async () => {
+        const grps = [g1, g2];
+        await grps.forEach(async g => {
+            const res = await db?.get_group(g.id);
+            expect(res?.isPresent()).toBeTruthy()
+            expect(deepEqual(res?.get(), g)).toBeTruthy();
+        });
+
+    });
+
+    test("Adding and deleting a group should works", async () => {
+            const gopt = await db.add_group("description");
+            expect(gopt?.isPresent()).toBeTruthy();
+            const g = gopt.get();
+
+            await expect(db.remove_group(g)).resolves.toBeTruthy();
+
+            const gopt2 = await db.get_group(g.id);
+            expect (gopt2.isPresent()).toBeFalsy()
+
+    })
 
 
+    const invalid_group_ids = [null, NaN, "sgfdfhg"];
+
+    test.each(invalid_group_ids)("Trying to access groups using invalid group ID '%s' should fail", async (invalid_id) => {
+        const fail = await db.get_group(invalid_id);
+        expect(fail.isPresent()).toBeFalsy()
+    });
+
+    test.each(invalid_group_ids)("Trying to access group ZVEIs using invalid group ID '%s' should return no ZVEIs", async(invalid_id) => {
+        const fail = await db.get_group_zveis(invalid_id);
+        expect(fail.length).toBe(0)
+    })
+
+
+
+    const invalid_group_descriptions= ["*$)H", "we really häte ünicode π"];
+    test.each(invalid_group_descriptions)("Adding a group with the invalid description '%s' should fail", async (desc) => {
+        const fail = await db.add_group(desc);
+        expect(fail.isPresent()).toBeFalsy();
+    });
+
+    const cartesian = (...a) => a.reduce((a, b) => a.flatMap(d => b.map(e => [d, e].flat())));
+
+    // we add a valid ID so that the short circuiting logic has to evalute the invalid group description as well
+    const invalid_ids_descs = cartesian(invalid_group_ids.concat([1]), invalid_group_descriptions);
+    test.each(invalid_ids_descs)("Trying to update a group's description with either an invalid ID or description fails", async (id, desc)=> {
+        await expect(db.update_group_description(id,desc)).resolves.toBeFalsy();
+    });
+
+    test("Changing a group description works as expected", async () => {
+        const desc1 = "FOO BAR BAZ";
+        const desc2 = "BAR FOO BAZ";
+        const gopt = await db.add_group(desc1);
+        expect (gopt.isPresent()).toBeTruthy();
+
+        const g = gopt.get();
+        expect (g.description).toBe(desc1);
+
+        expect(db.update_group_description(g.id, desc2)).resolves.toBeTruthy();
+
+        const gop2 = await db.get_group(g.id);
+        expect (gop2.isPresent()).toBeTruthy();
+
+        const g2 = gop2.get();
+        expect (g2.description).toBe(desc2)
+        expect (g2.description).not.toBe(desc1)
+
+        await expect(db?.remove_group(g)).resolves.toBeTruthy()
+    });
+
+
+
+    const invalid_auth_tokens = ["123456789", "123456jnsle", "123456!8907"]
+    test.each(invalid_auth_tokens)("Authenticating a group with an invalid auth token '%s' fails", async (auth_token) => {
+        const dummy_chat_id = 1; // magic number with no inherent meaning
+        const res = await db.authenticate_group(dummy_chat_id, auth_token);
+        expect(res.isPresent()).toBeFalsy()
+    });
+
+    const invalid_chat_ids = [0, NaN, null];
+    test.each(invalid_chat_ids)("Authenticating a group with an invalid auth token '%s' fails", async (chat_id) => {
+        const dummy_auth_token = "1234567890"; // magic number with no inherent meaning
+        const res = await db.authenticate_group(chat_id, dummy_auth_token);
+        expect(res.isPresent()).toBeFalsy()
+    });
+
+    test("Authenticating a group with non-existing auth token fails", async () => {
+        const unused_auth_token = "1234567890"; // let's pray that is not taken!
+        const dummy_chat_id = 5;
+        const res = await db.authenticate_group(dummy_chat_id, unused_auth_token);
+        expect(res.isPresent()).toBeFalsy();
+    });
+
+    test.only("Can not authenticate chat id twice",async () => {
+        const dummy_chat_id = 5;
+        const authenticated_group_opt = await db.authenticate_group(dummy_chat_id, g1.auth_token);
+        console.log(authenticated_group_opt)
+        expect(authenticated_group_opt.isPresent()).toBeFalsy();
+
+        //const authed_group = authenticated_group_opt.get();
+        console.log(authenticated_group_opt)
+        console.log(g1);
+        //console.log(authed_group)
+        await expect(true).toBeTruthy()
+
+    });
 });
 
 describe('ZVEIs', () => {
@@ -118,6 +254,8 @@ describe('ZVEIs', () => {
     });
 
     test('zvei lifecycle functions correctly', async () => {
+        // somehow can't re-use the zvei above as even with the --runInBand option
+        // there is an issue with trying to add the samse ZVEI twice
         const zvei_id = 201;
         const zvei_description = "JEST ANOTHER TEST ZVEI";
         const test_day = 6;
