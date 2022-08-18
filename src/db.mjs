@@ -165,23 +165,44 @@ export class database {
     /**
      * Removes a given ZVEI and all alarms for the ZVEI from the database
      * @param {Z.ZVEI} zvei 
-     * @returns {Promise<boolean>}
+     * @returns {Promise<boolean>} Whether the deletion succeeded
      */
     async remove_ZVEI(zvei) {
-        let sql = `
+
+        const params = [zvei.id.id];
+
+        const sql_delete_zvei = `
         DELETE FROM ZVEI
         WHERE zvei_id = ?
         `;
-        let params = [zvei.id.id];
-        await this.#sql_query(sql, params);
-
+   
         // 2. Remove all linked alarms.
-        let sql2 = `
+        const sql_delete_alarms = `
         DELETE FROM Alarms
         WHERE zvei_id = ?
         `
-
-        return this.#sql_run(sql2, params)
+        return new Promise(resolve => {
+            this.db.serialize(() => {
+                // the second run() should only be executed when the first did not fail
+                // the doubling of the error callback is probably unnecessary but I can't find
+                // any examples on how to use this correctly
+                this.db.run(sql_delete_zvei, params,(error) => {
+                    if (error) {
+                        resolve(false);
+                    }
+                    else {
+                        resolve(true);
+                    }
+                }).run(sql_delete_alarms, params, (error) => {
+                    if (error) {
+                        resolve(false);
+                    }
+                    else {
+                        resolve(true);
+                    }
+                });
+            });
+        });
     }
 }
 
