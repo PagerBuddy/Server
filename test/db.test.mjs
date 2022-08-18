@@ -111,8 +111,8 @@ describe('Groups', () => {
 
         const grps = [g1, g2];
         const groups = await db?.get_groups();
-        await groups?.forEach(g => {
-            const found = grps.reduce((acc, curr) => { return acc || deepEqual(g, curr); }, false)
+        await grps?.forEach(g => {
+            const found = groups?.reduce((acc, curr) => {return acc || deepEqual(g, curr); }, false);
             expect(found).toBeTruthy()
         });
     });
