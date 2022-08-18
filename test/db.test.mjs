@@ -50,6 +50,13 @@ function isObject(object) {
     return object != null && typeof (object) === 'object';
 }
 
+/**
+ * @type {DB.database?}
+ */
+let db = null
+beforeAll(async () => {
+    db = await DB.create_database(config.alert_time_zone, config.timeouts.history, db_location);
+})
 
 describe('Connecting to a non-existing DB', () => {
     //null is invalid for a string - ts is blocking that for me
@@ -66,67 +73,12 @@ describe('Connecting to an existing DB', () => {
 });
 
 
-describe("lifeycycle tests", () => {
+describe('Groups', () => {
 
-    /**
-     * @type {DB.database?}
-     */
-    let db = null
-    beforeAll(async () => {
-        db = await DB.create_database(config.alert_time_zone, config.timeouts.history, config.files.database_location);
-    })
-
-    test('zvei lifecycle functions correctly', async () => {
-        const zvei_id = 200;
-        const zvei_description = "JEST TEST ZVEI";
-        const test_day = 4; //thursday - same as zero of unix epoch
-        const test_time_start = "01:00";
-        const test_time_end = "01:02";
-
-        const zvei = mk_zvei(zvei_id, zvei_description, test_day, test_time_start, test_time_end);
-
-        expect(db.add_ZVEI(zvei)).resolves.toBeTruthy();
-
-        const returned_zvei = await db.get_ZVEI(zvei.id);
-        expect(returned_zvei.isPresent()).toBeTruthy();
-        expect(returned_zvei.get()).toEqual(zvei);
-
-        /**
-         * @type {Z.ZVEI[]}
-         */
-        const all_zveis = await db.get_ZVEIs();
-        let zvei_found = false;
-        all_zveis.forEach(zvei_iter => {
-            if (deepEqual(zvei, zvei_iter)) {
-                zvei_found = true;
-            }
-        });
-        expect(zvei_found).toBeTruthy();
-
-        const description_res = await db.get_ZVEI_details(zvei.id);
-        expect(description_res.isPresent()).toBeTruthy();
-        expect(description_res.get()).toBe(zvei_description);
-
-        await db.remove_ZVEI(zvei);
-
-        const r = await db.get_ZVEI(zvei.id);
-
-        expect(r.isPresent()).toBeFalsy();
-
-    });
 
 });
 
 describe('ZVEIs', () => {
-
-
-    /**
- * @type {DB.database?}
- */
-    let db = null
-    beforeAll(async () => {
-        db = await DB.create_database(config.alert_time_zone, config.timeouts.history, config.files.database_location);
-    })
 
     const zvei_id = 200;
     const zvei_description = "JEST TEST ZVEI";
@@ -148,18 +100,58 @@ describe('ZVEIs', () => {
     ]
 
     test.each(descs)("The description of some hard-coded ZVEIs should match %i -> %s", async (id, desc) => {
-        const res = await db.get_ZVEI_details(new ZVEIID(id));
+        const res = await db?.get_ZVEI_details(new ZVEIID(id));
         if (desc) {
-            expect(res.get()).toEqual(desc)
+            expect(res?.get()).toEqual(desc)
         }
         else {
-            expect(res.isPresent()).toBeFalsy()
+            expect(res?.isPresent()).toBeFalsy()
         }
     });
 
     test("Trying to add a ZVEI twice fails as IDs need to be unique", () => {
-            expect(db?.add_ZVEI(zvei)).resolves.toBeTruthy()
-            expect(db?.add_ZVEI(zvei)).resolves.toBeFalsy()
-            expect(db?.remove_ZVEI(zvei)).resolves.toBeTruthy()
+        expect(db?.add_ZVEI(zvei)).resolves.toBeTruthy()
+        expect(db?.add_ZVEI(zvei)).resolves.toBeFalsy()
+        expect(db?.remove_ZVEI(zvei)).resolves.toBeTruthy()
     });
+
+    test('zvei lifecycle functions correctly', async () => {
+        const zvei_id = 200;
+        const zvei_description = "JEST TEST ZVEI";
+        const test_day = 4; //thursday - same as zero of unix epoch
+        const test_time_start = "01:00";
+        const test_time_end = "01:02";
+
+        const zvei = mk_zvei(zvei_id, zvei_description, test_day, test_time_start, test_time_end);
+
+        expect(db?.add_ZVEI(zvei)).resolves.toBeTruthy();
+
+        const returned_zvei = await db?.get_ZVEI(zvei.id);
+        expect(returned_zvei?.isPresent()).toBeTruthy();
+        expect(returned_zvei?.get()).toEqual(zvei);
+
+        /**
+         * @type {Z.ZVEI[]|undefined}
+         */
+        const all_zveis = await db?.get_ZVEIs();
+        let zvei_found = false;
+        all_zveis?.forEach(zvei_iter => {
+            if (deepEqual(zvei, zvei_iter)) {
+                zvei_found = true;
+            }
+        });
+        expect(zvei_found).toBeTruthy();
+
+        const description_res = await db?.get_ZVEI_details(zvei.id);
+        expect(description_res?.isPresent()).toBeTruthy();
+        expect(description_res?.get()).toBe(zvei_description);
+
+        await db?.remove_ZVEI(zvei);
+
+        const r = await db?.get_ZVEI(zvei.id);
+
+        expect(r?.isPresent()).toBeFalsy();
+
+    });
+
 });
