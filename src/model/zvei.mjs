@@ -1,6 +1,7 @@
 import * as validator from './validation.mjs'
 import Optional from 'optional-js'
 export class ZVEIID {
+    // TODO rethink this overengineered extra ID class
     /**
      * 
      * @param {number|string} zvei_id 
