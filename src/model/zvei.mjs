@@ -69,6 +69,9 @@ export class ZVEI {
         if (!validator.is_time_safe(test_time_end)) {
             throw new Error(`Test time end "${test_time_end}" is not a valid time of format HH:MM`)
         }
+        if(test_time_end < test_time_start) {
+            throw new Error(`Test time end "${test_time_end}" is not later than test time start "${test_time_start}"`)
+        }
         this.test_time_end = test_time_end;
     }
 
@@ -109,8 +112,5 @@ export class ZVEI {
 export function mk_zvei(zvei_id, description, test_day, test_time_start, test_time_end) {
     return new ZVEI(
         new ZVEIID(zvei_id), description, test_day, test_time_start, test_time_end
-    )
-
-
-
+    );
 }
