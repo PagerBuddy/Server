@@ -80,14 +80,6 @@ describe('Groups', () => {
 
 describe('ZVEIs', () => {
 
-    const zvei_id = 200;
-    const zvei_description = "JEST TEST ZVEI";
-    const test_day = 4; //thursday - same as zero of unix epoch
-    const test_time_start = "01:00";
-    const test_time_end = "01:02";
-
-    const zvei = mk_zvei(zvei_id, zvei_description, test_day, test_time_start, test_time_end);
-
     // use valid ZVEI IDs in this test only! If you plan to test for invalid IDs, do so in a separate `zei.test.mjs` file
     const descs = [
         [1, "SYSTEM DEBUG"],
@@ -100,6 +92,7 @@ describe('ZVEIs', () => {
     ]
 
     test.each(descs)("The description of some hard-coded ZVEIs should match %i -> %s", async (id, desc) => {
+
         const res = await db?.get_ZVEI_details(new ZVEIID(id));
         if (desc) {
             expect(res?.get()).toEqual(desc)
@@ -110,17 +103,26 @@ describe('ZVEIs', () => {
     });
 
     test("Trying to add a ZVEI twice fails as IDs need to be unique", () => {
+
+        const zvei_id = 200;
+        const zvei_description = "JEST TEST ZVEI";
+        const test_day = 4; //thursday - same as zero of unix epoch
+        const test_time_start = "01:00";
+        const test_time_end = "01:02";
+
+        const zvei = mk_zvei(zvei_id, zvei_description, test_day, test_time_start, test_time_end);
+
         expect(db?.add_ZVEI(zvei)).resolves.toBeTruthy()
         expect(db?.add_ZVEI(zvei)).resolves.toBeFalsy()
         expect(db?.remove_ZVEI(zvei)).resolves.toBeTruthy()
     });
 
     test('zvei lifecycle functions correctly', async () => {
-        const zvei_id = 200;
-        const zvei_description = "JEST TEST ZVEI";
-        const test_day = 4; //thursday - same as zero of unix epoch
-        const test_time_start = "01:00";
-        const test_time_end = "01:02";
+        const zvei_id = 201;
+        const zvei_description = "JEST ANOTHER TEST ZVEI";
+        const test_day = 6;
+        const test_time_start = "01:55";
+        const test_time_end = "01:59";
 
         const zvei = mk_zvei(zvei_id, zvei_description, test_day, test_time_start, test_time_end);
 
