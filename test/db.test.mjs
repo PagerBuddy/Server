@@ -212,17 +212,24 @@ describe('Groups', () => {
         expect(res.isPresent()).toBeFalsy();
     });
 
-    test.only("Can not authenticate chat id twice",async () => {
+    test.only("Can not authenticate chat id twice", async () => {
+        // TODO do not use a default group here but instead add a new one to prevent issues with other tests
         const dummy_chat_id = 5;
         const authenticated_group_opt = await db.authenticate_group(dummy_chat_id, g1.auth_token);
         console.log(authenticated_group_opt)
-        expect(authenticated_group_opt.isPresent()).toBeFalsy();
-
-        //const authed_group = authenticated_group_opt.get();
-        console.log(authenticated_group_opt)
+        
+        expect(authenticated_group_opt.isPresent()).toBeTruthy();
+        const authed_group = authenticated_group_opt.get();
+        
         console.log(g1);
-        //console.log(authed_group)
-        await expect(true).toBeTruthy()
+        console.log(authed_group)
+
+        expect(authed_group.auth_token).toBeNull();
+        expect(authed_group.chat_id).toBe(dummy_chat_id)
+        
+        // try to authenticate again
+        const authed_twice = await db.authenticate_group(dummy_chat_id, g1.auth_token);
+        expect(authed_twice?.isPresent()).toBeFalsy() // should not work
 
     });
 });
