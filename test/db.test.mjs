@@ -85,8 +85,21 @@ describe('Groups', () => {
     let g2 = null
 
     beforeAll(async () => {
-        g1 = await (await db.add_group("Test Group 1")).get()
-        g2 = await (await db.add_group("Test Group 2")).get()
+
+        // totally overengineered 
+        // TODO probably do not provide default values -> rethink this
+        await db.add_group("Test Group 1").then(g => {
+            if (g.isPresent()) {
+                g1 = g.get();
+            }
+            else {
+                console.log(`Could not add "Test Group 1"`)
+            }
+        });
+        await db.add_group("Test Group 2").then(g => {
+            g.ifPresentOrElse(val => { g2 = val }, () => { console.log("Could not add 'Test Group 2'"); })
+        });
+
     });
 
     afterAll(async () => {
@@ -99,7 +112,7 @@ describe('Groups', () => {
         const grps = [g1, g2];
         const groups = await db?.get_groups();
         await groups?.forEach(g => {
-            const found = grps.reduce((acc, curr) => { return acc || deepEqual(g, curr); } ,false)
+            const found = grps.reduce((acc, curr) => { return acc || deepEqual(g, curr); }, false)
             expect(found).toBeTruthy()
         });
     });
@@ -114,15 +127,15 @@ describe('Groups', () => {
 
     });
 
-    test("Adding and deleting a group should works", async () => {
-            const gopt = await db.add_group("description");
-            expect(gopt?.isPresent()).toBeTruthy();
-            const g = gopt.get();
+    test("Adding and deleting a group should work", async () => {
+        const gopt = await db.add_group("description");
+        expect(gopt?.isPresent()).toBeTruthy();
+        const g = gopt.get();
 
-            await expect(db.remove_group(g)).resolves.toBeTruthy();
+        await expect(db.remove_group(g)).resolves.toBeTruthy();
 
-            const gopt2 = await db.get_group(g.id);
-            expect (gopt2.isPresent()).toBeFalsy()
+        const gopt2 = await db.get_group(g.id);
+        expect(gopt2.isPresent()).toBeFalsy()
 
     })
 
@@ -134,14 +147,14 @@ describe('Groups', () => {
         expect(fail.isPresent()).toBeFalsy()
     });
 
-    test.each(invalid_group_ids)("Trying to access group ZVEIs using invalid group ID '%s' should return no ZVEIs", async(invalid_id) => {
+    test.each(invalid_group_ids)("Trying to access group ZVEIs using invalid group ID '%s' should return no ZVEIs", async (invalid_id) => {
         const fail = await db.get_group_zveis(invalid_id);
         expect(fail.length).toBe(0)
     })
 
 
 
-    const invalid_group_descriptions= ["*$)H", "we really häte ünicode π"];
+    const invalid_group_descriptions = ["*$)H", "we really häte ünicode π"];
     test.each(invalid_group_descriptions)("Adding a group with the invalid description '%s' should fail", async (desc) => {
         const fail = await db.add_group(desc);
         expect(fail.isPresent()).toBeFalsy();
@@ -151,27 +164,27 @@ describe('Groups', () => {
 
     // we add a valid ID so that the short circuiting logic has to evalute the invalid group description as well
     const invalid_ids_descs = cartesian(invalid_group_ids.concat([1]), invalid_group_descriptions);
-    test.each(invalid_ids_descs)("Trying to update a group's description with either an invalid ID or description fails", async (id, desc)=> {
-        await expect(db.update_group_description(id,desc)).resolves.toBeFalsy();
+    test.each(invalid_ids_descs)("Trying to update a group's description with either an invalid ID or description fails", async (id, desc) => {
+        await expect(db.update_group_description(id, desc)).resolves.toBeFalsy();
     });
 
     test("Changing a group description works as expected", async () => {
         const desc1 = "FOO BAR BAZ";
         const desc2 = "BAR FOO BAZ";
         const gopt = await db.add_group(desc1);
-        expect (gopt.isPresent()).toBeTruthy();
+        expect(gopt.isPresent()).toBeTruthy();
 
         const g = gopt.get();
-        expect (g.description).toBe(desc1);
+        expect(g.description).toBe(desc1);
 
         expect(db.update_group_description(g.id, desc2)).resolves.toBeTruthy();
 
         const gop2 = await db.get_group(g.id);
-        expect (gop2.isPresent()).toBeTruthy();
+        expect(gop2.isPresent()).toBeTruthy();
 
         const g2 = gop2.get();
-        expect (g2.description).toBe(desc2)
-        expect (g2.description).not.toBe(desc1)
+        expect(g2.description).toBe(desc2)
+        expect(g2.description).not.toBe(desc1)
 
         await expect(db?.remove_group(g)).resolves.toBeTruthy()
     });
