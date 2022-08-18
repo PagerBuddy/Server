@@ -85,8 +85,12 @@ describe('Groups', () => {
     let g2 = null
 
     beforeAll(async () => {
-        g1 = await (await db.add_group("Test Group 1")).get()
-        g2 = await (await db.add_group("Test Group 2")).get()
+        try{
+            g1 = (await db.add_group("Test Group 1")).get();
+            g2 = (await db.add_group("Test Group 2")).get();
+        }catch(err){
+            console.error("This should never be called");
+        }
     });
 
     afterAll(async () => {
@@ -98,8 +102,11 @@ describe('Groups', () => {
 
         const grps = [g1, g2];
         const groups = await db?.get_groups();
-        await groups?.forEach(g => {
-            const found = grps.reduce((acc, curr) => { return acc || deepEqual(g, curr); } ,false)
+        await grps?.forEach(g => {
+            //This does not cover other pehaps present groups in the db
+            //const found = grps.reduce((acc, curr) => { return acc || deepEqual(g, curr); } ,false)
+
+            const found = groups?.reduce((acc, curr) => {return acc || deepEqual(g, curr); }, false);
             expect(found).toBeTruthy()
         });
     });
@@ -199,7 +206,7 @@ describe('Groups', () => {
         expect(res.isPresent()).toBeFalsy();
     });
 
-    test.only("Can not authenticate chat id twice",async () => {
+    test("Can not authenticate chat id twice",async () => {
         const dummy_chat_id = 5;
         const authenticated_group_opt = await db.authenticate_group(dummy_chat_id, g1.auth_token);
         console.log(authenticated_group_opt)
