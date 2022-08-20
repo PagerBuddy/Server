@@ -8,7 +8,8 @@ import Optional from 'optional-js'
 * @returns {boolean} Whether input is valid text.
 */
 export function is_text_safe(text) {
-    const re = /^[\wäÄöÖüÜß()\-\s]*$/;
+    //Example: 'Ergänzungskomponente Transport/Betreuung ERH (EK Tr/Betr ERH)'
+    const re = /^[\wäÄöÖüÜß()\/\-\s]*$/;
     const res = re.test(text);
     return res;
 }

@@ -50,6 +50,7 @@ export class ZVEI {
      * @param {string} test_time_end 
      */
     constructor(zvei_id, description, test_day, test_time_start, test_time_end) {
+        //TODO: Do not throw here, or ensure it is caught everywhere
         this.id = zvei_id;
         if (!validator.is_text_safe(description)) {
             throw new Error(`Description "${description}" contains invalid characters`);

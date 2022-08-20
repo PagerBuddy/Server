@@ -16,7 +16,7 @@ export class Group {
         if (!only_chat_or_auth) {
             throw new Error("Only either chat id or auth token may contain a value")
         }
-        this.chat_id = chat_id;
+        this.chat_id = chat_id ?? NaN; //Do not set a number to null
         this.auth_token = auth_token;
     }
 

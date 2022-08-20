@@ -8,6 +8,7 @@ import { mk_zvei, ZVEIID } from '../src/model/zvei.mjs';
 
 import * as Z from '../src/model/zvei.mjs'
 import { Group } from '../src/model/group.mjs';
+import { number } from 'yargs';
 
 const config = new TestConfig();
 const db_location = config.files.database_location;
@@ -32,9 +33,10 @@ function deepEqual(object1, object2) {
         const val1 = object1[key];
         const val2 = object2[key];
         const areObjects = isObject(val1) && isObject(val2);
+        //Read why we need NaN check: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/isNaN
         if (
             areObjects && !deepEqual(val1, val2) ||
-            !areObjects && val1 !== val2
+            !areObjects && val1 !== val2 && !Number.isNaN(val1)
         ) {
             return false;
         }
@@ -172,15 +174,17 @@ describe('Groups', () => {
      * @returns {any}
      */
     function cartesian(...a){
-        return a.reduce((prev, curr) => {
+        a.reduce((prev, curr) => {
             prev.flatMap((/** @type {any} */ d) => curr.map((/** @type {any} */ e) => [d, e].flat()))
         });
+        return a;
     }
 
     // we add a valid ID so that the short circuiting logic has to evalute the invalid group description as well
     const invalid_ids_descs = cartesian(invalid_group_ids.concat([1]), invalid_group_descriptions);
     test.each(invalid_ids_descs)("Trying to update a group's description with either an invalid ID or description fails", async (id, desc) => {
-        await expect(db.update_group_description(id, desc)).resolves.toBeFalsy();
+        const res = await db.update_group_description(id, desc);
+        expect(res).toBeFalsy();
     });
 
     test("Changing a group description works as expected", async () => {
@@ -302,7 +306,8 @@ describe('ZVEIs', () => {
 
         const zvei = mk_zvei(zvei_id, zvei_description, test_day, test_time_start, test_time_end);
 
-        expect(db?.add_ZVEI(zvei)).resolves.toBeTruthy();
+        const res = await db?.add_ZVEI(zvei);
+        expect(res).toBeTruthy();
 
         const returned_zvei = await db?.get_ZVEI(zvei.id);
         expect(returned_zvei?.isPresent()).toBeTruthy();
