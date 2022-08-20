@@ -228,7 +228,7 @@ describe('Groups', () => {
         expect(res.isPresent()).toBeFalsy();
     });
 
-    test.only("Can not authenticate chat id twice", async () => {
+    test("Can not authenticate chat id twice", async () => {
         // TODO do not use a default group here but instead add a new one to prevent issues with other tests
         const dummy_chat_id = 5;
 

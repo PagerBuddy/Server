@@ -327,20 +327,16 @@ export class database {
             return Optional.empty();
         }
 
-        console.log("initial tests passed", auth_token)
-
-
         let sqlCheck = `
     SELECT group_id
     FROM Groups
     WHERE auth_token = ?
     `;
 
-        console.log("hier")
         let group_id = -1
         /**@type {{group_id: number}[]} */
         const group_res = await this.#sql_query(sqlCheck, [auth_token]);
-        console.log("weiterhin")
+
         if (group_res.length != 1) {
             this.logger.warn(`Auth token "${auth_token}" has ${group_res.length} associated groups (must be exactly 1)`);
             console.log(`Auth token "${auth_token}" has ${group_res.length} associated groups (must be exactly 1)`)
@@ -350,8 +346,6 @@ export class database {
             console.log("found group")
             group_id = group_res[0].group_id;
         }
-
-        console.log("Found group for auth token")
 
         let sqlSingleChatCheck = `
     SELECT group_id
@@ -365,8 +359,6 @@ export class database {
             this.logger.warn(`Cannot authenticate group using auth token "${auth_token}" for chat id "${chat_id}": chat id already registered to groups "{${existCheck}}"`);
             return Optional.empty();
         }
-
-        console.log("Chat ID not used")
 
         let sql = `
     UPDATE Groups
