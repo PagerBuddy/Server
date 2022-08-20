@@ -52,9 +52,9 @@ function isObject(object) {
 }
 
 /**
- * @type {DB.database?}
+ * @type {DB.database}
  */
-let db = null
+let db;
 beforeAll(async () => {
     db = await DB.create_database(config.alert_time_zone, config.timeouts.history, db_location);
 })
@@ -76,13 +76,13 @@ describe('Connecting to an existing DB', () => {
 
 describe('Groups', () => {
     /**
-     * @type {Group?}
+     * @type {Group}
      */
-    let g1 = null
+    let g1;
     /**
-     * @type {Group?}
+     * @type {Group}
      */
-    let g2 = null
+    let g2;
 
     beforeAll(async () => {
 
@@ -139,8 +139,8 @@ describe('Groups', () => {
 
     })
 
-
-    const invalid_group_ids = [null, NaN, "sgfdfhg"];
+    /**@type {number[]} */
+    const invalid_group_ids = [/**@type {any} */ (null), NaN, "sgfdfhg"];
 
     test.each(invalid_group_ids)("Trying to access groups using invalid group ID '%s' should fail", async (invalid_id) => {
         const fail = await db.get_group(invalid_id);
@@ -160,7 +160,17 @@ describe('Groups', () => {
         expect(fail.isPresent()).toBeFalsy();
     });
 
-    const cartesian = (...a) => a.reduce((a, b) => a.flatMap(d => b.map(e => [d, e].flat())));
+    //TODO: Clean this up. I think it is difficult to comprehend, expecially for a test case. Also it messes with types.
+    /**
+     * 
+     * @param  {...any} a 
+     * @returns {any}
+     */
+    function cartesian(...a){
+        return a.reduce((prev, curr) => {
+            prev.flatMap((/** @type {any} */ d) => curr.map((/** @type {any} */ e) => [d, e].flat()))
+        });
+    }
 
     // we add a valid ID so that the short circuiting logic has to evalute the invalid group description as well
     const invalid_ids_descs = cartesian(invalid_group_ids.concat([1]), invalid_group_descriptions);
@@ -198,7 +208,8 @@ describe('Groups', () => {
         expect(res.isPresent()).toBeFalsy()
     });
 
-    const invalid_chat_ids = [0, NaN, null];
+    /**@type {number[]} */
+    const invalid_chat_ids = [0, NaN, /**@type {any} */ (null)];
     test.each(invalid_chat_ids)("Authenticating a group with an invalid auth token '%s' fails", async (chat_id) => {
         const dummy_auth_token = "1234567890"; // magic number with no inherent meaning
         const res = await db.authenticate_group(chat_id, dummy_auth_token);
@@ -215,7 +226,9 @@ describe('Groups', () => {
     test.only("Can not authenticate chat id twice", async () => {
         // TODO do not use a default group here but instead add a new one to prevent issues with other tests
         const dummy_chat_id = 5;
-        const authenticated_group_opt = await db.authenticate_group(dummy_chat_id, g1.auth_token);
+
+        let auth_token = g1?.auth_token ?? "";
+        const authenticated_group_opt = await db.authenticate_group(dummy_chat_id, auth_token);
         console.log(authenticated_group_opt)
         
         expect(authenticated_group_opt.isPresent()).toBeTruthy();
@@ -228,7 +241,7 @@ describe('Groups', () => {
         expect(authed_group.chat_id).toBe(dummy_chat_id)
         
         // try to authenticate again
-        const authed_twice = await db.authenticate_group(dummy_chat_id, g1.auth_token);
+        const authed_twice = await db.authenticate_group(dummy_chat_id, auth_token);
         expect(authed_twice?.isPresent()).toBeFalsy() // should not work
 
     });
