@@ -55,6 +55,7 @@ export class database {
 
         // log.debug("Query: " + sql + "; Params: " + params);
         return new Promise((resolve, _) => {
+            try{
             this.db.all(sql, params, (/** @type {any} */err, /** @type {any} */rows) => {
                 if (err) {
                     this.logger.error(err.message);
@@ -64,6 +65,11 @@ export class database {
                     resolve(rows);
                 }
             })
+        }catch(/**@type {any} */ error){
+            this.logger.error(error.message);
+            this.logger.error("An error occured trying to perform a query.");
+            resolve([]);
+        }
         })
     }
 
@@ -75,7 +81,7 @@ export class database {
      * @returns {Group}
      */
     #row_to_group(row) {
-        return new Group(row.group_id, row.description, row.chat_id, row.auth_token);
+        return new Group(row.group_id, row.description, parseInt(row.chat_id), row.auth_token);
     }
 
     /**
@@ -122,6 +128,7 @@ export class database {
         WHERE group_id = ?
     `;
         const params = [group_id];
+        /**@type {{group_id: number, description: string, chat_id: string, auth_token: string}[]}   */
         const rows = await this.#sql_query(sql, params);
         if (rows.length != 1) {
             return Optional.empty()
@@ -324,13 +331,14 @@ export class database {
 
 
         let sqlCheck = `
-    SELECT *
+    SELECT group_id
     FROM Groups
     WHERE auth_token = ?
     `;
 
         console.log("hier")
         let group_id = -1
+        /**@type {{group_id: number}[]} */
         const group_res = await this.#sql_query(sqlCheck, [auth_token]);
         console.log("weiterhin")
         if (group_res.length != 1) {
@@ -340,7 +348,7 @@ export class database {
         }
         else {
             console.log("found group")
-            group_id = group_res[0].id;
+            group_id = group_res[0].group_id;
         }
 
         console.log("Found group for auth token")

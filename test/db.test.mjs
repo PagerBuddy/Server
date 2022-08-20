@@ -88,18 +88,23 @@ describe('Groups', () => {
 
         // totally overengineered 
         // TODO probably do not provide default values -> rethink this
-        await db.add_group("Test Group 1").then(g => {
-            if (g.isPresent()) {
-                g1 = g.get();
-            }
-            else {
-                console.log(`Could not add "Test Group 1"`)
-            }
-        });
-        await db.add_group("Test Group 2").then(g => {
-            g.ifPresentOrElse(val => { g2 = val }, () => { console.log("Could not add 'Test Group 2'"); })
-        });
 
+        //MEMO: await something.then() does not make sense - you are only awaiting the definition of the then callback
+        //Typcially either use .then() OR await
+
+        let group = await db.add_group("Test Group 1");
+        if(group.isPresent()){
+            g1 = group.get();
+        }else{
+            console.log(`Could not add "Test Group 1"`);
+        }
+
+        let group2 = await db.add_group("Test Group 2");
+        if(group2.isPresent()){
+            g2 = group2.get();
+        }else{
+            console.log(`Could not add "Test Group 2"`);
+        }
     });
 
     afterAll(async () => {

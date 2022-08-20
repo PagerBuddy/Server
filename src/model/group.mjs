@@ -3,7 +3,7 @@ export class Group {
      * 
      * @param {number} id 
      * @param {string} description 
-     * @param {?string} chat_id 
+     * @param {?number} chat_id 
      * @param {?string} auth_token 
      */
     constructor(id, description, chat_id, auth_token) {
