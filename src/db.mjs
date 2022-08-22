@@ -1,7 +1,7 @@
 import sqlite3 from 'sqlite3';
 import logger from './logging.mjs'
 import { existsSync } from 'fs'
-import * as Z from './model/zvei.mjs'
+import ZVEI from './model/zvei.mjs'
 import Optional from 'optional-js'
 import { Group } from './model/group.mjs';
 import * as validator from './model/validation.mjs'
@@ -380,10 +380,10 @@ export class database {
      * 
      * This is just a tiny convenience function
      * @param {{zvei_id: number, description: string, test_day: number, test_time_start:string, test_time_end:string }} row 
-     * @returns {Z.ZVEI}
+     * @returns {ZVEI}
      */
     #row_to_zvei(row) {
-        return Z.mk_zvei(row.zvei_id, row.description,
+        return new ZVEI(row.zvei_id, row.description,
             row.test_day, row.test_time_start, row.test_time_end);
     }
 
@@ -392,7 +392,7 @@ export class database {
      * 
      * This is just a tiny convenience function
      * @param {Array<{zvei_id: number, description: string, test_day: number, test_time_start:string, test_time_end:string }>} rows 
-     * @returns {Array<Z.ZVEI>}
+     * @returns {Array<ZVEI>}
      */
     #rows_to_zveis(rows) {
         return rows.map(r => { return this.#row_to_zvei(r); });
@@ -400,7 +400,7 @@ export class database {
 
     /**
      * Returns all ZVEI units
-     * @returns {Promise<Z.ZVEI[]>}
+     * @returns {Promise<ZVEI[]>}
      */
     get_ZVEIs() {
         let sql = `
@@ -415,17 +415,24 @@ export class database {
 
     /**
      * Returns the ZVEI for a given ZVEI ID or empty if no ZVEI for the ID exists.
-     * @param {Z.ZVEIID} zvei_id 
-     * @returns {Promise<Optional<Z.ZVEI>>}
+     * @param {string|number} zvei_id 
+     * @returns {Promise<Optional<ZVEI>>}
      */
     async get_ZVEI(zvei_id) {
+
+
+        const id = ZVEI.validate_zvei_id(zvei_id)
+        if (!id.isPresent()) {
+            throw new Error(`Invalid ZVEI ID provided: ${zvei_id}`);
+        }
+
         const sql = `
         SELECT *
         FROM ZVEI
         WHERE zvei_id = ?
         `;
 
-        let params = [zvei_id.id];
+        let params = [id.get()];
         let rows = await this.#sql_query(sql, params);
         if (rows.length != 1) {
             return Optional.empty();
@@ -438,17 +445,22 @@ export class database {
 
     /**
      * Get the ZVEI description.
-     * @param {Z.ZVEIID} zvei_id ID of the ZVEI unit.
+     * @param {string|number} zvei_id ID of the ZVEI unit.
      * @returns {Promise<Optional<String>>} The ZVEI description (if the ZVEI exists)
      */
     async get_ZVEI_details(zvei_id) {
+
+        const id = ZVEI.validate_zvei_id(zvei_id)
+        if (!id.isPresent()) {
+            throw new Error(`Invalid ZVEI ID provided: ${zvei_id}`);
+        }
 
         let sql = `
         SELECT description
         FROM ZVEI
         WHERE zvei_id = ?
     `;
-        let params = [zvei_id.id];
+        let params = [id.get()];
         let rows = await this.#sql_query(sql, params);
         if (rows.length != 1) {
             return Optional.empty();
@@ -460,7 +472,7 @@ export class database {
 
     /**
      * 
-     * @param {Z.ZVEI} zvei 
+     * @param {ZVEI} zvei 
      * @returns {Promise<boolean>}
      */
     async add_ZVEI(zvei) {
@@ -468,18 +480,18 @@ export class database {
         INSERT INTO ZVEI(zvei_id, description, test_day, test_time_start, test_time_end)
         VALUES (?, ?, ?, ?, ?)
         `;
-        let params = [zvei.id.id, zvei.description, zvei.test_day, zvei.test_time_start, zvei.test_time_end];
+        let params = [zvei.id, zvei.description, zvei.test_day, zvei.test_time_start, zvei.test_time_end];
         return this.#sql_run(sql, params);
     }
 
     /**
      * Removes a given ZVEI and all alarms for the ZVEI from the database
-     * @param {Z.ZVEI} zvei 
+     * @param {ZVEI} zvei 
      * @returns {Promise<boolean>} Whether the deletion succeeded
      */
     async remove_ZVEI(zvei) {
 
-        const params = [zvei.id.id];
+        const params = [zvei.id];
 
         const sql_delete_zvei = `
         DELETE FROM ZVEI

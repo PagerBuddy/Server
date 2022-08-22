@@ -271,7 +271,7 @@ describe('ZVEIs', () => {
 
     test.each(descs)("The description of some hard-coded ZVEIs should match %i -> %s", async (id, desc) => {
 
-        const res = await db?.get_ZVEI_details(new ZVEIID(id));
+        const res = await db?.get_ZVEI_details(id);
         if (desc) {
             expect(res?.get()).toEqual(desc)
         }
@@ -288,7 +288,7 @@ describe('ZVEIs', () => {
         const test_time_start = "01:00";
         const test_time_end = "01:02";
 
-        const zvei = mk_zvei(zvei_id, zvei_description, test_day, test_time_start, test_time_end);
+        const zvei = new ZVEI(zvei_id, zvei_description, test_day, test_time_start, test_time_end);
 
         expect(db?.add_ZVEI(zvei)).resolves.toBeTruthy()
         expect(db?.add_ZVEI(zvei)).resolves.toBeFalsy()
@@ -304,7 +304,7 @@ describe('ZVEIs', () => {
         const test_time_start = "01:55";
         const test_time_end = "01:59";
 
-        const zvei = mk_zvei(zvei_id, zvei_description, test_day, test_time_start, test_time_end);
+        const zvei = new ZVEI(zvei_id, zvei_description, test_day, test_time_start, test_time_end);
 
         const res = await db?.add_ZVEI(zvei);
         expect(res).toBeTruthy();
@@ -314,9 +314,9 @@ describe('ZVEIs', () => {
         expect(returned_zvei?.get()).toEqual(zvei);
 
         /**
-         * @type {Z.ZVEI[]|undefined}
+         * @type {ZVEI[]}
          */
-        const all_zveis = await db?.get_ZVEIs();
+        const all_zveis = await db.get_ZVEIs();
         let zvei_found = false;
         all_zveis?.forEach(zvei_iter => {
             if (deepEqual(zvei, zvei_iter)) {

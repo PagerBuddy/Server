@@ -1,57 +1,24 @@
 import * as validator from './validation.mjs'
 import Optional from 'optional-js'
-export class ZVEIID {
-    // TODO rethink this overengineered extra ID class
-    /**
-     * 
-     * @param {number|string} zvei_id 
-     */
-    constructor(zvei_id) {
 
-        const validated_id = ZVEIID.validate(zvei_id)
-        if (!validated_id.isPresent()) {
-            throw new Error(`"Can't create ZVEIID: ${zvei_id}" is not a number or not from the range [0,99999]`)
-        }
-        this.id = validated_id.get();
-    }
-
-/**
- * Check whether the input is  a valid ZVEI ID and, if so, returns it as a number
- * 
- * An ID is valid if it is a number from the range [0,9999]. The method tries to parse strings using `parseInt`.
- * 
- * @param {string|number} zvei_id 
- * @returns {Optional<number>} empty optional if the ID was not valid; optional containing the number if it was a valid ID
- */
-    static validate(zvei_id) {
-        if (typeof (zvei_id) == "string") {
-            zvei_id = parseInt(zvei_id)
-            if (isNaN(zvei_id)) {
-                return Optional.empty();
-            }
-        }
-
-        if (zvei_id < 0 || zvei_id > 99999) {
-            return Optional.empty();
-        }
-
-        return Optional.of(zvei_id);
-    }
-}
-
-export class ZVEI {
+export default class ZVEI {
 
     /**
      * 
-     * @param {ZVEIID} zvei_id 
+     * @param {string|number} zvei_id 
      * @param {string} description 
      * @param {number} test_day 
      * @param {string} test_time_start 
      * @param {string} test_time_end 
      */
     constructor(zvei_id, description, test_day, test_time_start, test_time_end) {
-        //TODO: Do not throw here, or ensure it is caught everywhere
-        this.id = zvei_id;
+        
+        const validated_id = ZVEI.validate_zvei_id(zvei_id)
+        if (!validated_id.isPresent()) {
+            throw new Error(`"Can't create ZVEIID: ${zvei_id}" is not a number or not from the range [0,99999]`)
+        }
+        this.id = validated_id.get();
+        
         if (!validator.is_text_safe(description)) {
             throw new Error(`Description "${description}" contains invalid characters`);
         }
@@ -70,10 +37,33 @@ export class ZVEI {
         if (!validator.is_time_safe(test_time_end)) {
             throw new Error(`Test time end "${test_time_end}" is not a valid time of format HH:MM`)
         }
-        if(test_time_end < test_time_start) {
+        if (test_time_end < test_time_start) {
             throw new Error(`Test time end "${test_time_end}" is not later than test time start "${test_time_start}"`)
         }
         this.test_time_end = test_time_end;
+    }
+
+    /**
+     * Check whether the input is  a valid ZVEI ID and, if so, returns it as a number
+     * 
+     * An ID is valid if it is a number from the range [0,9999]. The method tries to parse strings using `parseInt`.
+     * 
+     * @param {string|number} zvei_id 
+     * @returns {Optional<number>} empty optional if the ID was not valid; optional containing the number if it was a valid ID
+     */
+    static validate_zvei_id(zvei_id) {
+        if (typeof (zvei_id) == "string") {
+            zvei_id = parseInt(zvei_id)
+            if (isNaN(zvei_id)) {
+                return Optional.empty();
+            }
+        }
+
+        if (zvei_id < 0 || zvei_id > 99999) {
+            return Optional.empty();
+        }
+
+        return Optional.of(zvei_id);
     }
 
     /**
@@ -95,23 +85,4 @@ export class ZVEI {
 
         return right_day && in_time_range;
     }
-}
-/**
- * Convenience function for creating a ZVEI.
- * 
- * This function accepts as the id of the zvei either a string or a number. This string/number
- * is then used to create an instance of a {@see ZVEIID} that is then used to create
- * the actual {@see ZVEI} instance
- * 
- * @param {string|number} zvei_id 
- * @param {string} description 
- * @param {number} test_day 
- * @param {string} test_time_start 
- * @param {string} test_time_end 
- * @returns 
- */
-export function mk_zvei(zvei_id, description, test_day, test_time_start, test_time_end) {
-    return new ZVEI(
-        new ZVEIID(zvei_id), description, test_day, test_time_start, test_time_end
-    );
 }
