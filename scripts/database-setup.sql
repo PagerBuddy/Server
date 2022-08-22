@@ -18,7 +18,7 @@ INSERT INTO "ZVEI" VALUES
 
 CREATE TABLE "Groups" (
 "group_id" INTEGER NOT NULL,
-"description" TEXT NOT NULL,
+"description" TEXT NOT NULL UNIQUE,
 "chat_id" TEXT UNIQUE,
 "auth_token" TEXT UNIQUE,
 PRIMARY KEY("group_id")
