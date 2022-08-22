@@ -339,11 +339,9 @@ export class database {
 
         if (group_res.length != 1) {
             this.logger.warn(`Auth token "${auth_token}" has ${group_res.length} associated groups (must be exactly 1)`);
-            console.log(`Auth token "${auth_token}" has ${group_res.length} associated groups (must be exactly 1)`)
             return Optional.empty();
         }
         else {
-            console.log("found group")
             group_id = group_res[0].group_id;
         }
 

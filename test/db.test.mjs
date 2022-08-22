@@ -3,7 +3,7 @@ import { TestConfig } from './testConfig.js';
 import Optional from 'optional-js'
 
 import * as DB from '../src/db.mjs'
-import { mk_zvei, ZVEIID } from '../src/model/zvei.mjs';
+import ZVEI from '../src/model/zvei.mjs';
 
 
 import * as Z from '../src/model/zvei.mjs'
@@ -238,13 +238,9 @@ describe('Groups', () => {
 
         let auth_token = g1?.auth_token ?? "";
         const authenticated_group_opt = await db.authenticate_group(dummy_chat_id, auth_token);
-        console.log(authenticated_group_opt)
-        
+            
         expect(authenticated_group_opt.isPresent()).toBeTruthy();
         const authed_group = authenticated_group_opt.get();
-        
-        console.log(g1);
-        console.log(authed_group)
 
         expect(authed_group.auth_token).toBeNull();
         expect(authed_group.chat_id).toBe(dummy_chat_id)
