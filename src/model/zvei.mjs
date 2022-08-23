@@ -52,14 +52,11 @@ export default class ZVEI {
      * @returns {Optional<number>} empty optional if the ID was not valid; optional containing the number if it was a valid ID
      */
     static validate_zvei_id(zvei_id) {
-        if (typeof (zvei_id) == "string") {
+        if (typeof (zvei_id) === "string") {
             zvei_id = parseInt(zvei_id)
-            if (isNaN(zvei_id)) {
-                return Optional.empty();
-            }
         }
 
-        if (zvei_id < 0 || zvei_id > 99999) {
+        if (isNaN(zvei_id) ||zvei_id < 0 || zvei_id > 99999) {
             return Optional.empty();
         }
 
