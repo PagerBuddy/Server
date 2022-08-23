@@ -1,7 +1,7 @@
 import { describe, expect, test } from '@jest/globals'
-import { KatSysAlert, katsys_alert, init } from '../src/katsys.mjs';
-import {TestConfig} from './testConfig.js';
-import * as health from '../src/health.mjs'
+import { KatSysAlert, katsys_alert, init } from '../../src/katsys/katsys.mjs';
+import {TestConfig} from '../testConfig.js';
+import * as health from '../../src/health.mjs'
 
 const config = new TestConfig();
 const timezone = config.alert_time_zone;
@@ -147,9 +147,11 @@ describe("Creating KatSysAlert objects", () => {
                 obj.alarmuhrzeit,
                 obj.einsatzort,
                 obj.schlagwort,
-                obj.schleifen_delta)
+                obj.schleifen_delta,
+                timezone,
+                katsys_config.decode_channels)
         }).not.toThrow();
-        expect(() => { KatSysAlert.alert_from_json(obj) }).not.toThrow();
+        expect(() => { KatSysAlert.alert_from_json(obj, timezone, katsys_config.decode_channels) }).not.toThrow();
     }
 
     test.each(invalid_date)("Invalid date: '%s'", helper);
@@ -158,13 +160,13 @@ describe("Creating KatSysAlert objects", () => {
 });
 
 describe("Investigating Schleifen", () => {
-    test.each(valid_data)("Schleifen of interest area always less or equal than all schleifen", d => {
-        const alert = KatSysAlert.alert_from_json(d);
+    test.each(valid_data)("Schleifen of interest area always less or equal than all schleifen", /** @type {katsys_alert} */d => {
+        const alert = KatSysAlert.alert_from_json(d,timezone, katsys_config.decode_channels);
         expect(alert.schleifen.length).toBeGreaterThanOrEqual(alert.schleifen_of_interest.length)
     });
     test.each(valid_with_counts)("Have the correct amount of data", (data, n_schleifen, n_interesting_schleifen) => {
         // @ts-ignore
-        const alert = KatSysAlert.alert_from_json(data);
+        const alert = KatSysAlert.alert_from_json(data,timezone, katsys_config.decode_channels);
         expect(alert.schleifen.length).toBe(n_schleifen);
         expect(alert.schleifen_of_interest.length).toBe(n_interesting_schleifen);
     });

@@ -10,7 +10,7 @@ import * as  telegram_bot from './telegram/bot.mjs';
 import * as data from './data.js';
 import * as  health from './health.mjs';
 import * as messaging from './messaging.mjs';
-import * as katsys from './katsys.mjs';
+import * as katsys from './katsys/katsys.mjs';
 import winston from 'winston';
 import { Config } from './config.js';
 

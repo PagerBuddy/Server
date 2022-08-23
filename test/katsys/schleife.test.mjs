@@ -1,6 +1,6 @@
-import { describe, expect, test } from '@jest/globals'
+import { describe, expect, test, it } from '@jest/globals'
 
-import { Schleife } from '../src/katsys.mjs';
+import Schleife from '../../src/katsys/schleife.mjs';
 
 const channels = ['456', 'RD_ER']
 const multi_schleifen = '456 25123 12:13\nRD_ER 5123 12:13\nRD_FOOO 1234 23:59\n123 54728 14:15';
@@ -13,6 +13,7 @@ const missing_time = ['456 25123 ', '456 25123']
 const short_zvei = '456 251 12:13'
 const long_vzei = '456 25124343 12:13'
 
+console.log("foo")
 
 describe("Creating Schleifen", () => {
     test.each(valid_schleifen)('Creating from valid data should not throw an exception: %s', (s) => {
@@ -27,7 +28,7 @@ describe("Creating Schleifen", () => {
 
     test("Creating with null should throw an exception", () => {
 
-        expect(() => { new Schleife(/**@type {string} */ (/**@type {unknown} */ (null))) }).toThrow();
+        expect(() => { new Schleife(/**@type {string} */(/**@type {unknown} */ (null))) }).toThrow();
         expect(() => { new Schleife("") }).toThrow();
 
     });
