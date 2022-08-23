@@ -67,19 +67,20 @@ export default class ZVEI {
      * Checks if a given time is in the test alarm window of a ZVEI unit
      * @param {number} time_ 
      * @param {string} timezone 
-     * @returns 
+     * @returns {boolean} True if the provided time is within the test alarm window.
      */
     is_test_time(time_, timezone) {
 
         const date = new Date(time_)
         const day = date.getDay();
 
+
         //TODO this returns a string and we compare it against another string. why/how does this work?
         const time = date.toLocaleTimeString("de-DE", { timeZone: timezone })
 
         const right_day = day === this.test_day;
         const in_time_range = this.test_time_start <= time && time <= this.test_time_end;
-
+        console.log(date, day, time, right_day, this.test_time_start, this.test_time_end, this.test_time_start <= time, time <= this.test_time_end, in_time_range);
         return right_day && in_time_range;
     }
 }

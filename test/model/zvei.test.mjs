@@ -1,6 +1,6 @@
 import { describe, expect, test, beforeAll, afterAll, jest } from '@jest/globals'
 import ZVEI from '../../src/model/zvei.mjs'
-
+import { TestConfig } from '../testConfig.js';
 
 
 
@@ -18,4 +18,125 @@ describe("ZVEI ID Validation", () => {
         expect(validated_id.isPresent()).toBeTruthy()
         expect(validated_id.get()).toBe(parseInt(id));
     });
+});
+
+
+
+
+
+describe("ZVEI creation", () => {
+
+    const valid_zvei_data = [
+        {
+            id: 200,
+            desc: "JEST TeST ZVEI",
+            day: 4,
+            start: "01:00",
+            end: "01:02"
+        },
+        {
+            id: 201,
+            desc: "JEST TeST ZVEI agaiN",
+            day: 3,
+            start: "02:00",
+            end: "03:02"
+        }
+    ];
+
+    const invalid_zvei_data = [
+        {
+            id: "99999999",
+            desc: "JEST TeST ZVEI",
+            day: 4,
+            start: "01:00",
+            end: "01:02"
+        },
+        {
+            id: 201,
+            desc: "JEST TeST ZVEI agaiN!",
+            day: 3,
+            start: "02:00",
+            end: "03:02"
+        },
+        {
+            id: 201,
+            desc: "JEST TeST ZVEI agaiN",
+            day: -1,
+            start: "02:00",
+            end: "03:02"
+        },
+        {
+            id: 201,
+            desc: "JEST TeST ZVEI agaiN",
+            day: 20,
+            start: "02:00",
+            end: "03:02"
+        },
+        {
+            id: null,
+            desc: "JEST TeST ZVEI agaiN",
+            day: 3,
+            start: "02:00",
+            end: "03:02"
+        },
+        {
+            id: 201,
+            desc: "JEST TeST ZVEI agaiN",
+            day: 3,
+            start: "03:00",
+            end: "02:02"
+        },
+        {
+            id: 201,
+            desc: "JEST TeST ZVEI agaiN",
+            day: 3,
+            start: "four fifty",
+            end: "03:02"
+        },
+        {
+            id: 201,
+            desc: "JEST TeST ZVEI agaiN",
+            day: 3,
+            start: "02:00",
+            end: "ten sixty"
+        },
+        {
+            id: 201,
+            desc: "JEST TeST ZVEI agaiN",
+            day: 3,
+            start: "02:99",
+            end: "03:02"
+        },
+    ];
+
+    test.each(valid_zvei_data)("For valid ZVEI data '%s', the objects should be created", (z) => {
+        expect(() => { new ZVEI(z.id, z.desc, z.day, z.start, z.end) }).not.toThrow()
+    });
+
+    test.each(invalid_zvei_data)("For invalid ZVEI data '%s', the objects should not be created", (z) => {
+        expect(() => { new ZVEI(z.id, z.desc, z.day, z.start, z.end) }).toThrow()
+    });
+
+});
+
+describe("Checking ZVEI Test Times", () => {
+    const timezone = new TestConfig().alert_time_zone;
+    const zvei = new ZVEI(200,
+        "Just a ZVEI",
+        4,  // Thursday
+        "01:00",
+        "01:05");
+
+
+    //Unix epoch beginns on a thursday at 0:00
+    const valid_test_times = [0, 1, 2, 3, 4, 5].map(n => {
+        return 0 + n * (1000 * 60)
+    })
+
+    test.each(valid_test_times)("Checking the test time '%p' for ZVEIs", (t) => {
+        //console.log(new Date(t), timezone)
+        expect(zvei.is_test_time(t, timezone)).toBeTruthy();
+    });
+
+
 });
