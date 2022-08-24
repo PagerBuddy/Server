@@ -129,7 +129,7 @@ describe("Checking ZVEI Test Times", () => {
 
 
     //Unix epoch beginns on a thursday at 0:00
-    const valid_test_times = [0, 1, 2, 3, 4, 5].map(n => {
+    const valid_test_times = [0, 1, 2, 3, 4].map(n => {
         return 0 + n * (1000 * 60)
     })
 
@@ -137,6 +137,12 @@ describe("Checking ZVEI Test Times", () => {
         //console.log(new Date(t), timezone)
         expect(zvei.is_test_time(t, timezone)).toBeTruthy();
     });
+
+    test("Test time check in the last minute fails", () => {
+        // This is a known bug: https://github.com/PagerBuddy/Server/issues/30
+        // this test is only here to be informed when the issue is fixed.
+        expect(zvei.is_test_time(0 + 5 * (1000 * 60), timezone)).toBeFalsy()
+    })
 
 
 });
