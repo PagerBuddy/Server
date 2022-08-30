@@ -416,9 +416,7 @@ export class database {
      */
     async get_ZVEI(zvei_id) {
 
-
-        const id = ZVEI.validate_zvei_id(zvei_id)
-        if (!id.isPresent()) {
+        if (!ZVEI.is_valid_id(zvei_id)) {
             throw new Error(`Invalid ZVEI ID provided: ${zvei_id}`);
         }
 
@@ -428,7 +426,7 @@ export class database {
         WHERE zvei_id = ?
         `;
 
-        let params = [id.get()];
+        let params = [zvei_id];
         let rows = await this.#sql_query(sql, params);
         if (rows.length != 1) {
             return Optional.empty();
@@ -454,6 +452,51 @@ export class database {
         else { // this is necessary as Optional<ZVEI>.empty() != Optional<String>.empty()
             return Optional.empty();
         }
+    }
+
+    /**
+     * Returns the chat_ids linked to a given ZVEI unit.
+     * @param {ZVEI} zvei 
+     * @returns {Promise<number[]>}  list of chat IDs linked to the ZVEI unit.
+     */
+    async get_chat_ids_from_zvei(zvei) {
+        let sql = `
+        SELECT Groups.chat_id
+        FROM Alarms
+        JOIN Groups ON Alarms.group_id = Groups.group_id
+        JOIN ZVEI ON Alarms.zvei_id = ZVEI.zvei_id
+        WHERE ZVEI.zvei_id = ?
+        `;
+        let params = [zvei.id];
+        let rows = await this.#sql_query(sql, params);
+
+        let chat_ids = [];
+        for (let index in rows) {
+            chat_ids.push(parseInt(rows[index].chat_id));
+        }
+        return chat_ids;
+    }
+
+    /**
+     * Gets the FCM device tokens and chatIDs linked to a given ZVEI unit.
+     * @param {ZVEI} zvei
+     * @returns {Promise<Array<{token: string, chat_id: string, user_id: number}>>} List of device tokens, chat IDs and user IDs linked to the ZVEI unit.
+     */
+    async get_device_ids_from_zvei(zvei) {
+
+
+        //As 10 is special ID for all alerts also get device ids for 10 - mostly relevant to debugging
+        let sql = `
+        SELECT Users.token, Groups.chat_id, Users.user_id
+        FROM Alarms
+        JOIN UserGroups ON Alarms.group_id = UserGroups.group_id
+        JOIN Users ON UserGroups.user_id = Users.user_id
+        Join Groups ON UserGroups.group_id = Groups.group_id
+        WHERE Alarms.zvei_id = ? OR Alarms.zvei_id = 10
+        `;
+        let params = [zvei.id];
+        let rows = await this.#sql_query(sql, params);
+        return rows;
     }
 
     /**

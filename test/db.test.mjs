@@ -340,3 +340,47 @@ describe("Alarms", () => {
         expect(repeat2).toBeFalsy();
 
     });
+
+
+    // TODO test sqlite cascading (e.g. for `remove_zvei`)
+
+    test.only("Linking and unlinking alarms works correctly", async () => {
+        const zvei = (await db.get_ZVEI(12345)).get();
+        const zvei_ = (await db.get_ZVEI(1)).get();
+
+        const group_id = 23;
+
+        let zveis = await db.get_group_zveis(group_id)
+        expect(zveis).toEqual([]);
+        expect(zveis.length).toBe(0);
+
+
+        let success = await db.link_zvei_with_group(zvei,group_id);
+        expect(success).toBeTruthy();
+
+        zveis = await db.get_group_zveis(group_id);
+        expect(zveis).toEqual([zvei]);
+
+        success = await db.link_zvei_with_group(zvei_, group_id);
+        expect(success).toBeTruthy();
+
+        zveis = await db.get_group_zveis(group_id);
+        expect(zveis.length).toBe(2);
+        expect(zveis).toEqual([zvei_, zvei])
+
+        success = await db.unlink_zvei_and_group(zvei, group_id);
+        expect(success).toBeTruthy()
+
+        zveis = await db.get_group_zveis(group_id);
+        expect(zveis.length).toBe(1);
+        expect(zveis).toEqual([zvei_])
+
+        success = await db.unlink_zvei_and_group(zvei_, group_id);
+        expect(success).toBeTruthy()
+
+        zveis = await db.get_group_zveis(group_id);
+        expect(zveis.length).toBe(0);
+        expect(zveis).toEqual([])
+
+    });
+});
