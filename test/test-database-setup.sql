@@ -13,7 +13,8 @@ INSERT INTO "ZVEI" VALUES
 (3, "SYSTEM WARNING", 0, "00:00", "00:00"),
 (4, "SYSTEM ERROR", 0, "00:00", "00:00"),
 (5, "SYSTEM REPORT", 0, "00:00", "00:00"),
-(10, "SYSTEM ALL ALERTS", 0, "00:00", "00:00");
+(10, "SYSTEM ALL ALERTS", 0, "00:00", "00:00"),
+(12345, "Testing Purposes ZVEI", 0, "00:03", "00:05");
 
 
 CREATE TABLE "Groups" (

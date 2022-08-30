@@ -234,6 +234,7 @@ describe('ZVEIs', () => {
         [4, "SYSTEM ERROR"],
         [5, "SYSTEM REPORT"],
         [10, "SYSTEM ALL ALERTS"],
+        [12345, "Testing Purposes ZVEI"],
         [8, ""]
     ]
 
@@ -306,3 +307,36 @@ describe('ZVEIs', () => {
     });
 
 });
+
+
+describe("Alarms", () => {
+    test('Alarm history lifecycle functions correctly', async () => {
+        const zvei_id = 500;
+        const information_content = 1;
+
+   
+        //backdate alert so that we do not have to wait 2min for it to expire
+        const alert_timestamp = Date.now() - config.timeouts.history + 3000;
+        const res = await db.add_alarm_history(zvei_id, alert_timestamp, information_content);
+        expect(res).toBeTruthy();
+
+        const repeat = await db.is_repeat_alarm(zvei_id);
+        expect(repeat).toBeTruthy();
+
+        const update = await db.is_alarm_information_update(zvei_id, information_content + 1);
+        expect(update).toBeTruthy();
+
+        const update2 = await db.is_alarm_information_update(zvei_id, information_content - 1);
+        expect(update2).toBeFalsy();
+        
+        //ensure we wait untill the alert must be obsolete (2min)
+        const wait_time = alert_timestamp + config.timeouts.history + 500 - Date.now();
+        if (wait_time > 0) {
+            await new Promise(resolve => setTimeout(resolve, wait_time));
+        }
+
+        //This will also delete alarm from DB
+        const repeat2 = await db.is_repeat_alarm(zvei_id);
+        expect(repeat2).toBeFalsy();
+
+    });

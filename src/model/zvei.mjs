@@ -44,7 +44,7 @@ export default class ZVEI {
     }
 
     /**
-     * Check whether the input is  a valid ZVEI ID and, if so, returns it as a number
+     * Check whether the input is a valid ZVEI ID and, if so, returns it as a number
      * 
      * An ID is valid if it is a number from the range [0,9999]. The method tries to parse strings using `parseInt`.
      * 
@@ -61,6 +61,18 @@ export default class ZVEI {
         }
 
         return Optional.of(zvei_id);
+    }
+
+    /**
+     * Check whether the input is a valid ZVEI ID
+     * 
+     * An ID is valid if it is a number from the range [0,9999]. The method tries to parse strings using `parseInt`.
+     * 
+     * @param {string|number} zvei_id 
+     * @returns {boolean} Whether the ID is valid
+     */
+    static is_valid_id(zvei_id) {
+        return ZVEI.validate_zvei_id(zvei_id).isPresent();
     }
 
     /**

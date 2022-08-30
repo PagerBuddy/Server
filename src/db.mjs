@@ -55,21 +55,21 @@ export class database {
 
         // log.debug("Query: " + sql + "; Params: " + params);
         return new Promise((resolve, _) => {
-            try{
-            this.db.all(sql, params, (/** @type {any} */err, /** @type {any} */rows) => {
-                if (err) {
-                    this.logger.error(err.message);
-                    this.logger.error("An error occured trying to perform a query.");
-                    resolve([]);
-                } else {
-                    resolve(rows);
-                }
-            })
-        }catch(/**@type {any} */ error){
-            this.logger.error(error.message);
-            this.logger.error("An error occured trying to perform a query.");
-            resolve([]);
-        }
+            try {
+                this.db.all(sql, params, (/** @type {any} */err, /** @type {any} */rows) => {
+                    if (err) {
+                        this.logger.error(err.message);
+                        this.logger.error("An error occured trying to perform a query.");
+                        resolve([]);
+                    } else {
+                        resolve(rows);
+                    }
+                })
+            } catch (/**@type {any} */ error) {
+                this.logger.error(error.message);
+                this.logger.error("An error occured trying to perform a query.");
+                resolve([]);
+            }
         })
     }
 
@@ -96,6 +96,27 @@ export class database {
     }
 
     /**
+     * Check is an auth token is already in use
+     * @param {String} auth_token 
+     * @returns {Promise<Boolean>} True iff the auth token is already in use
+     */
+    async #auth_token_exists(auth_token) {
+        const sql = `
+            SELECT * 
+            FROM Groups
+            WHERE auth_token = ?
+            `;
+        const params = [auth_token];
+        const rows = await this.#sql_query(sql, params);
+        if (rows.length > 0) {
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
+
+    /**
      * Get the complete group table.
      * @returns {Promise<Group[]>}
      */
@@ -109,7 +130,6 @@ export class database {
         const groups = rows.then(rws => { return this.#rows_to_groups(rws) })
         return groups;
     }
-
 
     /**
       * Lookup a group based on its ID
@@ -145,7 +165,7 @@ export class database {
      * 
      * The result is ordered by the ZVEI ID.
      * @param {number} group_id 
-     * @returns {Promise<Z.ZVEI[]>}
+     * @returns {Promise<ZVEI[]>}
      */
     async get_group_zveis(group_id) {
         if (!validator.is_numeric_safe(group_id) || group_id == -1) {
@@ -165,29 +185,7 @@ export class database {
     }
 
     /**
-     * Check is an auth token is already in use
-     * @param {String} auth_token 
-     * @returns {Promise<Boolean>} True iff the auth token is already in use
-     */
-    async #auth_token_exists(auth_token) {
-        const sql = `
-        SELECT * 
-        FROM Groups
-        WHERE auth_token = ?
-        `;
-        const params = [auth_token];
-        const rows = await this.#sql_query(sql, params);
-        if (rows.length > 0) {
-            return true;
-        }
-        else {
-            return false;
-        }
-    }
-
-    /**
      * Add a group
-     *  TODO Why don't we allow to directly add a chat_id in this function? Is this intentional?
      * @param {string} description description of the group to be added
      * @returns {Promise<Optional<Group>>} The authentication token (if addition was successfull), `Optional.empty()` otherwise
      */
@@ -514,6 +512,167 @@ export class database {
             });
         });
     }
+
+    /**
+     * Removes all obsolete entries from the AlarmHistory table. 
+     * This method should be called before every table query.
+     * @returns {Promise<boolean>} Success
+     */
+    async #clear_history() {
+        let sql = `
+    DELETE FROM AlarmHistory
+    WHERE timestamp < ?
+    `;
+        let reference = Date.now() - this.history_timeout;
+
+        let params = [reference];
+        return await this.#sql_run(sql, params);
+    }
+
+
+    /**
+     * Check if an alarm for the provided zvei was received within the grace period.
+     * 
+     * An alert should not be sent if it is a repeat alarm.
+     * 
+     * @param {number} zvei_id ID of the ZVEI unit to check for double alarm.
+     * @returns {Promise<boolean>} Wether the alarm should be suppressed.
+     */
+    async is_repeat_alarm(zvei_id) {
+
+        if (!ZVEI.is_valid_id(zvei_id)) {
+            return false;
+        }
+
+        //first clean history entries
+        let res = await this.#clear_history();
+        if (!res) {
+            return false;
+        }
+
+        let sql = `
+        SELECT COUNT(zvei_id)
+        FROM AlarmHistory
+        WHERE zvei_id = ?
+        `
+        let params = [zvei_id];
+
+        let result = await this.#sql_query(sql, params);
+        let val = result[0]["COUNT(zvei_id)"];
+        return val > 0;
+    }
+
+    /**
+     * Add an alarm for the provided ZVEI to the history DB for double alert detection. TODO does this mean that this is a method for testing purposes only?
+     * @param {number} zvei_id ID of the ZVEI unit for which the alert was received.
+     * @param {number} timestamp The point in Unix time when the alarm was received by the interface.
+     * @param {number} information_content An integer representing the alarms information content. Depends on interfacae device.
+     * @returns {Promise<boolean>} Success
+     */
+    async add_alarm_history(zvei_id, timestamp, information_content) {
+
+        if (!ZVEI.is_valid_id(zvei_id) ||
+            !validator.is_numeric_safe(timestamp) ||
+            !validator.is_numeric_safe(information_content)) {
+            return false;
+        }
+
+        let sql = `
+    INSERT INTO AlarmHistory(zvei_id, timestamp, alert_level)
+    VALUES (?, ?, ?)
+    `;
+
+        let params = [zvei_id, timestamp, information_content];
+        return await this.#sql_run(sql, params);
+    }
+
+    /**
+     * Check if the information level of a double alarm is higher than the previous alarm (f.e. SMS after ZVEI). In this case send new information as new alarm ONLY to Telegram
+     * (not FCM/APNS). This can possibly happen minutes after initial alarm. The relevant grace period is set in config.json.
+     * @param {number} zvei_id ID of the ZVEI unit to check for information update.
+     * @param {number} information_content An INFORMATION_CONTENT representing the new alerts source.
+     * @returns {Promise<boolean>} Wether this alert probably contains new information.
+     */
+    async is_alarm_information_update(zvei_id, information_content) {
+
+        if (!ZVEI.is_valid_id(zvei_id) ||
+            !validator.is_numeric_safe(information_content)) {
+            return false;
+        }
+
+        let sql = `
+    SELECT COUNT(zvei_id)
+    FROM AlarmHistory
+    WHERE zvei_id = ? AND alert_level >= ?
+    `
+
+        let params = [zvei_id, information_content];
+        let result = await this.#sql_query(sql, params);
+
+        let val = result[0]["COUNT(zvei_id)"];
+        return val == 0;
+    }
+
+
+    /**
+     * Adds an alarm link between a ZVEI unit and a group.
+     * Example: add_alarm(25977, 4) links the ZVEI ID 25977 to the group with ID 4 ("B1").
+     * @param {ZVEI} zvei
+     * @param {number} group_id ID of the group.
+     * @returns {Promise<boolean>} Success
+     */
+    async link_zvei_with_group(zvei, group_id) {
+
+        if (!validator.is_numeric_safe(group_id)) {
+            return false;
+        }
+
+        let sql = `
+    INSERT INTO Alarms(zvei_id, group_id)
+    VALUES (?, ?)
+    `;
+        let params = [zvei.id, group_id];
+        return await this.#sql_run(sql, params);
+    }
+    /**
+     * Removes an alarm link between a ZVEI unit and a group.
+     * @param {ZVEI} zvei
+     * @param {number} group_id ID of the group.
+     * @returns {Promise<boolean>} Success
+     */
+    async unlink_zvei_and_group(zvei, group_id) {
+
+        if (!validator.is_numeric_safe(group_id)) {
+            return false;
+        }
+
+        let sql = `
+    DELETE FROM Alarms
+    WHERE zvei_id = ? AND group_id = ?
+    `
+        let params = [zvei.id, group_id];
+        return await this.#sql_run(sql, params);
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }
 
 
