@@ -1,6 +1,9 @@
 import { describe, expect, test, beforeAll, beforeEach, afterAll, jest } from '@jest/globals'
 import { TestConfig } from './testConfig.js';
 import Optional from 'optional-js'
+import sqlite3 from 'sqlite3';
+import * as fs from 'fs';
+
 
 import * as DB from '../src/db.mjs'
 import ZVEI from '../src/model/zvei.mjs';
@@ -58,8 +61,25 @@ function isObject(object) {
  */
 let db;
 beforeAll(async () => {
-    db = await DB.create_database(config.alert_time_zone, config.timeouts.history, db_location);
+    // an empty string 
+    const db_ = new sqlite3.Database(':memory:', (err) => {
+        if (err) {
+            console.error(err.message);
+            console.error("Could not create test database. This is a fatal error!");
+        }
+    });
+    const db_setup = fs.readFileSync("./test/test-database-setup.sql").toString();
+    db_.exec(db_setup, function (/**@type {any} */ err) {
+        if (err) {
+            console.error(err.message);
+            fs.unlinkSync(db_location);
+            throw Error("An error occured trying to initialize the test database. This is fatal.");
+        }
+    });
+    db = new DB.database("", 2, db_);
 })
+
+
 
 describe('Connecting to a non-existing DB', () => {
     //null is invalid for a string - ts is blocking that for me
@@ -77,61 +97,11 @@ describe('Connecting to an existing DB', () => {
 
 
 describe('Groups', () => {
-    /**
-     * @type {Group}
-     */
-    let g1;
-    /**
-     * @type {Group}
-     */
-    let g2;
 
-    beforeAll(async () => {
 
-        // totally overengineered 
-        // TODO probably do not provide default values -> rethink this
-
-        //MEMO: await something.then() does not make sense - you are only awaiting the definition of the then callback
-        //Typcially either use .then() OR await
-
-        let group = await db.add_group("Test Group 1");
-        if(group.isPresent()){
-            g1 = group.get();
-        }else{
-            console.log(`Could not add "Test Group 1"`);
-        }
-
-        let group2 = await db.add_group("Test Group 2");
-        if(group2.isPresent()){
-            g2 = group2.get();
-        }else{
-            console.log(`Could not add "Test Group 2"`);
-        }
-    });
-
-    afterAll(async () => {
-        await db?.remove_group(g1);
-        await db?.remove_group(g2);
-    });
-
-    test("The initial groups are present in the DB", async () => {
-
-        const grps = [g1, g2];
-        const groups = await db?.get_groups();
-        await grps?.forEach(g => {
-            const found = groups?.reduce((acc, curr) => {return acc || deepEqual(g, curr); }, false);
-            expect(found).toBeTruthy()
-        });
-    });
-
-    test("Retrieving individual initial groups should work", async () => {
-        const grps = [g1, g2];
-        await grps.forEach(async g => {
-            const res = await db?.get_group(g.id);
-            expect(res?.isPresent()).toBeTruthy()
-            expect(deepEqual(res?.get(), g)).toBeTruthy();
-        });
-
+    test.each([1, 2])("There should be an initial group in the DB with ID %p", async (id) => {
+        const res = await db?.get_group(id);
+        expect(res?.isPresent()).toBeTruthy()
     });
 
     test("Adding and deleting a group should work", async () => {
@@ -167,17 +137,17 @@ describe('Groups', () => {
         expect(fail.isPresent()).toBeFalsy();
     });
 
-    //TODO: Clean this up. I think it is difficult to comprehend, expecially for a test case. Also it messes with types.
+    
     /**
-     * 
-     * @param  {...any} a 
-     * @returns {any}
+     * Computes the Cartesian product of arbitrary many arrays
+     * @param  {...any} as The arrays to compute the Cartesian product of
+     * @returns {any} The Cartesian product of the arrays
      */
-    function cartesian(...a){
-        a.reduce((prev, curr) => {
+    function cartesian(...as) {
+        as.reduce((prev, curr) => {
             prev.flatMap((/** @type {any} */ d) => curr.map((/** @type {any} */ e) => [d, e].flat()))
         });
-        return a;
+        return as;
     }
 
     // we add a valid ID so that the short circuiting logic has to evalute the invalid group description as well
@@ -219,14 +189,14 @@ describe('Groups', () => {
 
     /**@type {number[]} */
     const invalid_chat_ids = [0, NaN, /**@type {any} */ (null)];
-    test.each(invalid_chat_ids)("Authenticating a group with an invalid auth token '%s' fails", async (chat_id) => {
+    test.each(invalid_chat_ids)("Authenticating a group with an invalid chat ID '%s' fails", async (chat_id) => {
         const dummy_auth_token = "1234567890"; // magic number with no inherent meaning
         const res = await db.authenticate_group(chat_id, dummy_auth_token);
         expect(res.isPresent()).toBeFalsy()
     });
 
     test("Authenticating a group with non-existing auth token fails", async () => {
-        const unused_auth_token = "1234567890"; // let's pray that is not taken!
+        const unused_auth_token = "AAAAAAAAAA"; // let's pray that is not taken!
         const dummy_chat_id = 5;
         const res = await db.authenticate_group(dummy_chat_id, unused_auth_token);
         expect(res.isPresent()).toBeFalsy();
@@ -236,15 +206,17 @@ describe('Groups', () => {
         // TODO do not use a default group here but instead add a new one to prevent issues with other tests
         const dummy_chat_id = 5;
 
+        const g1 = (await db.get_group(1)).get();
+
         let auth_token = g1?.auth_token ?? "";
         const authenticated_group_opt = await db.authenticate_group(dummy_chat_id, auth_token);
-            
+
         expect(authenticated_group_opt.isPresent()).toBeTruthy();
         const authed_group = authenticated_group_opt.get();
 
         expect(authed_group.auth_token).toBeNull();
         expect(authed_group.chat_id).toBe(dummy_chat_id)
-        
+
         // try to authenticate again
         const authed_twice = await db.authenticate_group(dummy_chat_id, auth_token);
         expect(authed_twice?.isPresent()).toBeFalsy() // should not work
