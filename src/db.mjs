@@ -448,23 +448,13 @@ export class database {
      */
     async get_ZVEI_details(zvei_id) {
 
-        const id = ZVEI.validate_zvei_id(zvei_id)
-        if (!id.isPresent()) {
-            throw new Error(`Invalid ZVEI ID provided: ${zvei_id}`);
-        }
+        const zvei = await this.get_ZVEI(zvei_id);
 
-        let sql = `
-        SELECT description
-        FROM ZVEI
-        WHERE zvei_id = ?
-    `;
-        let params = [id.get()];
-        let rows = await this.#sql_query(sql, params);
-        if (rows.length != 1) {
+        if (zvei.isPresent()) {
+            return Optional.of(zvei.get().description);
+        }
+        else { // this is necessary as Optional<ZVEI>.empty() != Optional<String>.empty()
             return Optional.empty();
-        } else {
-            const desc = rows[0].description;
-            return Optional.of(desc);
         }
     }
 
@@ -563,7 +553,6 @@ export async function create_database(timezone, history_timeout, db_path) {
             }
         });
     });
-
     return await connect_promise;
 }
 
