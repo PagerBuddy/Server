@@ -481,6 +481,39 @@ export class database {
         return chat_ids;
     }
 
+
+    /**
+     * Deletes the user entry from database and all connected alerts.
+     * @param {number} user_id User ID.
+     * @returns {Promise<boolean>} Success
+     */
+    async remove_user(user_id) {
+        //let user_id = parseInt(user_id_);
+
+        if (!validator.is_numeric_safe(user_id)) {
+            return false;
+        }
+
+        let sql = `
+        DELETE FROM Users
+        WHERE user_id = ?
+        `;
+
+
+        let params = [user_id];
+        return await this.#sql_run(sql, params);
+
+        /* the table UserGroups will be automatically cleared as the foreign key
+         * has the ON DELETE CASCADE flag set
+        let sql2 = `
+        DELETE FROM UserGroups
+        WHERE user_id = ?
+    `;
+
+        return await this.#sql_run(sql2, params);
+        */
+    }
+
     /**
      * Gets the FCM device tokens and chatIDs linked to a given ZVEI unit.
      * @param {ZVEI} zvei

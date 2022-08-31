@@ -4,13 +4,13 @@ import { google } from 'googleapis';
 import * as  https from 'https';
 import loggers from './logging.mjs'
 import winston from 'winston';
-import * as mydata from './data.js';
+import * as DB from './db.mjs';
 import ZVEI from './model/zvei.mjs'
 
 /**@type {boolean} */
 let ENABLED = false;
 
-/**@type {mydata} */
+/**@type {DB.database} */
 let db;
 
 /**@type {winston.Logger} */
@@ -24,7 +24,7 @@ let ALERT_TIME_ZONE = "";
 
 /**
  * 
- * @param {*} database 
+ * @param {DB.database} database 
  * @param {string} timezone 
  * @param {{enabled: boolean, fcm_credentials: Object.<string, string>}} config 
  */
