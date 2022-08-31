@@ -309,7 +309,7 @@ describe('ZVEIs', () => {
 });
 
 
-describe("Alarms", () => {
+describe.skip("Alarms", () => {
     test('Alarm history lifecycle functions correctly', async () => {
         const zvei_id = 500;
         const information_content = 1;
@@ -344,7 +344,8 @@ describe("Alarms", () => {
 
     // TODO test sqlite cascading (e.g. for `remove_zvei`)
 
-    test.only("Linking and unlinking alarms works correctly", async () => {
+    test("Linking and unlinking alarms works correctly", async () => {
+        // zveis known to be in the test DB
         const zvei = (await db.get_ZVEI(12345)).get();
         const zvei_ = (await db.get_ZVEI(1)).get();
 
@@ -366,7 +367,7 @@ describe("Alarms", () => {
 
         zveis = await db.get_group_zveis(group_id);
         expect(zveis.length).toBe(2);
-        expect(zveis).toEqual([zvei_, zvei])
+        expect(zveis).toEqual([zvei_, zvei]) // the result is sorted wrt ascending ZVEIs
 
         success = await db.unlink_zvei_and_group(zvei, group_id);
         expect(success).toBeTruthy()

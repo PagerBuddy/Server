@@ -6,7 +6,6 @@ import Optional from 'optional-js'
 import { Group } from './model/group.mjs';
 import * as validator from './model/validation.mjs'
 import hat from 'hat';
-import { resolve } from 'path';
 
 export class database {
     /**
