@@ -1,5 +1,5 @@
 import { describe, expect, test } from '@jest/globals'
-import { KatSysAlert, katsys_alert, init } from '../src/katsys.mjs';
+import { KatSysAlert, init } from '../src/katsys.mjs';
 import {TestConfig} from './testConfig.js';
 import * as health from '../src/health.mjs'
 
@@ -75,7 +75,7 @@ const valid_with_counts = [[valid_data[0], 4, 2], [valid_data[1], 1, 0]];
 /**
  * 
  * @param {string[][]} vals 
- * @returns {katsys_alert}
+ * @returns {import('../src/katsys.mjs').katsys_alert}
  */
 function mk_data(vals) {
     let template = {
@@ -116,7 +116,7 @@ function mk_data(vals) {
 /**
  * 
  * @param {string[][][]} valss 
- * @returns {katsys_alert[]}
+ * @returns {import('../src/katsys.mjs').katsys_alert[]}
  */
 function mk_data_lists(valss) {
     return valss.map(v => {
@@ -128,7 +128,7 @@ function mk_data_lists(valss) {
  * 
  * @param {string} entry 
  * @param {string[]} vals 
- * @returns {katsys_alert[]}
+ * @returns {import('../src/katsys.mjs').katsys_alert[]}
  */
 function make_cases(entry, vals) {
     let valss = vals.map(v => { return [[entry, v]] });
@@ -140,7 +140,7 @@ const invalid_date = make_cases('alarmdatum', ['', '15.01:1992', '13.5.3.2.4.', 
 const invalid_time = make_cases('alarmuhrzeit', ['', 'geht nicht', '12.30', '12:30'])
 
 describe("Creating KatSysAlert objects", () => {
-    let helper = (/**@type {katsys_alert} */ obj) => {
+    let helper = (/**@type {import('../src/katsys.mjs').katsys_alert} */ obj) => {
         expect(() => {
             new KatSysAlert(
                 obj.alarmdatum,
