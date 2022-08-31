@@ -664,7 +664,7 @@ export class database {
 
     /**
      * Returns the user object for a given user ID.
-     * @param {numner} user_id 
+     * @param {number} user_id 
      * @returns {Promise<Optional<User>>}
      */
     async get_user(user_id) {
@@ -787,7 +787,7 @@ export class database {
 
     /**
     * Deletes a group from the subscribed alerts for a user.
-    * @param {nunber} user_id
+    * @param {number} user_id
     * @param {number} group_id
     * @returns {Promise<boolean>} Success
     */

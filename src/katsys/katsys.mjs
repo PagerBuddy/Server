@@ -57,6 +57,12 @@ export function init(katsys_config, timezone, health_) {
 }
 
 
+/**
+ * @callback katsys_alert_callback
+ * @param {Number} zvei The alert ZVEI.
+ * @param {Number} timestamp The offset corrected timestamp for the alert.
+ * @param {String} msg The additional alert text.
+ */
 
 
 /**
@@ -157,7 +163,7 @@ function heartbeat() {
  */
 export function handle_alert(alert_data, alert_callback) {
     alert_data.schleifen_of_interest.forEach(schleife => {
-        const timestamp = schleife.alert_timestamp(alert_data.timestamp_ms)
+        const timestamp = schleife.alert_timestamp(alert_data.timestamp_ms, ALERT_TIME_ZONE)
         alert_callback(schleife.zvei, timestamp, alert_data.msg)
     });
 

@@ -1,5 +1,6 @@
 import { describe, expect, test } from '@jest/globals'
-import { KatSysAlert, katsys_alert, init } from '../../src/katsys/katsys.mjs';
+import { KatSysAlert, init } from '../../src/katsys/katsys.mjs';
+import { katsys_alert } from '../../src/katsys/alert.mjs';
 import {TestConfig} from '../testConfig.js';
 import * as health from '../../src/health.mjs'
 

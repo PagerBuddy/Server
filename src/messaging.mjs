@@ -6,6 +6,7 @@ import loggers from './logging.mjs'
 import winston from 'winston';
 import * as DB from './db.mjs';
 import ZVEI from './model/zvei.mjs'
+import { User } from './model/user.mjs';
 
 /**@type {boolean} */
 let ENABLED = false;
@@ -135,9 +136,11 @@ async function sendFcmMessages(fcmMessage, user_ids) {
           if (jsonResponse.error != null) {
             if (jsonResponse.error.code == 404 && jsonResponse.error.status == "NOT_FOUND") {
               //Device ID does not exist (any more) - delete it.
-              var user_id = user_ids[msg];
+              const user_id = user_ids[msg];
               log.debug("FCM responded entity not found. Removing user.");
-              db.remove_user(user_id);
+              
+              let user = new User(user_id, "", "");
+              db.remove_user(user);
             } else {
               log.error("Error sending FCM message: " + data);
             }

@@ -16,7 +16,7 @@ describe("ZVEI ID Validation", () => {
     test.each(valid_ids)("Valid ID %s should pass", (id) => {
         const validated_id = ZVEI.validate_zvei_id(id);
         expect(validated_id.isPresent()).toBeTruthy()
-        expect(validated_id.get()).toBe(parseInt(id));
+        expect(validated_id.get()).toBe(parseInt(id.toString()));
     });
 });
 
@@ -73,7 +73,7 @@ describe("ZVEI creation", () => {
             end: "03:02"
         },
         {
-            id: null,
+            id: /**@type {any} */ (null),
             desc: "JEST TeST ZVEI agaiN",
             day: 3,
             start: "02:00",
@@ -106,7 +106,7 @@ describe("ZVEI creation", () => {
             day: 3,
             start: "02:99",
             end: "03:02"
-        },
+        }
     ];
 
     test.each(valid_zvei_data)("For valid ZVEI data '%s', the objects should be created", (z) => {

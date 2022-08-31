@@ -3,6 +3,7 @@ import {TestConfig} from './testConfig.js'
 
 import * as messaging from "../src/messaging.mjs"
 import * as db from '../src/data.js'
+import ZVEI from '../src/model/zvei.mjs';
 
 const config = new TestConfig();
 
@@ -16,7 +17,7 @@ let conditionalDescribeCB = () => {
     const TESTER_CHAT_ID = -1000000000;
 
     beforeAll(async () => {
-        messaging.init(null, config.alert_time_zone, config.messaging);
+        messaging.init(/**@type {any} */ (null), config.alert_time_zone, config.messaging);
     });
 
     test('graceful handling of obsolete token', async () => {
@@ -45,8 +46,7 @@ let conditionalDescribeCB = () => {
     test('no error when sending alert', async () => {
       
         const timestamp = Date.now();
-        const zvei = 99999;
-        const description = "JEST TEST";
+        const zvei = new ZVEI(99999, "JEST TEST", 0, "00:00", "00:00");
       
         const token_chat_array = {
           token: VALID_DEVICE_TOKEN,
@@ -54,7 +54,7 @@ let conditionalDescribeCB = () => {
           user_id: 0
         }
       
-        const result = await messaging.sendAlert([token_chat_array], timestamp, zvei, description, false);
+        const result = await messaging.sendAlert([token_chat_array], timestamp, config.alert_time_zone, zvei);
         expect(result).toBeTruthy();
     });
 

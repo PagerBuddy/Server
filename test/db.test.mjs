@@ -311,22 +311,22 @@ describe('ZVEIs', () => {
 
 describe.skip("Alarms", () => {
     test('Alarm history lifecycle functions correctly', async () => {
-        const zvei_id = 500;
         const information_content = 1;
+        const zvei = new ZVEI(500, "JEST TEST", 0, "00:00", "00:00");
 
    
         //backdate alert so that we do not have to wait 2min for it to expire
         const alert_timestamp = Date.now() - config.timeouts.history + 3000;
-        const res = await db.add_alarm_history(zvei_id, alert_timestamp, information_content);
+        const res = await db.add_alarm_history(zvei, alert_timestamp, information_content);
         expect(res).toBeTruthy();
 
-        const repeat = await db.is_repeat_alarm(zvei_id);
+        const repeat = await db.is_repeat_alarm(zvei);
         expect(repeat).toBeTruthy();
 
-        const update = await db.is_alarm_information_update(zvei_id, information_content + 1);
+        const update = await db.is_alarm_information_update(zvei, information_content + 1);
         expect(update).toBeTruthy();
 
-        const update2 = await db.is_alarm_information_update(zvei_id, information_content - 1);
+        const update2 = await db.is_alarm_information_update(zvei, information_content - 1);
         expect(update2).toBeFalsy();
         
         //ensure we wait untill the alert must be obsolete (2min)
@@ -336,7 +336,7 @@ describe.skip("Alarms", () => {
         }
 
         //This will also delete alarm from DB
-        const repeat2 = await db.is_repeat_alarm(zvei_id);
+        const repeat2 = await db.is_repeat_alarm(zvei);
         expect(repeat2).toBeFalsy();
 
     });

@@ -1,3 +1,5 @@
+import { katsys_alert } from "./alert.mjs";
+
 /**
  * @typedef {Object} katsys_update
  * @property {string} type 'data'
@@ -5,9 +7,6 @@
  * @property {string} statusClass 'success'
  * @property {katsys_data|undefined} data
  */
-
-
-
 
 
 /**
