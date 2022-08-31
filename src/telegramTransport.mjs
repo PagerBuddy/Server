@@ -28,7 +28,7 @@ export default class TelegramTransport extends Transport {
 
     /**
      * 
-     * @param {typeof data.get_chat_ids_from_zvei} dbfun 
+     * @param {any} dbfun 
      * @param {typeof telegram_bot.queue_message} msgfun 
      */
     constructor(dbfun, msgfun) {

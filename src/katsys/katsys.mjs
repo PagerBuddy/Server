@@ -4,10 +4,10 @@ import winston from 'winston';
 
 import * as myhealth from '../health.mjs';
 import Schleife from './schleife.mjs'
-import { KatSysAlert, katsys_alert } from "./alert.mjs";
+import { KatSysAlert } from "./alert.mjs";
 import KatSysUpdate from "./update.mjs";
 
-export {Schleife, KatSysAlert, katsys_alert, KatSysUpdate}
+export {Schleife, KatSysAlert, KatSysUpdate}
 
 //Ref: https://developer.mozilla.org/en-US/docs/Web/API/CloseEvent/code
 const CODE_PAGERBUDDY_STOP = 4000;

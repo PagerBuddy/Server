@@ -10,13 +10,14 @@ import * as data from '../src/data.js';
 import logging from '../src/logging.mjs';
 
 describe("server operation", () => {
-    test("no error during server lifecycle", async () => {
+    test.only("no error during server lifecycle", async () => {
         let spyBot = jest.spyOn(telegramBot, "start_bot").mockImplementation(() => {});
         let spyKatsys = jest.spyOn(katsys, "start").mockImplementation((callback) => {});
         let spyWebsocket = jest.spyOn(websocket, "start_listening").mockImplementation((callback) => {
             return Promise.resolve(true);
         });
 
+        
         const cli_ignore_config_err = "--ignore_config_error=true";
         process.argv.push(cli_ignore_config_err);
 
@@ -26,7 +27,7 @@ describe("server operation", () => {
         expect(spyKatsys).toHaveBeenCalled();
         expect(spyWebsocket).toHaveBeenCalled();
 
-        let spyBotClose = jest.spyOn(telegramBot, "stop_bot").mockImplementation(() => {
+        jest.spyOn(telegramBot, "stop_bot").mockImplementation(() => {
             return Promise.resolve();
         });
         await server.stop();

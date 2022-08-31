@@ -584,11 +584,10 @@ export class database {
 
     /**
      * Returns the chat_ids linked to a given ZVEI unit.
-     * @param {ZVEI} zvei
+     * @param {number} zvei_id
      * @returns {Promise<number[]>}  list of chat IDs linked to the ZVEI unit.
      */
-    async get_chat_ids_from_zvei(zvei) {
-
+    async get_chat_ids_from_zvei_by_id(zvei_id) {
         let sql = `
         SELECT Groups.chat_id
         FROM Alarms
@@ -596,7 +595,7 @@ export class database {
         JOIN ZVEI ON Alarms.zvei_id = ZVEI.zvei_id
         WHERE ZVEI.zvei_id = ?
         `;
-        let params = [zvei.id];
+        let params = [zvei_id];
         let rows = await this.#sql_query(sql, params);
 
         let chat_ids = [];
@@ -604,6 +603,15 @@ export class database {
             chat_ids.push(parseInt(rows[index].chat_id));
         }
         return chat_ids;
+    }
+
+    /**
+     * Returns the chat_ids linked to a given ZVEI unit.
+     * @param {ZVEI} zvei
+     * @returns {Promise<number[]>}  list of chat IDs linked to the ZVEI unit.
+     */
+    async get_chat_ids_from_zvei(zvei) {
+        return this.get_chat_ids_from_zvei_by_id(zvei.id);
     }
 
     /**
