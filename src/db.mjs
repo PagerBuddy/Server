@@ -695,6 +695,23 @@ export class database {
         return await this.#sql_run(sql, params);
     }
 
+    /**
+     * Gets the list of alarm subscriptions for FCM.
+     * @returns {Promise<Array<{user_id: number, group_id: number, chat_id: string, token: string}>>} An array of alert subscriptions [[user_id, group_id, chat_id]].
+     */
+    async get_check_users_list() {
+
+
+        let sql = `
+        SELECT UserGroups.user_id, UserGroups.group_id, Groups.chat_id, Users.token
+        FROM Groups
+        JOIN UserGroups ON Groups.group_id = UserGroups.group_id
+        JOIN Users ON UserGroups.user_id = Users.user_id
+    `;
+
+        let rows = await this.#sql_query(sql, []);
+        return rows;
+    }
 
 
 

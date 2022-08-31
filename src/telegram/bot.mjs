@@ -15,6 +15,7 @@ import winston from 'winston';
 import * as mydata from '../data.js'
 import * as myhealth from '../health.mjs'
 import * as mymessaging from '../messaging.mjs'
+import ZVEI from '../model/zvei.mjs'
 
 /** @type {String } */
 let BOT_NAME = "";
@@ -162,19 +163,19 @@ export async function unpin_message(chat_id, message_id) {
 /**
  * Send an alert to the provided chat id. A message string is built from the provided parameters.
  * @param {number} chat_id: The receiver of the message.
- * @param {number} zvei_id: The alert id.
- * @param {String} description: The description of the alert type ("") if none.
- * @param {Boolean} is_test_alert: Wether we are currently in test alert time.
+ * @param {ZVEI} zvei: The alert id.
  * @param {number} timestamp: The alert timestamp (typically provided from alert device.) in Unix time as ms.
+ * @param {string} alert_time_zone: The timezone of the alert
  * @param {Boolean} is_manual: If the alert was triggered manually.
  * @param {String} text: Alert content - can be arbitrary text.
  * @return {Promise<{msg_res: PromiseSettledResult<bot_response>, resp_res: PromiseSettledResult<bot_response>}>}
  */
-export async function send_alert(chat_id, zvei_id, description, is_test_alert, timestamp, is_manual, text) {
+export async function send_alert(chat_id, zvei, timestamp, alert_time_zone, is_manual, text) {
     //We have to ensure chat_id is a numeric type.
     //let chat_id_as_number = parseInt(chat_id);
 
     let alert_text = "";
+    const is_test_alert = zvei.is_test_time(timestamp, alert_time_zone);
 
     if (is_manual) {
         alert_text += "<b>Manueller Alarm (KEINE ILS)</b>\n";
@@ -182,8 +183,8 @@ export async function send_alert(chat_id, zvei_id, description, is_test_alert, t
         alert_text += "<b>Probealarmzeit</b>\n";
     }
     alert_text += text + '\n'
-    alert_text += description + "\n<code>";
-    alert_text += zvei_id + "\n";
+    alert_text += zvei.description + "\n<code>";
+    alert_text += zvei.id + "\n";
 
     let datetime = new Date(timestamp);
     const timeString = datetime.toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit", second: "2-digit", timeZone: TIMEZONE });

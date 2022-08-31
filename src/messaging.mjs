@@ -5,6 +5,7 @@ import * as  https from 'https';
 import loggers from './logging.mjs'
 import winston from 'winston';
 import * as mydata from './data.js';
+import ZVEI from './model/zvei.mjs'
 
 /**@type {boolean} */
 let ENABLED = false;
@@ -39,12 +40,11 @@ export function init(database, timezone, config) {
  * Send an FCM/APNS package containing the alert to the list of devices.
  * @param {Array<{token: string, chat_id: string, user_id: number}>} token_chat_array: The FCM tokens (and the causing chatIDs) to send the package to.
  * @param {number} alert_timestamp: The timestamp (in system time zone) when the alert was received.
- * @param {number} alert_zvei_id The alert ID. Use this to obtain an alert description from DB.
- * @param {string} alert_zvei_description The text tag of the zvei_id.
- * @param {boolean} is_test_time If the time filter for test alerts is applicable.
+ * @param {string} alert_time_zone The alert ID. Use this to obtain an alert description from DB.
+ * @param {ZVEI} zvei The ZVEI that is to be alerted
  * @returns {Promise<boolean>} True if all alerts were sent successfully, false otherwise.
  */
-export async function sendAlert(token_chat_array, alert_timestamp, alert_zvei_id, alert_zvei_description, is_test_time) {
+export async function sendAlert(token_chat_array, alert_timestamp, alert_time_zone, zvei) {
   if (!ENABLED) {
     return false;
   }
@@ -57,7 +57,14 @@ export async function sendAlert(token_chat_array, alert_timestamp, alert_zvei_id
   /**@type {number[]} */
   let user_ids = [];
   for (let item in token_chat_array) {
-    messages.push(getFCMJSON(token_chat_array[item].token, parseInt(token_chat_array[item].chat_id), alert_zvei_id, alert_zvei_description, is_test_time, alert_timestamp + offset, false));
+    messages.push(
+      getFCMJSON(token_chat_array[item].token,
+        parseInt(token_chat_array[item].chat_id),
+        zvei.id, zvei.description,
+        zvei.is_test_time(alert_timestamp, alert_time_zone),
+        alert_timestamp + offset,
+        false)
+    );
     user_ids.push(token_chat_array[item].user_id);
   }
 
@@ -166,10 +173,10 @@ async function sendFcmMessages(fcmMessage, user_ids) {
   return true;
 }
 
-  /**
-   * Get a short-lived access token from FCM server.
-   * @returns {Promise<string|null|undefined|Error>} A promise that will resolve an access token on success.
-   */
+/**
+ * Get a short-lived access token from FCM server.
+ * @returns {Promise<string|null|undefined|Error>} A promise that will resolve an access token on success.
+ */
 function getAccessToken() {
 
   return new Promise(function (resolve, reject) {
@@ -193,17 +200,17 @@ function getAccessToken() {
     });
   });
 }
-  /**
-   * Constructs the FCM message to be sent.
-   * @param {string} device_token The FCM token to send to.
-   * @param {number} chat_id The linked chat ID causing the FCM alert.
-   * @param {number} zvei_id The ZVEI (typically 5 digits) of the alerted unit.
-   * @param {string} zvei_description A text description of the unit
-   * @param {boolean} is_test_time Whether the test time filter is active.
-   * @param {number} alert_timestamp The UNIX-timestamp of the alert.
-   * @param {boolean} manual_test If this alert was requested by the user.
-   * @returns {string} A ready to send JSON payload.
-   */
+/**
+ * Constructs the FCM message to be sent.
+ * @param {string} device_token The FCM token to send to.
+ * @param {number} chat_id The linked chat ID causing the FCM alert.
+ * @param {number} zvei_id The ZVEI (typically 5 digits) of the alerted unit.
+ * @param {string} zvei_description A text description of the unit
+ * @param {boolean} is_test_time Whether the test time filter is active.
+ * @param {number} alert_timestamp The UNIX-timestamp of the alert.
+ * @param {boolean} manual_test If this alert was requested by the user.
+ * @returns {string} A ready to send JSON payload.
+ */
 function getFCMJSON(device_token, chat_id, zvei_id, zvei_description, is_test_time, alert_timestamp, manual_test) {
 
   const fcm_ttl = 15 * 60; //Remove alert after 15min, if not delivered
