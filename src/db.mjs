@@ -22,6 +22,10 @@ export class database {
         this.db = db;
     }
 
+    close() {
+        this.db.close();
+    }
+
     /** 
      * Executes an SQL query with the given parameters returning whether the query succeeded
      * @param {string} sql SQL query to be executed.
@@ -455,10 +459,11 @@ export class database {
 
     /**
      * Returns the chat_ids linked to a given ZVEI unit.
-     * @param {ZVEI} zvei 
+     * @param {ZVEI} zvei
      * @returns {Promise<number[]>}  list of chat IDs linked to the ZVEI unit.
      */
     async get_chat_ids_from_zvei(zvei) {
+
         let sql = `
         SELECT Groups.chat_id
         FROM Alarms
@@ -577,14 +582,10 @@ export class database {
      * 
      * An alert should not be sent if it is a repeat alarm.
      * 
-     * @param {number} zvei_id ID of the ZVEI unit to check for double alarm.
+     * @param {ZVEI} zvei The ZVEI unit to check for double alarm.
      * @returns {Promise<boolean>} Wether the alarm should be suppressed.
      */
-    async is_repeat_alarm(zvei_id) {
-
-        if (!ZVEI.is_valid_id(zvei_id)) {
-            return false;
-        }
+    async is_repeat_alarm(zvei) {
 
         //first clean history entries
         let res = await this.#clear_history();
@@ -597,7 +598,7 @@ export class database {
         FROM AlarmHistory
         WHERE zvei_id = ?
         `
-        let params = [zvei_id];
+        let params = [zvei.id];
 
         let result = await this.#sql_query(sql, params);
         let val = result[0]["COUNT(zvei_id)"];
@@ -606,15 +607,14 @@ export class database {
 
     /**
      * Add an alarm for the provided ZVEI to the history DB for double alert detection. TODO does this mean that this is a method for testing purposes only?
-     * @param {number} zvei_id ID of the ZVEI unit for which the alert was received.
+     * @param {ZVEI} zvei The ZVEI unit for which the alert was received.
      * @param {number} timestamp The point in Unix time when the alarm was received by the interface.
      * @param {number} information_content An integer representing the alarms information content. Depends on interfacae device.
      * @returns {Promise<boolean>} Success
      */
-    async add_alarm_history(zvei_id, timestamp, information_content) {
+    async add_alarm_history(zvei, timestamp, information_content) {
 
-        if (!ZVEI.is_valid_id(zvei_id) ||
-            !validator.is_numeric_safe(timestamp) ||
+        if (!validator.is_numeric_safe(timestamp) ||
             !validator.is_numeric_safe(information_content)) {
             return false;
         }
@@ -624,21 +624,20 @@ export class database {
     VALUES (?, ?, ?)
     `;
 
-        let params = [zvei_id, timestamp, information_content];
+        let params = [zvei.id, timestamp, information_content];
         return await this.#sql_run(sql, params);
     }
 
     /**
      * Check if the information level of a double alarm is higher than the previous alarm (f.e. SMS after ZVEI). In this case send new information as new alarm ONLY to Telegram
      * (not FCM/APNS). This can possibly happen minutes after initial alarm. The relevant grace period is set in config.json.
-     * @param {number} zvei_id ID of the ZVEI unit to check for information update.
+     * @param {ZVEI} zvei The ZVEI unit to check for information update.
      * @param {number} information_content An INFORMATION_CONTENT representing the new alerts source.
      * @returns {Promise<boolean>} Wether this alert probably contains new information.
      */
-    async is_alarm_information_update(zvei_id, information_content) {
+    async is_alarm_information_update(zvei, information_content) {
 
-        if (!ZVEI.is_valid_id(zvei_id) ||
-            !validator.is_numeric_safe(information_content)) {
+        if (!validator.is_numeric_safe(information_content)) {
             return false;
         }
 
@@ -648,7 +647,7 @@ export class database {
     WHERE zvei_id = ? AND alert_level >= ?
     `
 
-        let params = [zvei_id, information_content];
+        let params = [zvei.id, information_content];
         let result = await this.#sql_query(sql, params);
 
         let val = result[0]["COUNT(zvei_id)"];
