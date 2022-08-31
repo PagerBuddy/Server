@@ -255,7 +255,7 @@ export async function start() {
   console.error(`typeof: ${typeof db.get_chat_ids_from_zvei_by_id}`)
 
 
-  logging.connect_telegram_transport(db.get_chat_ids_from_zvei, telegram_bot.queue_message);
+  logging.connect_telegram_transport(db.get_chat_ids_from_zvei.bind(db), telegram_bot.queue_message);
 
   await websocket.start_listening(queue_alarm);
   katsys.start(queue_katsys);

@@ -611,7 +611,7 @@ export class database {
      * @returns {Promise<number[]>}  list of chat IDs linked to the ZVEI unit.
      */
     async get_chat_ids_from_zvei(zvei) {
-        return this.get_chat_ids_from_zvei_by_id(zvei.id);
+        return await this.get_chat_ids_from_zvei_by_id(zvei.id);
     }
 
     /**
