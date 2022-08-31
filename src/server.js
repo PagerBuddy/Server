@@ -248,13 +248,6 @@ export async function start() {
   websocket.init(config.websocket, health);
   katsys.init(config.katsys, alert_time_zone, health)
 
-
-  console.error(`typeof ${typeof db}`)
-  console.error(Object.getOwnPropertyNames( database.database.prototype ))
-  console.error(`typeof: ${typeof db.get_chat_ids_from_zvei}`)
-  console.error(`typeof: ${typeof db.get_chat_ids_from_zvei_by_id}`)
-
-
   logging.connect_telegram_transport(db.get_chat_ids_from_zvei.bind(db), telegram_bot.queue_message);
 
   await websocket.start_listening(queue_alarm);

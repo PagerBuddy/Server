@@ -9,6 +9,6 @@ export default {
   testPathIgnorePatterns: ["<rootDir>/build/", "<rootDir>/node_modules/"],
   moduleFileExtensions: ["js", "jsx", "mjs"],
   forceExit: true,
-  
+  reporters: [["jest-silent-reporter", { "useDots": true, "showWarnings": true, "showPaths": true }], "summary"],
   collectCoverage: true
 }

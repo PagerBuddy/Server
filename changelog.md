@@ -1,7 +1,10 @@
 # Version 1.1.0 (TBA)
 
 ## Added
-* Data model using JavaScript classes
+* Data model using JavaScript classes:
+  - Groups
+  - Users
+  - ZVEIs
 * Use separate testing database
 
 ## Fixed / Changed

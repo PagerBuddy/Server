@@ -1,5 +1,3 @@
-import { katsys_alert } from "./alert.mjs";
-
 /**
  * @typedef {Object} katsys_update
  * @property {string} type 'data'

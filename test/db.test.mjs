@@ -309,8 +309,8 @@ describe('ZVEIs', () => {
 });
 
 
-describe.skip("Alarms", () => {
-    test('Alarm history lifecycle functions correctly', async () => {
+describe("Alarms", () => {
+    test.skip('Alarm history lifecycle functions correctly', async () => {
         const information_content = 1;
         const zvei = new ZVEI(500, "JEST TEST", 0, "00:00", "00:00");
 
@@ -341,8 +341,6 @@ describe.skip("Alarms", () => {
 
     });
 
-
-    // TODO test sqlite cascading (e.g. for `remove_zvei`)
 
     test("Linking and unlinking alarms works correctly", async () => {
         // zveis known to be in the test DB
