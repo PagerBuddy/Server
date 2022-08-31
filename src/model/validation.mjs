@@ -14,9 +14,6 @@ export function is_text_safe(text) {
     return res;
 }
 
-
-
-
 /**
  * Ensures input is a valid telegram chat id (numerical digits, optional -).
  * @param {number} chat_id Chat ID to validate.

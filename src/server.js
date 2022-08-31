@@ -237,7 +237,7 @@ export async function start() {
 
   db = await database.create_database(alert_time_zone, config.timeouts.history, config.files.database_location);
 
-  messaging.init(db, alert_time_zone, config.messaging); // TODO fix messaging
+  messaging.init(db, alert_time_zone, config.messaging);
 
   health.init(config.timeouts, alert_time_zone);
   health.start_health_monitoring();

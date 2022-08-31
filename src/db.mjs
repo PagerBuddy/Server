@@ -4,6 +4,7 @@ import { existsSync } from 'fs'
 import ZVEI from './model/zvei.mjs'
 import Optional from 'optional-js'
 import { Group } from './model/group.mjs';
+import { User } from './model/user.mjs'
 import * as validator from './model/validation.mjs'
 import hat from 'hat';
 
@@ -375,6 +376,32 @@ export class database {
     }
 
     /**
+ * Gets the corresponding group ID from a chat ID.
+ * @param {number} chat_id Chat ID.
+ * @returns {Promise<Optional<Group>>} Group ID.
+ */
+    async get_group_from_chat_id(chat_id) {
+
+        if (!validator.is_chat_id_safe(chat_id)) {
+            return Optional.empty()
+        }
+        let sql = `
+    SELECT *
+    FROM Groups
+    WHERE chat_id = ?
+    LIMIT 1
+    `;
+        let res = await this.#sql_query(sql, [chat_id.toString()]);
+        if (res.length != 1) {
+            // No group found with specified chat ID
+            this.logger.debug("Invalid chat ID.");
+            return Optional.empty();
+        }
+
+        return Optional.of(this.#row_to_group(res[0]));
+    }
+
+    /**
      * Transforms a row of the ZVEI database table to a {@see Z.ZVEI}
      * 
      * This is just a tiny convenience function
@@ -458,6 +485,104 @@ export class database {
     }
 
     /**
+     * 
+     * @param {ZVEI} zvei 
+     * @returns {Promise<boolean>}
+     */
+    async add_ZVEI(zvei) {
+        let sql = `
+            INSERT INTO ZVEI(zvei_id, description, test_day, test_time_start, test_time_end)
+            VALUES (?, ?, ?, ?, ?)
+            `;
+        let params = [zvei.id, zvei.description, zvei.test_day, zvei.test_time_start, zvei.test_time_end];
+        return this.#sql_run(sql, params);
+    }
+
+    /**
+     * Removes a given ZVEI and all alarms for the ZVEI from the database
+     * @param {ZVEI} zvei 
+     * @returns {Promise<boolean>} Whether the deletion succeeded
+     */
+    async remove_ZVEI(zvei) {
+
+        const params = [zvei.id];
+
+        const sql_delete_zvei = `
+            DELETE FROM ZVEI
+            WHERE zvei_id = ?
+            `;
+
+        // 2. Remove all linked alarms.
+        const sql_delete_alarms = `
+            DELETE FROM Alarms
+            WHERE zvei_id = ?
+            `
+        return new Promise(resolve => {
+            this.db.serialize(() => {
+                // the second run() should only be executed when the first did not fail
+                // the doubling of the error callback is probably unnecessary but I can't find
+                // any examples on how to use this correctly
+                this.db.run(sql_delete_zvei, params, (error) => {
+                    if (error) {
+                        resolve(false);
+                    }
+                    else {
+                        resolve(true);
+                    }
+                }).run(sql_delete_alarms, params, (error) => {
+                    if (error) {
+                        resolve(false);
+                    }
+                    else {
+                        resolve(true);
+                    }
+                });
+            });
+        });
+    }
+
+    /**
+     * Adds an alarm link between a ZVEI unit and a group.
+     * Example: add_alarm(25977, 4) links the ZVEI ID 25977 to the group with ID 4 ("B1").
+     * @param {ZVEI} zvei
+     * @param {number} group_id ID of the group.
+     * @returns {Promise<boolean>} Success
+     */
+    async link_zvei_with_group(zvei, group_id) {
+
+        if (!validator.is_numeric_safe(group_id)) {
+            return false;
+        }
+
+        let sql = `
+        INSERT INTO Alarms(zvei_id, group_id)
+        VALUES (?, ?)
+        `;
+        let params = [zvei.id, group_id];
+        return await this.#sql_run(sql, params);
+    }
+
+    /**
+     * Removes an alarm link between a ZVEI unit and a group.
+     * @param {ZVEI} zvei
+     * @param {number} group_id ID of the group.
+     * @returns {Promise<boolean>} Success
+     */
+    async unlink_zvei_and_group(zvei, group_id) {
+
+        if (!validator.is_numeric_safe(group_id)) {
+            return false;
+        }
+
+        let sql = `
+        DELETE FROM Alarms
+        WHERE zvei_id = ? AND group_id = ?
+        `
+        let params = [zvei.id, group_id];
+        return await this.#sql_run(sql, params);
+    }
+
+    /**
      * Returns the chat_ids linked to a given ZVEI unit.
      * @param {ZVEI} zvei
      * @returns {Promise<number[]>}  list of chat IDs linked to the ZVEI unit.
@@ -481,16 +606,132 @@ export class database {
         return chat_ids;
     }
 
+    /**
+     * Replaces a group chat id.
+     * @param {number} current_chat_id Old id to be replaced.
+     * @param {number} new_chat_id New id.
+     */
+    async replace_chat_id(current_chat_id, new_chat_id) {
+        if (!validator.is_chat_id_safe(current_chat_id) || !validator.is_chat_id_safe(new_chat_id)) {
+            return false;
+        }
+
+        const sql = `
+        UPDATE Groups
+        SET chat_id = ?
+        WHERE chat_id = ?
+        `;
+
+        const params = [new_chat_id.toString(), current_chat_id.toString()];
+        return await this.#sql_run(sql, params);
+    }
+
+
+    /**
+     * Gets the list of alarm subscriptions for FCM.
+     * @returns {Promise<Array<{user_id: number, group_id: number, chat_id: string, token: string}>>} An array of alert subscriptions [[user_id, group_id, chat_id]].
+     */
+    async get_check_users_list() {
+
+        // TODO return User/Group objects instead of generic object
+        let sql = `
+        SELECT UserGroups.user_id, UserGroups.group_id, Groups.chat_id, Users.token
+        FROM Groups
+        JOIN UserGroups ON Groups.group_id = UserGroups.group_id
+        JOIN Users ON UserGroups.user_id = Users.user_id
+    `;
+
+        let rows = await this.#sql_query(sql, []);
+        return rows;
+    }
+
+    /**
+     * Convenience function for creating users from a sql query row
+     * @param {{user_id: number, token: string, token_type: string}} row 
+     * @returns {User}
+     */
+    #row_to_user(row) {
+        return new User(row.user_id, row.token, row.token_type)
+    }
+
+    /**
+     * Returns the user object for a given user ID.
+     * @param {numner} user_id 
+     * @returns {Promise<Optional<User>>}
+     */
+    async get_user(user_id) {
+        const sql = `SELECT * FROM Users WHERE user_id = ?`;
+        const params = [user_id];
+        const res = await this.#sql_query(sql, params);
+        if (res.length != 1) {
+            return Optional.empty();
+        }
+        const user = this.#row_to_user(res[0]);
+        return Optional.of(user);
+    }
+
+    /**
+     * Get the user device token if at least one valid subscription is present.
+     * Used for alert tests.
+     * @param {number} user_id User ID.
+     * @returns {Promise<Optional<string>>}: The FCM device token as string.
+     */
+    async user_token(user_id) {
+
+        if (!validator.is_numeric_safe(user_id)) {
+            return Optional.empty();
+        }
+
+        let sql = `
+        SELECT token
+        FROM Users
+        JOIN UserGroups ON Users.user_id = UserGroups.user_id
+        WHERE Users.user_id = ? AND UserGroups.group_id IS NOT NULL
+        LIMIT 1
+    `;
+        let rows = await this.#sql_query(sql, [user_id]);
+        if (rows.length < 1) {
+            return Optional.empty();
+        }
+        return Optional.of(rows[0].token);
+    }
+
+    /**
+     * Adds or updates a user.
+     * @param {number} user_id User ID.
+     * @param {string} token FCM/APNS token.
+     * @returns {Promise<Optional<User>>} Success
+     */
+    async update_user(user_id, token) {
+
+        if (!validator.is_numeric_safe(user_id) || !User.is_device_token_safe(token)) {
+            return Optional.empty();
+        }
+
+        let sql = `
+    REPLACE INTO Users(user_id, token, token_type)
+    VALUES(?, ?, "ANY")
+    `;
+        const params = [user_id, token];
+
+        const res = await this.#sql_query(sql, params);
+        if (res.length == 1) {
+            return Optional.of(this.#row_to_user(res[0]));
+        }
+        else {
+            return Optional.empty();
+        }
+    }
 
     /**
      * Deletes the user entry from database and all connected alerts.
-     * @param {number} user_id User ID.
+     * @param {User} user User ID.
      * @returns {Promise<boolean>} Success
      */
-    async remove_user(user_id) {
+    async remove_user(user) {
         //let user_id = parseInt(user_id_);
 
-        if (!validator.is_numeric_safe(user_id)) {
+        if (!validator.is_numeric_safe(user.id)) {
             return false;
         }
 
@@ -500,8 +741,10 @@ export class database {
         `;
 
 
-        let params = [user_id];
+        let params = [user.id];
         return await this.#sql_run(sql, params);
+
+        // TODO check cascading in test case
 
         /* the table UserGroups will be automatically cleared as the foreign key
          * has the ON DELETE CASCADE flag set
@@ -512,6 +755,85 @@ export class database {
 
         return await this.#sql_run(sql2, params);
         */
+    }
+
+
+    /**
+    * Adds a user to a group
+    * @param {User} user User ID.
+    * @param {Group} group 
+    * @returns {Promise<boolean>} Success
+    */
+    async add_user_to_group(user, group) {
+
+        if (!validator.is_numeric_safe(user.id) || !validator.is_numeric_safe(group.id)) {
+            return false;
+        }
+        let sql = `
+        REPLACE INTO UserGroups(user_id, group_id)
+        VALUES(?, ?)
+        `;
+        let params = [user.id, group.id];
+        return await this.#sql_run(sql, params);
+    }
+
+    /**
+    * Deletes a group from the subscribed alerts for a user.
+    * @param {nunber} user_id
+    * @param {number} group_id
+    * @returns {Promise<boolean>} Success
+    */
+    async remove_user_from_group_by_ids(user_id, group_id) {
+
+        if (!validator.is_numeric_safe(user_id) || !validator.is_numeric_safe(group_id)) {
+            return false;
+        }
+
+        let sql = `
+        DELETE FROM UserGroups
+        WHERE user_id = ? AND group_id = ?
+    `;
+        let params = [user_id, group_id];
+        return await this.#sql_run(sql, params);
+    }
+
+    /**
+    * Deletes a group from the subscribed alerts for a user.
+    * @param {User} user 
+    * @param {Group} group
+    * @returns {Promise<boolean>} Success
+    */
+    async remove_user_from_group(user, group) {
+        return this.remove_user_from_group_by_ids(user.id, group.id)
+    }
+
+    /**
+     * Get all chatIDs linked to the user, if any.
+     * @param {number} user_id User ID (Telergam).
+     * @returns {Promise<Array<number>>} Array of chatIDs. Can be empty.
+     */
+    async user_chat_ids(user_id) {
+
+
+        //let user_id = parseInt(user_id_);
+        if (!validator.is_numeric_safe(user_id)) {
+            return [];
+        }
+
+        let sql = `
+         SELECT Groups.chat_id
+         FROM Users
+         JOIN UserGroups ON Users.user_id = UserGroups.user_id
+         JOIN Groups ON UserGroups.group_id = Groups.group_id
+         WHERE Users.user_id = ? AND UserGroups.group_id IS NOT NULL
+     `;
+        let rows = await this.#sql_query(sql, [user_id]);
+
+        let chat_ids = [];
+        for (let index in rows) {
+            chat_ids.push(parseInt(rows[index].chat_id));
+        }
+        return chat_ids;
     }
 
     /**
@@ -534,63 +856,6 @@ export class database {
         let params = [zvei.id];
         let rows = await this.#sql_query(sql, params);
         return rows;
-    }
-
-    /**
-     * 
-     * @param {ZVEI} zvei 
-     * @returns {Promise<boolean>}
-     */
-    async add_ZVEI(zvei) {
-        let sql = `
-        INSERT INTO ZVEI(zvei_id, description, test_day, test_time_start, test_time_end)
-        VALUES (?, ?, ?, ?, ?)
-        `;
-        let params = [zvei.id, zvei.description, zvei.test_day, zvei.test_time_start, zvei.test_time_end];
-        return this.#sql_run(sql, params);
-    }
-
-    /**
-     * Removes a given ZVEI and all alarms for the ZVEI from the database
-     * @param {ZVEI} zvei 
-     * @returns {Promise<boolean>} Whether the deletion succeeded
-     */
-    async remove_ZVEI(zvei) {
-
-        const params = [zvei.id];
-
-        const sql_delete_zvei = `
-        DELETE FROM ZVEI
-        WHERE zvei_id = ?
-        `;
-
-        // 2. Remove all linked alarms.
-        const sql_delete_alarms = `
-        DELETE FROM Alarms
-        WHERE zvei_id = ?
-        `
-        return new Promise(resolve => {
-            this.db.serialize(() => {
-                // the second run() should only be executed when the first did not fail
-                // the doubling of the error callback is probably unnecessary but I can't find
-                // any examples on how to use this correctly
-                this.db.run(sql_delete_zvei, params, (error) => {
-                    if (error) {
-                        resolve(false);
-                    }
-                    else {
-                        resolve(true);
-                    }
-                }).run(sql_delete_alarms, params, (error) => {
-                    if (error) {
-                        resolve(false);
-                    }
-                    else {
-                        resolve(true);
-                    }
-                });
-            });
-        });
     }
 
     /**
@@ -687,64 +952,51 @@ export class database {
         return val == 0;
     }
 
-
     /**
      * Adds an alarm link between a ZVEI unit and a group.
      * Example: add_alarm(25977, 4) links the ZVEI ID 25977 to the group with ID 4 ("B1").
-     * @param {ZVEI} zvei
+     * @param {number} zvei_id ID of the ZVEI unit.
      * @param {number} group_id ID of the group.
      * @returns {Promise<boolean>} Success
      */
-    async link_zvei_with_group(zvei, group_id) {
+    async add_alarm(zvei_id, group_id) {
 
-        if (!validator.is_numeric_safe(group_id)) {
+        if (!ZVEI.is_valid_id(zvei_id) || !validator.is_numeric_safe(group_id)) {
             return false;
         }
 
         let sql = `
-    INSERT INTO Alarms(zvei_id, group_id)
-    VALUES (?, ?)
-    `;
-        let params = [zvei.id, group_id];
+        INSERT INTO Alarms(zvei_id, group_id)
+        VALUES (?, ?)
+        `;
+        let params = [zvei_id, group_id];
         return await this.#sql_run(sql, params);
     }
+
     /**
      * Removes an alarm link between a ZVEI unit and a group.
-     * @param {ZVEI} zvei
+     * @param {number} zvei_id ID of the ZVEI unit.
      * @param {number} group_id ID of the group.
      * @returns {Promise<boolean>} Success
      */
-    async unlink_zvei_and_group(zvei, group_id) {
+    async remove_alarm(zvei_id, group_id) {
 
-        if (!validator.is_numeric_safe(group_id)) {
+        if (!ZVEI.is_valid_id(zvei_id) || !validator.is_numeric_safe(group_id)) {
             return false;
         }
 
         let sql = `
-    DELETE FROM Alarms
-    WHERE zvei_id = ? AND group_id = ?
-    `
-        let params = [zvei.id, group_id];
+        DELETE FROM Alarms
+        WHERE zvei_id = ? AND group_id = ?
+        `
+        let params = [zvei_id, group_id];
         return await this.#sql_run(sql, params);
     }
 
-    /**
-     * Gets the list of alarm subscriptions for FCM.
-     * @returns {Promise<Array<{user_id: number, group_id: number, chat_id: string, token: string}>>} An array of alert subscriptions [[user_id, group_id, chat_id]].
-     */
-    async get_check_users_list() {
 
 
-        let sql = `
-        SELECT UserGroups.user_id, UserGroups.group_id, Groups.chat_id, Users.token
-        FROM Groups
-        JOIN UserGroups ON Groups.group_id = UserGroups.group_id
-        JOIN Users ON UserGroups.user_id = Users.user_id
-    `;
 
-        let rows = await this.#sql_query(sql, []);
-        return rows;
-    }
+
 
 
 
