@@ -79,7 +79,7 @@ export class Config {
         }
 
         const admin_groups = config.TELEGRAM?.ADMIN_GROUPS;
-        if(!admin_groups || admin_groups == []){
+        if(!admin_groups || admin_groups.length < 1){
             logger.warn("No admin groups specified in config. You will not be able to configure pagerbuddy via telegram!");
         }else{
             this.telegram.admin_groups = admin_groups;
