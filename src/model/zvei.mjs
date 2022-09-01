@@ -64,6 +64,18 @@ export default class ZVEI {
     }
 
     /**
+     * Get a default ZVEI object.
+     * 
+     * PagerBuddy must be able to handle any ZVEI - even unknown ones. For ZVEI without defined settings default parameters are assumed.
+     * @param {string|number} zvei_id
+     * @returns {ZVEI}
+     */
+    static get_default(zvei_id){
+        return new ZVEI(zvei_id, "", 0, "00:00", "00:00");
+    }
+
+
+    /**
      * Check whether the input is a valid ZVEI ID
      * 
      * An ID is valid if it is a number from the range [0,9999]. The method tries to parse strings using `parseInt`.

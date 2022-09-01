@@ -422,7 +422,7 @@ export class database {
     }
 
     /**
-     * Returns the ZVEI for a given ZVEI ID or empty if no ZVEI for the ID exists.
+     * Returns the ZVEI for a given ZVEI ID.
      * @param {string|number} zvei_id 
      * @returns {Promise<Optional<ZVEI>>}
      */
@@ -441,7 +441,7 @@ export class database {
         let params = [zvei_id];
         let rows = await this.#sql_query(sql, params);
         if (rows.length != 1) {
-            return Optional.empty();
+            return Optional.of(ZVEI.get_default(zvei_id));
         } else {
             const r = rows[0];
             return Optional.of(this.#row_to_zvei(r));
