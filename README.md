@@ -1,6 +1,6 @@
 # PagerBuddy-Server [![Run Jest Tests](https://github.com/PagerBuddy/Server/actions/workflows/run_tests.yml/badge.svg)](https://github.com/PagerBuddy/Server/actions/workflows/run_tests.yml) [![Compile TypeScript](https://github.com/PagerBuddy/Server/actions/workflows/tsc.yml/badge.svg)](https://github.com/PagerBuddy/Server/actions/workflows/tsc.yml)
 
-PagerBuddy is an OpenSource project to propagate alerts for members of emergency services (firebrigades, medical, catastrophe response, ...). The project consists of three components: "Interfaces" forward incoming external alerts (e.g. from a physical pager) or generated alerts to the server. The "server" handles incoming information from many different interfaces, aggregates alerts and sends notifications to users (currently supporting Telegram and PagerBuddy-App). Users can optionally install the "app" to be notified in an urgent manner about alerts on their smartphone.
+PagerBuddy is an open source project to propagate alerts for members of emergency services (firebrigades, medical, catastrophe response, ...). The project consists of three components: "[Interfaces](https://github.com/PagerBuddy/Interface)" forward incoming external alerts (e.g. from a physical pager) or generated alerts to the server. The "server" handles incoming information from many different interfaces, aggregates alerts and sends notifications to users (currently supporting Telegram and PagerBuddy-App). Users can optionally install the "[app](https://github.com/PagerBuddy/App)" to be notified in an urgent manner about alerts on their smartphone.
 
 This repo is for the "server" component.
 
@@ -47,11 +47,11 @@ Currently supported:
    ```
 
 ## Documentation
-We are working on a [wiki](https://github.com/PagerBuddy/Server/wiki) and compiled version of the code markup. Hang tight!
-In the meantime feel free to ask any questions or problems you may have in the form of an issue...
+Checkout the [wiki](https://github.com/PagerBuddy/Server/wiki) for concepts an general usage information. We are constantly extending the wiki content.  
+Look [here](https://pagerbuddy.github.io/Server/) for a compiled version of the code markup. 
 
 ## Apps
-Currently the apps for iOS and Android can only be used with the "original" server instance. This will change very soon - making the app usable for any server operator. You will however have to operate a FCM project for your server (free). Untill then have a look at the apps (currently in Beta, moving to production release soon):
+Currently the apps for iOS and Android can only be used with the "original" server instance. This will change very soon - making the app usable for any server operator. You will however have to operate a FCM project for your server (free). Until then have a look at the apps:
 * Android: [PlayStore](https://play.google.com/store/apps/details?id=de.bartunik.pagerbuddy&hl=en&gl=US)
 * iOS: [App Store](https://apps.apple.com/us/app/pagerbuddy/id1607587265)
 
