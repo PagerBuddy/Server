@@ -83,7 +83,7 @@ beforeAll(async () => {
 
 describe('Connecting to a non-existing DB', () => {
     //null is invalid for a string - ts is blocking that for me
-    jest.setTimeout(10000);
+    //jest.setTimeout(10000);
     test.each(["", "/does/not/exist"])("should return false for path '%p'", async (/** @type {string} */db_path) => {
         await expect(async () => DB.create_database("", 2, db_path)).rejects.toThrow();
     });
@@ -296,9 +296,6 @@ describe('ZVEIs', () => {
         expect(returned_zvei?.isPresent()).toBeTruthy();
         expect(returned_zvei?.get()).toEqual(zvei);
 
-        /**
-         * @type {ZVEI[]}
-         */
         const all_zveis = await db.get_ZVEIs();
         let zvei_found = false;
         all_zveis?.forEach(zvei_iter => {
@@ -389,7 +386,7 @@ describe('ZVEIs', () => {
 describe("Alarms", () => {
     test('Alarm history lifecycle functions correctly', async () => {
         const information_content = 1;
-        const zvei = (await db.get_ZVEI(12345)).get();
+        const zvei = (await db.get_ZVEI(12345)).get(); 
 
         //backdate alert so that we do not have to wait 2min for it to expire
         const alert_timestamp = Date.now() - config.timeouts.history + 3000;

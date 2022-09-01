@@ -9,7 +9,7 @@ import * as katsys from '../src/katsys/katsys.mjs';
 
 
 describe("server operation", () => {
-    test.only("no error during server lifecycle", async () => {
+    test("no error during server lifecycle", async () => {
         let spyBot = jest.spyOn(telegramBot, "start_bot").mockImplementation(() => {});
         let spyKatsys = jest.spyOn(katsys, "start").mockImplementation((callback) => {});
         let spyWebsocket = jest.spyOn(websocket, "start_listening").mockImplementation((callback) => {

@@ -21,7 +21,7 @@ let conditionalDescribeCB = () => {
     });
 
     // TODO run this test again!
-    test.skip('graceful handling of obsolete token', async () => {
+    test('graceful handling of obsolete token', async () => {
 
         // @ts-expect-error
         const remove_user_mock = jest.spyOn(db, "remove_user").mockImplementation((input) => {
@@ -60,7 +60,7 @@ let conditionalDescribeCB = () => {
         expect(result).toBeTruthy();
     });
 
-    test.skip('no error when probing user token', async () => {
+    test('no error when probing user token', async () => {
         // @ts-expect-error
         const remove_user_mock = jest.spyOn(db, "remove_user").mockImplementation((input) => {
             if (!(typeof (input) == "number" && !isNaN(input))) {
