@@ -255,12 +255,7 @@ describe('ZVEIs', () => {
     test.each(descs)("The description of some hard-coded ZVEIs should match %i -> %s", async (id, desc) => {
 
         const res = await db?.get_ZVEI_details(id);
-        if (desc) {
-            expect(res?.get()).toEqual(desc)
-        }
-        else {
-            expect(res?.isPresent()).toBeFalsy()
-        }
+        expect(res?.get()).toEqual(desc);
     });
 
 
@@ -310,10 +305,6 @@ describe('ZVEIs', () => {
         expect(description_res?.get()).toBe(zvei_description);
 
         await db.remove_ZVEI(zvei);
-
-        const r = await db?.get_ZVEI(zvei.id);
-
-        expect(r?.isPresent()).toBeFalsy();
 
     });
 
