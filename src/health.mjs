@@ -1,4 +1,7 @@
 "use strict";
+
+/**@module health */
+
 import { resolve as dns_resolve } from 'dns'
 import winston from 'winston';
 

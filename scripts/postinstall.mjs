@@ -1,3 +1,5 @@
+/**@module scripts/postinstall */
+
 import * as fs from 'fs';
 import sqlite3 from 'sqlite3';
 import * as path from "path";

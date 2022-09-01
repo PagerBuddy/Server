@@ -1,5 +1,7 @@
 "use strict";
 
+/**@module server */
+
 import { hideBin } from 'yargs/helpers';
 
 import * as logging from './logging.mjs';

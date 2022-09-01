@@ -1,6 +1,5 @@
 import { describe, expect, test } from '@jest/globals'
 import { KatSysAlert, init } from '../../src/katsys/katsys.mjs';
-import { katsys_alert } from '../../src/katsys/alert.mjs';
 import {TestConfig} from '../testConfig.js';
 import * as health from '../../src/health.mjs'
 
@@ -76,7 +75,7 @@ const valid_with_counts = [[valid_data[0], 4, 2], [valid_data[1], 1, 0]];
 /**
  * 
  * @param {string[][]} vals 
- * @returns {katsys_alert}
+ * @returns {import('../../src/katsys/alert.mjs').katsys_alert}
  */
 function mk_data(vals) {
     let template = {
@@ -117,7 +116,7 @@ function mk_data(vals) {
 /**
  * 
  * @param {string[][][]} valss 
- * @returns {katsys_alert[]}
+ * @returns {import('../../src/katsys/alert.mjs').katsys_alert[]}
  */
 function mk_data_lists(valss) {
     return valss.map(v => {
@@ -129,7 +128,7 @@ function mk_data_lists(valss) {
  * 
  * @param {string} entry 
  * @param {string[]} vals 
- * @returns {katsys_alert[]}
+ * @returns {import('../../src/katsys/alert.mjs').katsys_alert[]}
  */
 function make_cases(entry, vals) {
     let valss = vals.map(v => { return [[entry, v]] });
@@ -141,7 +140,7 @@ const invalid_date = make_cases('alarmdatum', ['', '15.01:1992', '13.5.3.2.4.', 
 const invalid_time = make_cases('alarmuhrzeit', ['', 'geht nicht', '12.30', '12:30'])
 
 describe("Creating KatSysAlert objects", () => {
-    let helper = (/**@type {katsys_alert} */ obj) => {
+    let helper = (/**@type {import('../../src/katsys/alert.mjs').katsys_alert} */ obj) => {
         expect(() => {
             new KatSysAlert(
                 obj.alarmdatum,
@@ -161,7 +160,7 @@ describe("Creating KatSysAlert objects", () => {
 });
 
 describe("Investigating Schleifen", () => {
-    test.each(valid_data)("Schleifen of interest area always less or equal than all schleifen", /** @type {katsys_alert} */d => {
+    test.each(valid_data)("Schleifen of interest area always less or equal than all schleifen", /** @type {import('../../src/katsys/alert.mjs').katsys_alert} */d => {
         const alert = KatSysAlert.alert_from_json(d,timezone, katsys_config.decode_channels);
         expect(alert.schleifen.length).toBeGreaterThanOrEqual(alert.schleifen_of_interest.length)
     });

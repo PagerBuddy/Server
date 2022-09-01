@@ -1,4 +1,6 @@
 "use strict";
+/**@module logging */
+
 import * as winston from 'winston'
 import TelegramTransport from './telegramTransport.mjs';
 

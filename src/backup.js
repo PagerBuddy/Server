@@ -1,4 +1,7 @@
 "use strict";
+
+/**@module backup */
+
 const fs = require('fs');
 const config = require("../config.json");
 const path = require('path');
