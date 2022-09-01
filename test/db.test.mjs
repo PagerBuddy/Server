@@ -389,8 +389,7 @@ describe('ZVEIs', () => {
 describe("Alarms", () => {
     test('Alarm history lifecycle functions correctly', async () => {
         const information_content = 1;
-        const zvei = new ZVEI(500, "JEST TEST", 0, "00:00", "00:00");
-
+        const zvei = (await db.get_ZVEI(12345)).get();
 
         //backdate alert so that we do not have to wait 2min for it to expire
         const alert_timestamp = Date.now() - config.timeouts.history + 3000;
