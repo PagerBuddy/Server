@@ -6,8 +6,7 @@ import * as messaging from '../src/messaging.mjs';
 import * as telegramBot from '../src/telegram/bot.mjs';
 import * as websocket from '../src/websocket.mjs';
 import * as katsys from '../src/katsys/katsys.mjs';
-import * as data from '../src/data.js';
-import logging from '../src/logging.mjs';
+
 
 describe("server operation", () => {
     test.only("no error during server lifecycle", async () => {

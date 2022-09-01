@@ -3,7 +3,6 @@
 import * as winston from 'winston';
 import Transport from 'winston-transport';
 
-import * as data from './data.js';
 import * as telegram_bot from './telegram/bot.mjs';
 
 const MESSAGE = Symbol.for('message')

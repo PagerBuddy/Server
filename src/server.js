@@ -242,7 +242,7 @@ export async function start() {
   health.init(config.timeouts, alert_time_zone);
   health.start_health_monitoring();
 
-  telegram_bot.init(db, config.telegram, alert_time_zone, health, messaging); // TODO fix telegram bot
+  telegram_bot.init(db, config.telegram, alert_time_zone, health, messaging); 
   telegram_bot.start_bot();
 
   websocket.init(config.websocket, health);
