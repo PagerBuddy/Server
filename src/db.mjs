@@ -890,65 +890,6 @@ export class database {
         return val == 0;
     }
 
-    /**
-     * Adds an alarm link between a ZVEI unit and a group.
-     * Example: add_alarm(25977, 4) links the ZVEI ID 25977 to the group with ID 4 ("B1").
-     * @param {number} zvei_id ID of the ZVEI unit.
-     * @param {number} group_id ID of the group.
-     * @returns {Promise<boolean>} Success
-     */
-    async add_alarm(zvei_id, group_id) {
-
-        if (!ZVEI.is_valid_id(zvei_id) || !validator.is_numeric_safe(group_id)) {
-            return false;
-        }
-
-        let sql = `
-        INSERT INTO Alarms(zvei_id, group_id)
-        VALUES (?, ?)
-        `;
-        let params = [zvei_id, group_id];
-        return await this.#sql_run(sql, params);
-    }
-
-    /**
-     * Removes an alarm link between a ZVEI unit and a group.
-     * @param {number} zvei_id ID of the ZVEI unit.
-     * @param {number} group_id ID of the group.
-     * @returns {Promise<boolean>} Success
-     */
-    async remove_alarm(zvei_id, group_id) {
-
-        if (!ZVEI.is_valid_id(zvei_id) || !validator.is_numeric_safe(group_id)) {
-            return false;
-        }
-
-        let sql = `
-        DELETE FROM Alarms
-        WHERE zvei_id = ? AND group_id = ?
-        `
-        let params = [zvei_id, group_id];
-        return await this.#sql_run(sql, params);
-    }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
