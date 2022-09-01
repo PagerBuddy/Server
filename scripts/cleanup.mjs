@@ -1,6 +1,6 @@
+/**@module scripts/cleanup */
+
 import {uninstall_service} from "./service.mjs";
-
-
 import { unlinkSync, readFileSync } from "fs";
 
 /**

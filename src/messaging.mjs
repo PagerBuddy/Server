@@ -1,4 +1,5 @@
 "use strict";
+/**@module messaging */
 
 import { google } from 'googleapis';
 import * as  https from 'https';

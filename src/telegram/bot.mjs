@@ -1,5 +1,7 @@
 "use strict";
 
+/**@module telegram/bot */
+
 /**
  * This modules handles the Telegram Bot.
  */

@@ -3,6 +3,8 @@
  * This modules handles the processing of data using SQLite3.
  */
 
+/**@module data */
+
 import sqlite3 from 'sqlite3'
 import hat from 'hat';
 import * as fs from 'fs';
