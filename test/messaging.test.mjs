@@ -1,6 +1,7 @@
 import { describe, expect, test, beforeAll, afterAll, jest } from '@jest/globals'
 import { TestConfig } from './testConfig.js'
 
+import {database} from "../src/db.mjs"
 import * as messaging from "../src/messaging.mjs"
 
 import ZVEI from '../src/model/zvei.mjs';
@@ -23,8 +24,7 @@ let conditionalDescribeCB = () => {
     // TODO run this test again!
     test('graceful handling of obsolete token', async () => {
 
-        // @ts-expect-error
-        const remove_user_mock = jest.spyOn(db, "remove_user").mockImplementation((input) => {
+        const remove_user_mock = jest.spyOn(database.prototype, "remove_user").mockImplementation((input) => {
             if (!(typeof (input) == "number" && !isNaN(input))) {
                 return Promise.resolve(false);
             }
@@ -61,8 +61,7 @@ let conditionalDescribeCB = () => {
     });
 
     test('no error when probing user token', async () => {
-        // @ts-expect-error
-        const remove_user_mock = jest.spyOn(db, "remove_user").mockImplementation((input) => {
+        const remove_user_mock = jest.spyOn(database.prototype, "remove_user").mockImplementation((input) => {
             if (!(typeof (input) == "number" && !isNaN(input))) {
                 return Promise.resolve(false);
             }

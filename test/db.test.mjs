@@ -259,7 +259,7 @@ describe('ZVEIs', () => {
     });
 
 
-    test("Trying to add a ZVEI twice fails as IDs need to be unique", () => {
+    test("Trying to add a ZVEI twice fails as IDs need to be unique", async () => {
 
         const zvei_id = 200;
         const zvei_description = "JEST TEST ZVEI";
@@ -268,9 +268,14 @@ describe('ZVEIs', () => {
         const test_time_end = "01:02";
         const zvei = new ZVEI(zvei_id, zvei_description, test_day, test_time_start, test_time_end);
 
-        expect(db.add_ZVEI(zvei)).resolves.toBeTruthy()
-        expect(db.add_ZVEI(zvei)).resolves.toBeFalsy()
-        expect(db.remove_ZVEI(zvei)).resolves.toBeTruthy()
+        const res1 = await db.add_ZVEI(zvei);
+        expect(res1).toBeTruthy();
+
+        const res2 = await db.add_ZVEI(zvei);
+        expect(res2).toBeFalsy();
+
+        const res3 = await db.remove_ZVEI(zvei);
+        expect(res3).toBeTruthy()
     });
 
     test('zvei lifecycle functions correctly', async () => {
@@ -450,14 +455,14 @@ describe("User", () => {
 
     test('User lifecycle functions correctly', async () => {
         //Prepare
-        const chat_id = 400;
-        const new_group = (await db.add_group("JEST TEST USER")).get();
+        const chat_id = 411;
+        const new_group = (await db.add_group("JEST TEST GROUP")).get();
         // @ts-expect-error
         const authed_group = (await db.authenticate_group(chat_id, new_group.auth_token)).get();
         expect(authed_group.id).toBeGreaterThanOrEqual(0);
 
         const zvei_id = 402;
-        const zvei = new ZVEI(zvei_id, "JEST TEST USER", 0, "00:00", "00:01");
+        const zvei = new ZVEI(zvei_id, "JEST TEST ZVEI", 0, "00:00", "00:01");
         await db.add_ZVEI(zvei);
         await db.link_zvei_with_group(zvei, authed_group.id);
 

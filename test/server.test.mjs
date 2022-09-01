@@ -6,6 +6,7 @@ import * as messaging from '../src/messaging.mjs';
 import * as telegramBot from '../src/telegram/bot.mjs';
 import * as websocket from '../src/websocket.mjs';
 import * as katsys from '../src/katsys/katsys.mjs';
+import ZVEI from '../src/model/zvei.mjs';
 
 
 describe("server operation", () => {
@@ -67,9 +68,10 @@ describe("server operation", () => {
 
         await server.start();
         
-        let result = await server.queue_alarm(zvei, timestamp, information_content)
+        let result = await server.queue_alarm(zvei, timestamp, information_content);
 
-        expect(spyMessaging).toHaveBeenCalledWith([], timestamp, zvei, "", false);
+        const zvei_obj = new ZVEI(zvei, "", 0, "00:00", "00:00");
+        expect(spyMessaging).toHaveBeenCalledWith([], timestamp, config.alert_time_zone, zvei_obj);
         expect(result).toBeTruthy();
 
         let spyBotClose = jest.spyOn(telegramBot, "stop_bot").mockImplementation(() => {
