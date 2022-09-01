@@ -270,7 +270,7 @@ export class database {
         DELETE FROM Groups
         WHERE group_id = ?
         `;
- 
+
         const params = [group_id];
 
         return this.#sql_run(sql_delete_group, params);
@@ -682,7 +682,6 @@ export class database {
      * @returns {Promise<boolean>} Success
      */
     async remove_user(user) {
-        //let user_id = parseInt(user_id_);
 
         if (!validator.is_numeric_safe(user.id)) {
             return false;
@@ -696,18 +695,6 @@ export class database {
 
         let params = [user.id];
         return await this.#sql_run(sql, params);
-
-        // TODO check cascading in test case
-
-        /* the table UserGroups will be automatically cleared as the foreign key
-         * has the ON DELETE CASCADE flag set
-        let sql2 = `
-        DELETE FROM UserGroups
-        WHERE user_id = ?
-    `;
-
-        return await this.#sql_run(sql2, params);
-        */
     }
 
 
@@ -767,8 +754,6 @@ export class database {
      */
     async user_chat_ids(user_id) {
 
-
-        //let user_id = parseInt(user_id_);
         if (!validator.is_numeric_safe(user_id)) {
             return [];
         }
