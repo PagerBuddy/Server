@@ -106,7 +106,7 @@ export function start(alert_callback) {
         heartbeat();
     });
     socket.on("message", (/**@type {string} */ data) => {
-        /**@type {katsys_update} */
+        /**@type {import('./update.mjs').katsys_update} */
         const jsonData = JSON.parse(data);
 
         let katsys_update;

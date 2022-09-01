@@ -9,8 +9,7 @@
 
 /**
  * @typedef {Object} katsys_data
- * @ts-ignore
- * @property {katsys_alert} textElements
+ * @property {import('./alert.mjs').katsys_alert} textElements
  */
 
 /**
