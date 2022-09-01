@@ -389,7 +389,6 @@ describe('ZVEIs', () => {
 
 
 describe("Alarms", () => {
-    // TODO run this test again
     test('Alarm history lifecycle functions correctly', async () => {
         const information_content = 1;
         const zvei = new ZVEI(500, "JEST TEST", 0, "00:00", "00:00");
@@ -427,7 +426,43 @@ describe("Alarms", () => {
 
 
 describe("User", () => {
-    test.only('user lifecycle functions correctly', async () => {
+
+    // TODO Test users, insb. das cascading
+    test('Removing a user with an associated Group automatically deletes the association', async () => {
+
+        //Prepare
+        const chat_id = 400;
+        const new_group = (await db.add_group("JEST TEST USER")).get();
+        const group = (await db.authenticate_group(chat_id, new_group.auth_token)).get();
+        expect(group.id).toBeGreaterThanOrEqual(0);
+
+        const zvei_id = 402;
+        const zvei = new ZVEI(zvei_id, "JEST TEST USER", 0, "00:00", "00:01");
+        await db.add_ZVEI(zvei);
+        await db.link_zvei_with_group(zvei, group.id);
+
+        const user = (await db.update_user(501, "123AHFK984")).get()
+
+        await expect(db.add_user_to_group(user, group)).resolves.toBeTruthy();
+
+        const chats1 = await db.user_chat_ids(user.id);
+        expect(chats1).toEqual([chat_id]);
+
+        await expect(db.remove_user(user)).resolves.toBeTruthy();
+
+        const chats2 = await db.user_chat_ids(user.id);
+        expect(chats2).toEqual([]);
+
+
+        
+
+
+
+
+    });
+
+
+    test('User lifecycle functions correctly', async () => {
         //Prepare
         const chat_id = 400;
         const new_group = (await db.add_group("JEST TEST USER")).get();
@@ -437,7 +472,7 @@ describe("User", () => {
         const zvei_id = 402;
         const zvei = new ZVEI(zvei_id, "JEST TEST USER", 0, "00:00", "00:01");
         await db.add_ZVEI(zvei);
-        await db.add_alarm(zvei_id, authed_group.id);
+        await db.link_zvei_with_group(zvei, authed_group.id);
 
         //Start Testing
         const user_id = 401;
@@ -461,7 +496,8 @@ describe("User", () => {
         expect(chat_list).toContain(chat_id);
 
         const token_res = await db.user_token(user_id);
-        expect(token_res).toBe(token2);
+        expect(token_res.isPresent()).toBeTruthy();
+        expect(token_res.get()).toBe(token2);
 
         const device_list = await db.get_device_ids_from_zvei(zvei);
         let token_found = false;
@@ -490,15 +526,15 @@ describe("User", () => {
         expect(res5).toBeTruthy();
 
         //Clean up
-        await db.remove_alarm(zvei_id, authed_group.id);
+        await db.unlink_zvei_and_group(zvei, authed_group.id);
         await db.remove_ZVEI(zvei);
         await db.remove_group(authed_group);
     });
 });
 
 
-/*
-describe("Alerts", async () => {
+
+describe("Alerts", () => {
     test('alert history lifecycle functions correctly', async () => {
 
         const information_content = 1;
@@ -530,6 +566,5 @@ describe("Alerts", async () => {
 
     });
 });
-*/
 
-// TODO Test users, insb. das cascading
+
