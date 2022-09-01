@@ -47,8 +47,8 @@ Currently supported:
    ```
 
 ## Documentation
-We are working on a [wiki](https://github.com/PagerBuddy/Server/wiki) and compiled version of the code markup. Hang tight!
-In the meantime feel free to ask any questions or problems you may have in the form of an issue...
+Checkout the [wiki](https://github.com/PagerBuddy/Server/wiki) for concepts an general usage information. We are constantly extending the wiki content.  
+Look [here](https://pagerbuddy.github.io/Server/) for a compiled version of the code markup. 
 
 ## Apps
 Currently the apps for iOS and Android can only be used with the "original" server instance. This will change very soon - making the app usable for any server operator. You will however have to operate a FCM project for your server (free). Until then have a look at the apps:
