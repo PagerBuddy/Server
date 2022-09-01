@@ -191,7 +191,7 @@ export class database {
     /**
      * Add a group
      * @param {string} description description of the group to be added
-     * @returns {Promise<Optional<Group>>} The authentication token (if addition was successfull), `Optional.empty()` otherwise
+     * @returns {Promise<Optional<Group>>} Group object with a freshly generated auth token (if addition was successfull), `Optional.empty()` otherwise
      */
     async add_group(description) {
 
@@ -270,41 +270,11 @@ export class database {
         DELETE FROM Groups
         WHERE group_id = ?
         `;
-        // 3. Delete all linked alarms.
-        const sql_delete_alarms = `
-        DELETE FROM Alarms
-        WHERE group_id = ?
-        `;
-
+ 
         const params = [group_id];
 
-        /*
-        Instead of manually building these chains, we could adopt the general idea from
-        https://stackoverflow.com/questions/53299322/transactions-in-node-sqlite3
-        but as we plan to move on to a ORM in them medium distant future, it is 
-        probably not worth trying to add this
-        */
+        return this.#sql_run(sql_delete_group, params);
 
-        return new Promise(resolve => {
-            this.db.serialize(() => {
-                // the second run() should only be executed when the first did not fail
-                this.db.run(sql_delete_group, params, (error) => {
-                    if (error) {
-                        resolve(false);
-                    }
-                    else {
-                        resolve(true);
-                    }
-                }).run(sql_delete_alarms, params, (error) => {
-                    if (error) {
-                        resolve(false);
-                    }
-                    else {
-                        resolve(true);
-                    }
-                });
-            });
-        });
     }
 
 
@@ -512,33 +482,7 @@ export class database {
             WHERE zvei_id = ?
             `;
 
-        // 2. Remove all linked alarms.
-        const sql_delete_alarms = `
-            DELETE FROM Alarms
-            WHERE zvei_id = ?
-            `
-        return new Promise(resolve => {
-            this.db.serialize(() => {
-                // the second run() should only be executed when the first did not fail
-                // the doubling of the error callback is probably unnecessary but I can't find
-                // any examples on how to use this correctly
-                this.db.run(sql_delete_zvei, params, (error) => {
-                    if (error) {
-                        resolve(false);
-                    }
-                    else {
-                        resolve(true);
-                    }
-                }).run(sql_delete_alarms, params, (error) => {
-                    if (error) {
-                        resolve(false);
-                    }
-                    else {
-                        resolve(true);
-                    }
-                });
-            });
-        });
+        return this.#sql_run(sql_delete_zvei, params);
     }
 
     /**
