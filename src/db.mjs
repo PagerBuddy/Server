@@ -13,21 +13,28 @@ export class database {
      * 
      * @param {string} timezone 
      * @param {number} history_timeout 
-     * @param {sqlite3.Database} db
+     * @param {sqlite3.Database} db The sqlite3 database object
+     * @param {boolean} trace Whether the issued SQL queries are printed to the console. Defaults to `false`
      * @return
      */
-    constructor(timezone, history_timeout, db) {
+    constructor(timezone, history_timeout, db, trace = false) {
         this.timezone = timezone;
         this.history_timeout = history_timeout;
         this.logger = logger("DBClass");
         this.db = db;
         this.#sql_run("PRAGMA foreign_keys = ON;", []);
-        this.db.on('trace', function (item) {
-            console.log('TRACE: ', item);
-        });
-        sqlite3.verbose();
+        if (trace) {
+            this.db.on('trace', function (item) {
+                console.log('TRACE: ', item);
+            });
+            sqlite3.verbose();
+        }
+
     }
 
+    /**
+     * Closes the database
+     */
     close() {
         this.db.close();
     }
@@ -490,10 +497,6 @@ export class database {
         return this.#sql_run(sql_delete_zvei, params);
     }
 
-    async foo(sql, params) {
-        return this.#sql_query(sql, params)
-    }
-
     /**
      * Adds an alarm link between a ZVEI unit and a group.
      * Example: add_alarm(25977, 4) links the ZVEI ID 25977 to the group with ID 4 ("B1").
@@ -899,12 +902,6 @@ export class database {
         let val = result[0]["COUNT(zvei_id)"];
         return val == 0;
     }
-
-
-
-
-
-
 }
 
 
@@ -913,10 +910,11 @@ export class database {
  * 
  * @param {string} timezone 
  * @param {number} history_timeout 
- * @param {string} db_path 
+ * @param {string} db_path The path to the database file
+ * @param {boolean} trace If true, print out the SQL queries issued to the database. Defaults to `false`
  * @returns {Promise<database>} 
  */
-export async function create_database(timezone, history_timeout, db_path) {
+export async function create_database(timezone, history_timeout, db_path, trace = false) {
     const log = logger("DBClass");
 
     log.debug(`Connecting to DB in file '${db_path}'`);
@@ -940,7 +938,7 @@ export async function create_database(timezone, history_timeout, db_path) {
                 throw new Error(`Could not connect to the database in file '${db_path}'.`);
             } else {
                 log.debug(`Connected to the database in file '${db_path}'.`);
-                resolve(new database(timezone, history_timeout, db));
+                resolve(new database(timezone, history_timeout, db, trace));
             }
         });
     });

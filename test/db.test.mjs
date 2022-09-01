@@ -58,6 +58,9 @@ function isObject(object) {
  */
 let db;
 beforeAll(async () => {
+
+    const trace = true;
+
     // an empty string 
     const db_ = new sqlite3.Database(':memory:', (err) => {
         if (err) {
@@ -73,7 +76,7 @@ beforeAll(async () => {
             throw Error("An error occured trying to initialize the test database. This is fatal.");
         }
     });
-    db = new DB.database("", 2, db_);
+    db = new DB.database("", 2, db_, trace);
 })
 
 
