@@ -390,7 +390,7 @@ async function reply_group_current_zvei_list(chat_id, message_id, group_id) {
  * @param {number} zvei_id 
  */
 async function unlink_group_zvei(chat_id, message_id, group_id, zvei_id) {
-    await data.remove_alarm(zvei_id, group_id);
+    await data.unlink_zvei_and_group_id(zvei_id, group_id);
 
     let msg = `Unlinked group ${group_id} and ZVEI ${zvei_id}.`;
 
@@ -410,7 +410,7 @@ async function unlink_group_zvei(chat_id, message_id, group_id, zvei_id) {
  * @param {number} zvei_id 
  */
 async function link_group_zvei(chat_id, message_id, group_id, zvei_id) {
-    await data.add_alarm(zvei_id, group_id);
+    await data.link_zvei_with_group_id(zvei_id, group_id);
 
     let msg = `Linked group ${group_id} to ZVEI ${zvei_id}.`;
 

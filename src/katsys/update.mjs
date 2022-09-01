@@ -9,6 +9,7 @@
 
 /**
  * @typedef {Object} katsys_data
+ * @ts-ignore
  * @property {katsys_alert} textElements
  */
 

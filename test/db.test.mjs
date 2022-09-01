@@ -430,6 +430,7 @@ describe("User", () => {
         //Prepare
         const chat_id = 400;
         const new_group = (await db.add_group("JEST TEST USER")).get();
+        // @ts-expect-error
         const group = (await db.authenticate_group(chat_id, new_group.auth_token)).get();
         expect(group.id).toBeGreaterThanOrEqual(0);
 
@@ -463,6 +464,7 @@ describe("User", () => {
         //Prepare
         const chat_id = 400;
         const new_group = (await db.add_group("JEST TEST USER")).get();
+        // @ts-expect-error
         const authed_group = (await db.authenticate_group(chat_id, new_group.auth_token)).get();
         expect(authed_group.id).toBeGreaterThanOrEqual(0);
 

@@ -505,16 +505,27 @@ export class database {
      * @returns {Promise<boolean>} Success
      */
     async link_zvei_with_group(zvei, group_id) {
+        return this.link_zvei_with_group_id(zvei.id, group_id);
+    }
+
+    /**
+     * Adds an alarm link between a ZVEI unit and a group.
+     * Example: add_alarm(25977, 4) links the ZVEI ID 25977 to the group with ID 4 ("B1").
+     * @param {number} zvei_id
+     * @param {number} group_id ID of the group.
+     * @returns {Promise<boolean>} Success
+     */
+    async link_zvei_with_group_id(zvei_id, group_id) {
         if (!validator.is_numeric_safe(group_id)) {
             console.log("invalid")
             return false;
         }
 
         let sql = `
-        INSERT INTO Alarms(zvei_id, group_id)
-        VALUES (?, ?)
-        `;
-        let params = [zvei.id, group_id];
+            INSERT INTO Alarms(zvei_id, group_id)
+            VALUES (?, ?)
+            `;
+        let params = [zvei_id, group_id];
 
         return await this.#sql_run(sql, params);
     }
@@ -526,18 +537,29 @@ export class database {
      * @returns {Promise<boolean>} Success
      */
     async unlink_zvei_and_group(zvei, group_id) {
+        return this.unlink_zvei_and_group_id(zvei.id, group_id);
+    }
+
+    /**
+     * Removes an alarm link between a ZVEI unit and a group.
+     * @param {number} zvei_id
+     * @param {number} group_id ID of the group.
+     * @returns {Promise<boolean>} Success
+     */
+    async unlink_zvei_and_group_id(zvei_id, group_id) {
 
         if (!validator.is_numeric_safe(group_id)) {
             return false;
         }
 
         let sql = `
-        DELETE FROM Alarms
-        WHERE zvei_id = ? AND group_id = ?
-        `
-        let params = [zvei.id, group_id];
+            DELETE FROM Alarms
+            WHERE zvei_id = ? AND group_id = ?
+            `
+        let params = [zvei_id, group_id];
         return await this.#sql_run(sql, params);
     }
+
 
     /**
      * Returns the chat_ids linked to a given ZVEI unit.
