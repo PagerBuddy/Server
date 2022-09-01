@@ -722,9 +722,10 @@ export class database {
     `;
         const params = [user_id, token];
 
-        const res = await this.#sql_query(sql, params);
-        if (res.length == 1) {
-            return Optional.of(this.#row_to_user(res[0]));
+        const res = await this.#sql_run(sql, params);
+
+        if (res) {
+            return Optional.of(new User(user_id, token, "ANY"));
         }
         else {
             return Optional.empty();
