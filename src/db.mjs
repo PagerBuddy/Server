@@ -21,6 +21,11 @@ export class database {
         this.history_timeout = history_timeout;
         this.logger = logger("DBClass");
         this.db = db;
+        this.#sql_run("PRAGMA foreign_keys = ON;", []);
+        this.db.on('trace', function (item) {
+            console.log('TRACE: ', item);
+        });
+        sqlite3.verbose();
     }
 
     close() {
@@ -485,6 +490,10 @@ export class database {
         return this.#sql_run(sql_delete_zvei, params);
     }
 
+    async foo(sql, params) {
+        return this.#sql_query(sql, params)
+    }
+
     /**
      * Adds an alarm link between a ZVEI unit and a group.
      * Example: add_alarm(25977, 4) links the ZVEI ID 25977 to the group with ID 4 ("B1").
@@ -493,8 +502,8 @@ export class database {
      * @returns {Promise<boolean>} Success
      */
     async link_zvei_with_group(zvei, group_id) {
-
         if (!validator.is_numeric_safe(group_id)) {
+            console.log("invalid")
             return false;
         }
 
@@ -503,6 +512,7 @@ export class database {
         VALUES (?, ?)
         `;
         let params = [zvei.id, group_id];
+
         return await this.#sql_run(sql, params);
     }
 

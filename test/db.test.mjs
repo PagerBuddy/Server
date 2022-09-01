@@ -8,8 +8,7 @@ import * as fs from 'fs';
 import * as DB from '../src/db.mjs'
 import ZVEI from '../src/model/zvei.mjs';
 import { User } from '../src/model/user.mjs'
-import { Group } from '../src/model/group.mjs';
-import { number } from 'yargs';
+
 
 const config = new TestConfig();
 const db_location = config.files.database_location;
@@ -318,40 +317,37 @@ describe('ZVEIs', () => {
 
     });
 
-    test("Linking and unlinking Gropus and ZVEIs works correctly", async () => {
+    test.only("Linking and unlinking Gropus and ZVEIs works correctly", async () => {
         // zveis known to be in the test DB
         const zvei = (await db.get_ZVEI(12345)).get();
         const zvei_ = (await db.get_ZVEI(1)).get();
 
-        const group_id = 23;
+        const grp = (await db.add_group("just some lonely string")).get();
+        const group_id = grp.id;
 
         let zveis = await db.get_group_zveis(group_id)
         expect(zveis).toEqual([]);
         expect(zveis.length).toBe(0);
 
 
-        let success = await db.link_zvei_with_group(zvei, group_id);
-        expect(success).toBeTruthy();
+        await expect(db.link_zvei_with_group(zvei, group_id)).resolves.toBeTruthy();
 
         zveis = await db.get_group_zveis(group_id);
         expect(zveis).toEqual([zvei]);
 
-        success = await db.link_zvei_with_group(zvei_, group_id);
-        expect(success).toBeTruthy();
+        await expect(db.link_zvei_with_group(zvei_, group_id)).resolves.toBeTruthy();
 
         zveis = await db.get_group_zveis(group_id);
         expect(zveis.length).toBe(2);
         expect(zveis).toEqual([zvei_, zvei]) // the result is sorted wrt ascending ZVEIs
 
-        success = await db.unlink_zvei_and_group(zvei, group_id);
-        expect(success).toBeTruthy()
+        expect(db.unlink_zvei_and_group(zvei, group_id)).resolves.toBeTruthy()
 
         zveis = await db.get_group_zveis(group_id);
         expect(zveis.length).toBe(1);
         expect(zveis).toEqual([zvei_])
 
-        success = await db.unlink_zvei_and_group(zvei_, group_id);
-        expect(success).toBeTruthy()
+        expect(db.unlink_zvei_and_group(zvei_, group_id)).resolves.toBeTruthy()
 
         zveis = await db.get_group_zveis(group_id);
         expect(zveis.length).toBe(0);
@@ -360,7 +356,6 @@ describe('ZVEIs', () => {
     });
 
     test("Deleting a ZVEI with a linked group deletes group association", async () => {
-
 
         const zvei_id = 300;
         const zvei_description = "TEST ZVEI FOR LINKING";
