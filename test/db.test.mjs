@@ -7,9 +7,7 @@ import * as fs from 'fs';
 
 import * as DB from '../src/db.mjs'
 import ZVEI from '../src/model/zvei.mjs';
-
-
-import * as Z from '../src/model/zvei.mjs'
+import { User } from '../src/model/user.mjs'
 import { Group } from '../src/model/group.mjs';
 import { number } from 'yargs';
 
@@ -137,7 +135,7 @@ describe('Groups', () => {
         expect(fail.isPresent()).toBeFalsy();
     });
 
-    
+
     /**
      * Computes the Cartesian product of arbitrary many arrays
      * @param  {...any} as The arrays to compute the Cartesian product of
@@ -222,6 +220,20 @@ describe('Groups', () => {
         expect(authed_twice?.isPresent()).toBeFalsy() // should not work
 
     });
+
+    test("Deleting a Group linked to a ZVEI also removes the association", async () => {
+
+        const zvei = (await db.get_ZVEI(1)).get(); // we the ZVEI do be present
+
+        const g = (await db.add_group("just some text")).get() // we expect it to work
+
+        await expect(db.link_zvei_with_group(zvei, g.id)).resolves.toBeTruthy();
+        await expect(db.get_group_zveis(g.id)).resolves.toEqual([zvei]);
+        await expect(db.remove_group(g)).resolves.toBeTruthy();
+        await expect(db.get_group_zveis(g.id)).resolves.toEqual([]);
+        await expect(db.get_group(g.id)).resolves.toEqual(Optional.empty());
+
+    });
 });
 
 describe('ZVEIs', () => {
@@ -249,6 +261,7 @@ describe('ZVEIs', () => {
         }
     });
 
+
     test("Trying to add a ZVEI twice fails as IDs need to be unique", () => {
 
         const zvei_id = 200;
@@ -256,17 +269,16 @@ describe('ZVEIs', () => {
         const test_day = 4; //thursday - same as zero of unix epoch
         const test_time_start = "01:00";
         const test_time_end = "01:02";
-
         const zvei = new ZVEI(zvei_id, zvei_description, test_day, test_time_start, test_time_end);
 
-        expect(db?.add_ZVEI(zvei)).resolves.toBeTruthy()
-        expect(db?.add_ZVEI(zvei)).resolves.toBeFalsy()
-        expect(db?.remove_ZVEI(zvei)).resolves.toBeTruthy()
+        expect(db.add_ZVEI(zvei)).resolves.toBeTruthy()
+        expect(db.add_ZVEI(zvei)).resolves.toBeFalsy()
+        expect(db.remove_ZVEI(zvei)).resolves.toBeTruthy()
     });
 
     test('zvei lifecycle functions correctly', async () => {
         // somehow can't re-use the zvei above as even with the --runInBand option
-        // there is an issue with trying to add the samse ZVEI twice
+        // there is an issue with trying to add the same ZVEI twice
         const zvei_id = 201;
         const zvei_description = "JEST ANOTHER TEST ZVEI";
         const test_day = 6;
@@ -298,7 +310,7 @@ describe('ZVEIs', () => {
         expect(description_res?.isPresent()).toBeTruthy();
         expect(description_res?.get()).toBe(zvei_description);
 
-        await db?.remove_ZVEI(zvei);
+        await db.remove_ZVEI(zvei);
 
         const r = await db?.get_ZVEI(zvei.id);
 
@@ -306,43 +318,7 @@ describe('ZVEIs', () => {
 
     });
 
-});
-
-
-describe("Alarms", () => {
-    test.skip('Alarm history lifecycle functions correctly', async () => {
-        const information_content = 1;
-        const zvei = new ZVEI(500, "JEST TEST", 0, "00:00", "00:00");
-
-   
-        //backdate alert so that we do not have to wait 2min for it to expire
-        const alert_timestamp = Date.now() - config.timeouts.history + 3000;
-        const res = await db.add_alarm_history(zvei, alert_timestamp, information_content);
-        expect(res).toBeTruthy();
-
-        const repeat = await db.is_repeat_alarm(zvei);
-        expect(repeat).toBeTruthy();
-
-        const update = await db.is_alarm_information_update(zvei, information_content + 1);
-        expect(update).toBeTruthy();
-
-        const update2 = await db.is_alarm_information_update(zvei, information_content - 1);
-        expect(update2).toBeFalsy();
-        
-        //ensure we wait untill the alert must be obsolete (2min)
-        const wait_time = alert_timestamp + config.timeouts.history + 500 - Date.now();
-        if (wait_time > 0) {
-            await new Promise(resolve => setTimeout(resolve, wait_time));
-        }
-
-        //This will also delete alarm from DB
-        const repeat2 = await db.is_repeat_alarm(zvei);
-        expect(repeat2).toBeFalsy();
-
-    });
-
-
-    test("Linking and unlinking alarms works correctly", async () => {
+    test("Linking and unlinking Gropus and ZVEIs works correctly", async () => {
         // zveis known to be in the test DB
         const zvei = (await db.get_ZVEI(12345)).get();
         const zvei_ = (await db.get_ZVEI(1)).get();
@@ -354,7 +330,7 @@ describe("Alarms", () => {
         expect(zveis.length).toBe(0);
 
 
-        let success = await db.link_zvei_with_group(zvei,group_id);
+        let success = await db.link_zvei_with_group(zvei, group_id);
         expect(success).toBeTruthy();
 
         zveis = await db.get_group_zveis(group_id);
@@ -382,7 +358,178 @@ describe("Alarms", () => {
         expect(zveis).toEqual([])
 
     });
+
+    test("Deleting a ZVEI with a linked group deletes group association", async () => {
+
+
+        const zvei_id = 300;
+        const zvei_description = "TEST ZVEI FOR LINKING";
+        const test_day = 5;
+        const test_time_start = "01:00";
+        const test_time_end = "01:02";
+        const zvei = new ZVEI(zvei_id, zvei_description, test_day, test_time_start, test_time_end);
+
+        await expect(db.add_ZVEI(zvei)).resolves.toBeTruthy();
+
+        const g = (await db.add_group("random description with no inherent meaning")).get(); // we assume it works
+
+        await expect(db.link_zvei_with_group(zvei, g.id)).resolves.toBeTruthy();
+        await expect(db.get_group_zveis(g.id)).resolves.toEqual([zvei]);
+        await expect(db.remove_ZVEI(zvei)).resolves.toBeTruthy();
+        await expect(db.get_group_zveis(g.id)).resolves.toEqual([]);
+        await expect(db.get_group(g.id)).resolves.toEqual(Optional.of(g));
+        await expect(db.remove_group(g)).resolves.toBeTruthy();
+        await expect(db.get_group(g.id)).resolves.toEqual(Optional.empty());
+
+    });
+
 });
 
+
+
+
+describe("Alarms", () => {
+    // TODO run this test again
+    test('Alarm history lifecycle functions correctly', async () => {
+        const information_content = 1;
+        const zvei = new ZVEI(500, "JEST TEST", 0, "00:00", "00:00");
+
+
+        //backdate alert so that we do not have to wait 2min for it to expire
+        const alert_timestamp = Date.now() - config.timeouts.history + 3000;
+        const res = await db.add_alarm_history(zvei, alert_timestamp, information_content);
+        expect(res).toBeTruthy();
+
+        const repeat = await db.is_repeat_alarm(zvei);
+        expect(repeat).toBeTruthy();
+
+        const update = await db.is_alarm_information_update(zvei, information_content + 1);
+        expect(update).toBeTruthy();
+
+        const update2 = await db.is_alarm_information_update(zvei, information_content - 1);
+        expect(update2).toBeFalsy();
+
+        //ensure we wait untill the alert must be obsolete (2min)
+        const wait_time = alert_timestamp + config.timeouts.history + 500 - Date.now();
+        if (wait_time > 0) {
+            await new Promise(resolve => setTimeout(resolve, wait_time));
+        }
+
+        //This will also delete alarm from DB
+        const repeat2 = await db.is_repeat_alarm(zvei);
+        expect(repeat2).toBeFalsy();
+
+    });
+
+
+
+});
+
+
+describe("User", () => {
+    test.only('user lifecycle functions correctly', async () => {
+        //Prepare
+        const chat_id = 400;
+        const new_group = (await db.add_group("JEST TEST USER")).get();
+        const authed_group = (await db.authenticate_group(chat_id, new_group.auth_token)).get();
+        expect(authed_group.id).toBeGreaterThanOrEqual(0);
+
+        const zvei_id = 402;
+        const zvei = new ZVEI(zvei_id, "JEST TEST USER", 0, "00:00", "00:01");
+        await db.add_ZVEI(zvei);
+        await db.add_alarm(zvei_id, authed_group.id);
+
+        //Start Testing
+        const user_id = 401;
+        const token = "123456789ABC";
+        const user = new User(user_id, token, "ANY");
+
+        //create user
+        const res1 = await db.update_user(user_id, token);
+        console.log(`res1: ${JSON.stringify(res1)}`)
+        expect(res1.isPresent()).toBeTruthy();
+
+        //change user
+        const token2 = "ABCDEFGHIJKLMNOPQRST";
+        const res2 = await db.update_user(user_id, token2);
+        expect(res2.isPresent()).toBeTruthy();
+
+        const res3 = await db.add_user_to_group(user, authed_group);
+        expect(res3).toBeTruthy();
+
+        const chat_list = await db.user_chat_ids(user_id);
+        expect(chat_list).toContain(chat_id);
+
+        const token_res = await db.user_token(user_id);
+        expect(token_res).toBe(token2);
+
+        const device_list = await db.get_device_ids_from_zvei(zvei);
+        let token_found = false;
+        device_list.forEach(device => {
+            if (device.token == token2) {
+                token_found = true;
+                return;
+            }
+        });
+        expect(token_found).toBeTruthy();
+
+        const check_list = await db.get_check_users_list();
+        let full_match = false;
+        check_list.forEach(item => {
+            if (item.user_id == user_id && item.group_id == authed_group.id && parseInt(item.chat_id) == chat_id) {
+                full_match = true;
+                return;
+            }
+        });
+        expect(full_match).toBeTruthy();
+
+        const res4 = await db.remove_user_from_group(user, authed_group);
+        expect(res4).toBeTruthy();
+
+        const res5 = await db.remove_user(user);
+        expect(res5).toBeTruthy();
+
+        //Clean up
+        await db.remove_alarm(zvei_id, authed_group.id);
+        await db.remove_ZVEI(zvei);
+        await db.remove_group(authed_group);
+    });
+});
+
+
+/*
+describe("Alerts", async () => {
+    test('alert history lifecycle functions correctly', async () => {
+
+        const information_content = 1;
+        const zvei = (await db.get_ZVEI(1)).get();
+
+        //backdate alert so that we do not have to wait 2min for it to expire
+        const alert_timestamp = Date.now() - config.timeouts.history + 3000;
+        const res = await db.add_alarm_history(zvei, alert_timestamp, information_content);
+        expect(res).toBeTruthy();
+
+        const repeat = await db.is_repeat_alarm(zvei);
+        expect(repeat).toBeTruthy();
+
+        const update = await db.is_alarm_information_update(zvei, information_content + 1);
+        expect(update).toBeTruthy();
+
+        const update2 = await db.is_alarm_information_update(zvei, information_content - 1);
+        expect(update2).toBeFalsy();
+
+        //ensure we wait untill the alert must be obsolete (2min)
+        const wait_time = alert_timestamp + config.timeouts.history + 500 - Date.now();
+        if (wait_time > 0) {
+            await new Promise(resolve => setTimeout(resolve, wait_time));
+        }
+
+        //This will also delete alarm from DB
+        const repeat2 = await db.is_repeat_alarm(zvei);
+        expect(repeat2).toBeFalsy();
+
+    });
+});
+*/
 
 // TODO Test users, insb. das cascading
