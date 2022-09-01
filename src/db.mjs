@@ -837,11 +837,11 @@ export class database {
      * @returns {Promise<boolean>} Success
      */
     async #clear_history() {
-        let sql = `
-    DELETE FROM AlarmHistory
-    WHERE timestamp < ?
-    `;
-        let reference = Date.now() - this.history_timeout;
+        const sql = `
+            DELETE FROM AlarmHistory
+            WHERE timestamp < ?
+            `;
+        const reference = Date.now() - this.history_timeout;
 
         let params = [reference];
         return await this.#sql_run(sql, params);

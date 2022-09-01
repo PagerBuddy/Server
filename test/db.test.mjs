@@ -76,7 +76,7 @@ beforeAll(async () => {
             throw Error("An error occured trying to initialize the test database. This is fatal.");
         }
     });
-    db = new DB.database("", 2, db_, trace);
+    db = new DB.database("", config.timeouts.history, db_, trace);
 })
 
 
@@ -85,13 +85,13 @@ describe('Connecting to a non-existing DB', () => {
     //null is invalid for a string - ts is blocking that for me
     //jest.setTimeout(10000);
     test.each(["", "/does/not/exist"])("should return false for path '%p'", async (/** @type {string} */db_path) => {
-        await expect(async () => DB.create_database("", 2, db_path)).rejects.toThrow();
+        await expect(async () => DB.create_database("", config.timeouts.history, db_path)).rejects.toThrow();
     });
 });
 
 describe('Connecting to an existing DB', () => {
     test(`should not throw an exception for path '${db_location}'`, async () => {
-        expect(async () => await DB.create_database("", 2, db_location)).not.toThrow();
+        expect(async () => await DB.create_database("", config.timeouts.history, db_location)).not.toThrow();
     });
 });
 
