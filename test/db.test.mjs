@@ -320,7 +320,7 @@ describe('ZVEIs', () => {
 
     });
 
-    test.only("Linking and unlinking Gropus and ZVEIs works correctly", async () => {
+    test("Linking and unlinking Groups and ZVEIs works correctly", async () => {
         // zveis known to be in the test DB
         const zvei = (await db.get_ZVEI(12345)).get();
         const zvei_ = (await db.get_ZVEI(1)).get();
