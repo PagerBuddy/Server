@@ -1,3 +1,5 @@
+/**@module websocket */
+
 import * as  http from 'http';
 import { Server } from "socket.io";
 import winston from 'winston';

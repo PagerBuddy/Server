@@ -1,3 +1,5 @@
+/**@module katsys */
+
 import WebSocket from "ws";
 import fs from 'fs';
 import winston from 'winston';
