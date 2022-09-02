@@ -254,8 +254,9 @@ describe('ZVEIs', () => {
 
     test.each(descs)("The description of some hard-coded ZVEIs should match %i -> %s", async (id, desc) => {
 
-        const res = await db?.get_ZVEI_details(id);
-        expect(res?.get()).toEqual(desc);
+        const res_op = await db?.get_ZVEI_details(id);
+        const res = res_op.orElseGet(() => new ZVEI(id).description);
+        expect(res).toEqual(desc);
     });
 
 
