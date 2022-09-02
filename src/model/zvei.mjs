@@ -6,12 +6,12 @@ export default class ZVEI {
     /**
      * 
      * @param {string|number} zvei_id 
-     * @param {string} description 
-     * @param {number} test_day 
-     * @param {string} test_time_start 
-     * @param {string} test_time_end 
+     * @param {string} [description = ""]
+     * @param {number} [test_day = 0]
+     * @param {string} [test_time_start = "00:00"]
+     * @param {string} [test_time_end = "00:00"]
      */
-    constructor(zvei_id, description, test_day, test_time_start, test_time_end) {
+    constructor(zvei_id, description = "", test_day = 0, test_time_start = "00:00", test_time_end = "00:00") {
         
         const validated_id = ZVEI.validate_zvei_id(zvei_id)
         if (!validated_id.isPresent()) {
@@ -62,18 +62,6 @@ export default class ZVEI {
 
         return Optional.of(zvei_id);
     }
-
-    /**
-     * Get a default ZVEI object.
-     * 
-     * PagerBuddy must be able to handle any ZVEI - even unknown ones. For ZVEI without defined settings default parameters are assumed.
-     * @param {string|number} zvei_id
-     * @returns {ZVEI}
-     */
-    static get_default(zvei_id){
-        return new ZVEI(zvei_id, "", 0, "00:00", "00:00");
-    }
-
 
     /**
      * Check whether the input is a valid ZVEI ID

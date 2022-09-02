@@ -441,7 +441,7 @@ export class database {
         let params = [zvei_id];
         let rows = await this.#sql_query(sql, params);
         if (rows.length != 1) {
-            return Optional.of(ZVEI.get_default(zvei_id));
+            return Optional.empty();
         } else {
             const r = rows[0];
             return Optional.of(this.#row_to_zvei(r));
