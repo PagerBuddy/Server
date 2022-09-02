@@ -171,7 +171,14 @@ export class database {
         }
         else {
             const r = rows[0];
-            return Optional.of(this.#row_to_group(r));
+            try{
+                const group = this.#row_to_group(r);
+                return Optional.of(group);
+            }catch(error){
+                this.logger.error(error);
+                this.logger.error("Error retrieving group.");
+                return Optional.empty();
+            }
         }
     }
 
@@ -196,7 +203,16 @@ export class database {
     `;
         const params = [group_id];
         const rows = await this.#sql_query(sql, params);
-        const result = this.#rows_to_zveis(rows);
+
+        /**@type {ZVEI[]} */
+        let result = [];
+        try{
+            result = this.#rows_to_zveis(rows);
+        }catch(error){
+            this.logger.error(error);
+            this.logger.error("Error retrieving linked ZVEIs.");
+        }
+        
         return result;
     }
 
@@ -224,17 +240,23 @@ export class database {
     VALUES (?, ?)
     `;
         const params = [description, auth_token];
+
+        const logger_instance = this.logger;
+
         return new Promise((resolve, _) => {
             this.db.run(sql, params, function (/** @type {any} */error) {
                 if (error) {
                     resolve(Optional.empty());
                 }
                 else {
-                    /**
-                    * @type {Group}
-                    */
-                    const g = new Group(this.lastID, description, null, auth_token);
-                    resolve(Optional.of(g));
+                    try{
+                        const g = new Group(this.lastID, description, null, auth_token);
+                        resolve(Optional.of(g));
+                    }catch(error){
+                        logger_instance.error(error);
+                        logger_instance.error("Error creating group.");
+                        resolve(Optional.empty());
+                    }
                 }
             });
         })
@@ -380,7 +402,14 @@ export class database {
             return Optional.empty();
         }
 
-        return Optional.of(this.#row_to_group(res[0]));
+        try{
+            const group = this.#row_to_group(res[0]);
+            return Optional.of(group);
+        }catch(error){
+            this.logger.error(error);
+            this.logger.error("Error parsing group from chat ID.");
+            return Optional.empty();
+        }
     }
 
     /**
@@ -410,14 +439,22 @@ export class database {
      * Returns all ZVEI units
      * @returns {Promise<ZVEI[]>}
      */
-    get_ZVEIs() {
+    async get_ZVEIs() {
         let sql = `
         SELECT *
         FROM ZVEI
         `;
 
-        const rows = this.#sql_query(sql, []);
-        const zveis = rows.then(rws => { return this.#rows_to_zveis(rws); });
+        const rows = await this.#sql_query(sql, []);
+
+        /**@type {ZVEI[]} */
+        let zveis = [];
+        try{
+            zveis = this.#rows_to_zveis(rows);
+        }catch(error){
+            this.logger.error(error);
+            this.logger.error("Error retieving ZVEI list.");
+        }
         return zveis;
     }
 
@@ -429,7 +466,8 @@ export class database {
     async get_ZVEI(zvei_id) {
 
         if (!ZVEI.is_valid_id(zvei_id)) {
-            throw new Error(`Invalid ZVEI ID provided: ${zvei_id}`);
+            this.logger.error("Trying to get invalid ZVEI.");
+            return Optional.empty();
         }
 
         const sql = `
@@ -444,7 +482,16 @@ export class database {
             return Optional.empty();
         } else {
             const r = rows[0];
-            return Optional.of(this.#row_to_zvei(r));
+            try{
+                const zvei =this.#row_to_zvei(r);
+                return Optional.of(zvei);
+            }catch(error){
+                this.logger.error(error);
+                this.logger.error("Error retrieving ZVEI.");
+                return Optional.empty();
+            }
+
+            
         }
     }
 

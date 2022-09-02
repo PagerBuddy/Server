@@ -42,6 +42,10 @@ let messaging;
 /** @type {TelegramBot} */
 var bot;
 
+const DEFAULT_SILENT_DAY = 2;
+const DEFAULT_SILENT_TIME_START = "19:55";
+const DEFAULT_SILENT_TIME_END = "20:30";
+
 /** 
  * A well-formated bot action response.
  * @typedef {Object} bot_response
@@ -548,7 +552,15 @@ async function add_group(chat_id, group_description) {
  * @param {string} zvei_description 
  */
 async function add_zvei(chat_id, zvei_id, zvei_description) {
-    const zvei = new ZVEI(zvei_id, zvei_description, 2, "19:55", "20:30"); // TODO remove these magic numbers
+    let zvei;
+    try{
+        zvei = new ZVEI(zvei_id, zvei_description, DEFAULT_SILENT_DAY, DEFAULT_SILENT_TIME_START, DEFAULT_SILENT_TIME_END);
+    }catch(error){
+        log.error(error);
+        log.error("Error parsing ZVEI input.");
+        return;
+    }
+
     await data.add_ZVEI(zvei);
     const msg = `Added ZVEI <b>${zvei_id}</b> with default test time filter.`;
     queue_message(chat_id, msg, 120 * 1000);
