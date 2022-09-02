@@ -282,7 +282,12 @@ async function reply_group_list(chat_id) {
  * @param {number} group_id 
  */
 async function reply_edit_group(chat_id, message_id, group_id) {
-    let group = (await data.get_group(group_id)).get(); // TODO probably check for existence of the group....
+    const group_op = await data.get_group(group_id);
+    if(!group_op.isPresent()){
+        //No group - do nothing
+        return;
+    }
+    const group = group_op.get();
     let msg = `Group <b>${group.description}</b> \nChat ID: ${group.chat_id} \nToken: ${group.auth_token} \nWhat do you want to do?`;
 
     let prefix = "group_edit#" + group_id + "#";
@@ -435,8 +440,13 @@ async function link_group_zvei(chat_id, message_id, group_id, zvei_id) {
  * @param {number} group_id 
  */
 async function delete_group(chat_id, message_id, group_id) {
-    const group = (await data.get_group(group_id)).get();
-    await data.remove_group(group);
+    const group_op = await data.get_group(group_id);
+    if(!group_op.isPresent()){
+        //no group found - do nothing
+        return;
+    }
+
+    await data.remove_group(group_op.get());
 
     let msg = `Deleted group ${group_id}.`;
 
@@ -487,8 +497,12 @@ async function reply_zvei_list(chat_id) {
  * @param {number} zvei_id 
  */
 async function delete_zvei(chat_id, message_id, zvei_id) {
-    const zvei = (await data.get_ZVEI(zvei_id)).get()
-    await data.remove_ZVEI(zvei);
+    const zvei_op = await data.get_ZVEI(zvei_id);
+    if(!zvei_op.isPresent()){
+        //zvei not found
+        return;
+    }
+    await data.remove_ZVEI(zvei_op.get());
 
     let msg = `Deleted ZVEI ${zvei_id}.`;
 
@@ -507,7 +521,12 @@ async function delete_zvei(chat_id, message_id, zvei_id) {
  * @param {number} zvei_id 
  */
 async function edit_zvei(chat_id, message_id, zvei_id) {
-    const description = (await data.get_ZVEI(zvei_id)).get().description
+    const zvei_op = await data.get_ZVEI(zvei_id);
+    if(!zvei_op.isPresent()){
+        //zvei not found - do nothing
+        return;
+    }
+    const description = zvei_op.get().description
     const msg = `ZVEI ${description} \n What do you want to do?`;
 
     const prefix = "zvei_edit#" + zvei_id + "#";
@@ -535,7 +554,13 @@ async function edit_zvei(chat_id, message_id, zvei_id) {
  * @param {string} group_description 
  */
 async function add_group(chat_id, group_description) {
-    let auth_token = await data.add_group(group_description);
+    const auth_token_op = await data.add_group(group_description);
+    if(!auth_token_op.isPresent()){
+        //something went wrong - do nothing
+        return;
+    }
+    const auth_token = auth_token_op.get();
+
     const msg = `Added new group <b>${group_description}</b>`;
     queue_message(chat_id, msg, 120 * 1000);
 
@@ -672,15 +697,21 @@ async function is_chat_member(chat_id, user_id) {
 async function subscribe(user_id, token, chat_ids) {
 
     //Start by clearing user from DB
-    let user = (await data.get_user(user_id)).get()
-    await data.remove_user(user);
-
+    let user_op = await data.get_user(user_id);
+    if(user_op.isPresent()){
+        await data.remove_user(user_op.get());
+    }
+    
     if (chat_ids.length < 1) {
         //Empty list: The user has unsubscribed all ids - do not add him again
         return;
     }
 
-    user = (await data.update_user(user_id, token)).get();
+    let edit_user_op = await data.update_user(user_id, token);
+    if(!edit_user_op.isPresent()){
+        //something went wrong
+        return;
+    }
 
     for (let i in chat_ids) {
         let permission = await is_chat_member(chat_ids[i], user_id);
@@ -689,10 +720,14 @@ async function subscribe(user_id, token, chat_ids) {
             continue;
         } else {
             // Get group ID from chat ID
-            const group = (await data.get_group_from_chat_id(chat_ids[i])).get();
+            const group_op = await data.get_group_from_chat_id(chat_ids[i]);
+            if(!group_op.isPresent()){
+                //group not found
+                return;
+            }
             // Link the user to the group
             
-            await data.add_user_to_group(user, group);
+            await data.add_user_to_group(edit_user_op.get(), group_op.get());
         }
     }
 }

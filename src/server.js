@@ -15,6 +15,7 @@ import * as messaging from './messaging.mjs';
 import * as katsys from './katsys/katsys.mjs';
 import winston from 'winston';
 import { Config } from './config.js';
+import ZVEI from './model/zvei.mjs';
 
 /**
  * Alarm queue callback
@@ -123,12 +124,15 @@ async function alarm(zvei_id, timestamp, information_content, text = '', is_manu
 
   const zvei_ = await db.get_ZVEI(zvei_id);
 
-  if (!zvei_.isPresent()) {
-    logger.error(`Can not sent alarm to ZVEI "${zvei_id}" (does not exist)`);
+  let zvei;
+  try{
+    zvei = zvei_.orElseGet(() => new ZVEI(zvei_id));
+  }catch(error){
+    logger.error(error);
+    logger.error("Error parsing alert id. This is fatal - alert will not be handled.");
     return false;
   }
-
-  const zvei = zvei_.get();
+  
 
 
   if (timestamp + 1000 * 60 * 2 < Date.now()) { //The alert is older than two minutes and therefore obsolete
