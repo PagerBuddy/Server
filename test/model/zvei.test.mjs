@@ -138,11 +138,4 @@ describe("Checking ZVEI Test Times", () => {
         expect(zvei.is_test_time(t, timezone)).toBeTruthy();
     });
 
-    test("Test time check in the last minute fails", () => {
-        // This is a known bug: https://github.com/PagerBuddy/Server/issues/30
-        // this test is only here to be informed when the issue is fixed.
-        expect(zvei.is_test_time(0 + 5 * (1000 * 60), timezone)).toBeFalsy()
-    })
-
-
 });

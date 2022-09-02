@@ -85,14 +85,34 @@ export default class ZVEI {
 
         const date = new Date(time_)
         const day = date.getDay();
+        const local_time_str = date.toLocaleTimeString("de-DE", { timeZone: timezone });
 
-
-        //TODO this returns a string and we compare it against another string. why/how does this work?
-        const time = date.toLocaleTimeString("de-DE", { timeZone: timezone })
+        const time = ZVEI.#get_test_time(local_time_str);
+        const start = ZVEI.#get_test_time(this.test_time_start);
+        const end = ZVEI.#get_test_time(this.test_time_end);
 
         const right_day = day === this.test_day;
-        const in_time_range = this.test_time_start <= time && time <= this.test_time_end;
-        console.log(date, day, time, right_day, this.test_time_start, this.test_time_end, this.test_time_start <= time, time <= this.test_time_end, in_time_range);
+        const in_time_range = start == end || start <= time && time <= end;
+
         return right_day && in_time_range;
+    }
+
+    /**
+     * Small helper to safely get the time of day in minutes of a "HH:mm(:ss)" string
+     * @param {string} test_time 
+     * @returns {number}
+     */
+    static #get_test_time(test_time){
+        const default_value = 0;
+        if(test_time.length < 5){
+            //wrong format, assume default
+            return default_value;
+        }
+
+        const hour_string = test_time.substring(0, 2);
+        const minute_string = test_time.substring(3, 5);
+
+        return parseInt(hour_string)*60 + parseInt(minute_string);
+
     }
 }
