@@ -1,4 +1,15 @@
-# Version 1.1.0 (TBA)
+# Version 1.1.1 (2022-09-08)
+
+## Added
+
+## Changed
+
+## Fixed 
+* JSDoc generation of .mjs files
+
+## Removed
+
+# Version 1.1.0 (2022-09-08)
 
 ## Added
 * Data model using JavaScript classes:
