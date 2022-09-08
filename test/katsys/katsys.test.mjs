@@ -1,10 +1,10 @@
 import { describe, expect, test, beforeAll, afterAll, jest } from '@jest/globals'
 import fs from 'fs'
-import {TestConfig} from './testConfig.js'
+import {TestConfig} from '../testConfig.js'
 
-import * as health from '../src/health.mjs'
-jest.mock('../src/health.mjs');
-import * as katsys from '../src/katsys.mjs'
+import * as health from '../../src/health.mjs'
+jest.mock('../../src/health.mjs');
+import * as katsys from '../../src/katsys/katsys.mjs'
 import WebSocket from 'ws';
 jest.mock('ws');
 

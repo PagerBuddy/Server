@@ -1,4 +1,5 @@
-"use strict";
+/**@module scripts/service */
+
 import * as os from 'os';
 import * as fs from 'fs';
 import { exec } from "child_process";
@@ -15,12 +16,7 @@ function check_platform() {
 
     const is_linux = os.platform() == "linux";
 
-    let is_deactivated = false;
-    if (process.env.NO_SERVICE) {
-        is_deactivated = true;
-    }
-
-    return is_linux && !is_deactivated;
+    return is_linux;
 }
 
 /**
@@ -34,13 +30,13 @@ export function install_service() {
         return;
     }
 
-    exec("sudo systemctl stop pagerbuddy");
+    stop();
 
     let servicedata = fs.readFileSync(service_file, "utf-8");
     let outdata = servicedata.replace(/%pagerbuddy%/g, path.resolve("./"));
     fs.writeFileSync(service_location, outdata, "utf-8");
 
-    exec("sudo systemctl enable pagerbuddy");
+    exec("systemctl enable pagerbuddy");
 
     console.log("Installed and enabled pagerbuddy service. Service will start automaticall on boot. Call 'npm startservice' to start now.")
 }
@@ -55,8 +51,8 @@ export function uninstall_service() {
         return;
     }
 
-    exec("sudo systemctl disable pagerbuddy");
-    exec("sudo systemctl stop pagerbuddy");
+    exec("systemctl disable pagerbuddy");
+    exec("systemctl stop pagerbuddy");
 
     try {
         fs.unlinkSync(service_location);
@@ -77,6 +73,38 @@ export function start() {
         return;
     }
 
-    exec("sudo systemctl start pagerbuddy");
+    exec("systemctl start pagerbuddy");
 }
 
+/**
+ * Start the pagerbuddy service.
+ */
+export function stop() {
+
+
+    if (!check_platform()) {
+        console.error("PagerBuddy as a service is not supported on this platform. Cannot start service.");
+        return;
+    }
+
+    exec("systemctl stop pagerbuddy");
+}
+
+if (process.argv.length == 3) {
+    const what = process.argv[2];
+    switch (what) {
+        case "install":
+            install_service();
+            break;
+        case "stop":
+            stop();
+            break;
+        case "start":
+            start();
+            break;
+        case "uninstall":
+            uninstall_service();
+            break;
+        default:
+    }
+}

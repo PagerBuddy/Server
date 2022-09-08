@@ -1,4 +1,5 @@
 "use strict";
+/**@module telegram/queue */
 import winston from 'winston';
 import loggers from '../logging.mjs'
 

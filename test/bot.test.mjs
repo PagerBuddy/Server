@@ -7,6 +7,7 @@ jest.mock('../src/health.mjs');
 import * as messaging from '../src/messaging.mjs'
 
 import TelegramBot from 'node-telegram-bot-api';
+import ZVEI from '../src/model/zvei.mjs';
 
 const config = new TestConfig();
 
@@ -64,7 +65,9 @@ let conditionalDescribeCB = () =>{
         expect(edit_result).toBeTruthy();
     });
     test('no error when sending an alert', async () =>{
-        const result = await bot.send_alert(TESTER_CHAT_ID, 99999, "JEST TEST", true, Date.now(), true, "alert text");
+        const zvei = new ZVEI(99999, "JEST TEST", 0, "00:00", "00:00");
+
+        const result = await bot.send_alert(TESTER_CHAT_ID, zvei, Date.now(), config.alert_time_zone, true, "alert text");
 
         expect(result.msg_res.status).toBe("fulfilled");
         expect(result.resp_res.status).toBe("fulfilled");

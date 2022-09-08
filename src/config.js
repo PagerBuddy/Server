@@ -4,6 +4,7 @@ import logging from './logging.mjs';
 
 const NOCONFIG = 1;
 const CONFIG_ERR = 2;
+const EXIT_FATAL_CONFIG = 1000; //This is a permanently fatal error and will never be solved by a restart
 
 const logger = logging("Config");
 
@@ -51,7 +52,7 @@ export class Config {
     #load_config(file, continue_on_error = false) {
         if (!fs.existsSync(file)) {
             logger.error(`Config file '${file}' does not exist!`);
-            this.#conditional_exit(NOCONFIG, continue_on_error);
+            this.#conditional_exit(EXIT_FATAL_CONFIG, continue_on_error);
         }
 
         const config = JSON.parse(fs.readFileSync(file).toString());
@@ -59,7 +60,7 @@ export class Config {
         const db_file = config.DATABASE_LOCATION;
         if(!fs.existsSync(db_file)){
             logger.error("No valid database file in config.");
-            this.#conditional_exit(CONFIG_ERR, continue_on_error);
+            this.#conditional_exit(EXIT_FATAL_CONFIG, continue_on_error);
         }else{
             this.files.database_location = db_file;
         }
@@ -71,14 +72,14 @@ export class Config {
         const bot_name = config.TELEGRAM?.BOT_NAME;
         if(!this.#check_empty_string(bot_name) || !this.#check_empty_string(bot_token)){
             logger.error("No valid bot token and or name in config.");
-            this.#conditional_exit(CONFIG_ERR, continue_on_error);
+            this.#conditional_exit(EXIT_FATAL_CONFIG, continue_on_error);
         }else{
             this.telegram.bot_name = bot_name;
             this.telegram.bot_token = bot_token;
         }
 
         const admin_groups = config.TELEGRAM?.ADMIN_GROUPS;
-        if(!admin_groups || admin_groups == []){
+        if(!admin_groups || admin_groups.length < 1){
             logger.warn("No admin groups specified in config. You will not be able to configure pagerbuddy via telegram!");
         }else{
             this.telegram.admin_groups = admin_groups;
@@ -106,7 +107,7 @@ export class Config {
         const timezone = config.ALERT_TIME_ZONE;
         if(!this.#check_empty_string(timezone) || !this.#check_valid_timezone(timezone)){
             logger.error("No valid timezone string (IANA time zone) was set in config.");
-            this.#conditional_exit(CONFIG_ERR, continue_on_error);
+            this.#conditional_exit(EXIT_FATAL_CONFIG, continue_on_error);
         }else{
             this.alert_time_zone = timezone;
         }
