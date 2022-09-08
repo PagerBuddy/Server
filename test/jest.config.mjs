@@ -10,5 +10,5 @@ export default {
   moduleFileExtensions: ["js", "jsx", "mjs"],
   forceExit: true,
   reporters: [["jest-silent-reporter", { "useDots": true, "showWarnings": true, "showPaths": true }], "summary"],
-collectCoverage: true
+  collectCoverage: true
 }

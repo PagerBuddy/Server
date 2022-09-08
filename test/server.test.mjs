@@ -5,9 +5,9 @@ import {TestConfig} from './testConfig.js'
 import * as messaging from '../src/messaging.mjs';
 import * as telegramBot from '../src/telegram/bot.mjs';
 import * as websocket from '../src/websocket.mjs';
-import * as katsys from '../src/katsys.mjs';
-import * as data from '../src/data.js';
-import logging from '../src/logging.mjs';
+import * as katsys from '../src/katsys/katsys.mjs';
+import ZVEI from '../src/model/zvei.mjs';
+
 
 describe("server operation", () => {
     test("no error during server lifecycle", async () => {
@@ -17,6 +17,7 @@ describe("server operation", () => {
             return Promise.resolve(true);
         });
 
+        
         const cli_ignore_config_err = "--ignore_config_error=true";
         process.argv.push(cli_ignore_config_err);
 
@@ -26,7 +27,7 @@ describe("server operation", () => {
         expect(spyKatsys).toHaveBeenCalled();
         expect(spyWebsocket).toHaveBeenCalled();
 
-        let spyBotClose = jest.spyOn(telegramBot, "stop_bot").mockImplementation(() => {
+        jest.spyOn(telegramBot, "stop_bot").mockImplementation(() => {
             return Promise.resolve();
         });
         await server.stop();
@@ -34,15 +35,20 @@ describe("server operation", () => {
     })
 
     test("no error when queing incoming alert", async () => {
-        let spyMessaging = jest.spyOn(messaging, "sendAlert").mockImplementation((token_chat_array, alert_timestamp, alert_zvei_id, alert_zvei_description, is_test_time) => {
-            return Promise.resolve(true);
+
+        let spyMessaging = jest.spyOn(messaging, "sendAlert").mockImplementation(
+            /**@type {typeof messaging.sendAlert} */
+            (token_chat_array, alert_timestamp, alert_time_zone, zvei) => {
+                return Promise.resolve(true);
         });
 
         //spyBot not necessarily called - only if 99999 or 10 is registered with a chat id
-        let spyBot = jest.spyOn(telegramBot, "send_alert").mockImplementation(async (chat_id, zvei_id, description, is_test_alert, timestamp, is_manual, text) => {
-            let bot_resp = { success: true, resend: false, msg_id: 0 };
-            let [msg_res, resp_res] = await Promise.allSettled([Promise.resolve(bot_resp), Promise.resolve(bot_resp)]);
-            return {msg_res, resp_res};
+        let spyBot = jest.spyOn(telegramBot, "send_alert").mockImplementation(
+            /**@type {typeof telegramBot.send_alert} */
+            async (chat_id, zvei, timestamp, alert_time_zone, is_manual, text) => {
+                let bot_resp = { success: true, resend: false, msg_id: 0 };
+                let [msg_res, resp_res] = await Promise.allSettled([Promise.resolve(bot_resp), Promise.resolve(bot_resp)]);
+                return {msg_res, resp_res};
         });
 
         let spyInitBot = jest.spyOn(telegramBot, "start_bot").mockImplementation(() => {});
@@ -62,9 +68,10 @@ describe("server operation", () => {
 
         await server.start();
         
-        let result = await server.queue_alarm(zvei, timestamp, information_content)
+        let result = await server.queue_alarm(zvei, timestamp, information_content);
 
-        expect(spyMessaging).toHaveBeenCalledWith([], timestamp, zvei, "", false);
+        const zvei_obj = new ZVEI(zvei, "", 0, "00:00", "00:00");
+        expect(spyMessaging).toHaveBeenCalledWith([], timestamp, config.alert_time_zone, zvei_obj);
         expect(result).toBeTruthy();
 
         let spyBotClose = jest.spyOn(telegramBot, "stop_bot").mockImplementation(() => {

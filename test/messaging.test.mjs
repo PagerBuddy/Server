@@ -1,8 +1,10 @@
-import {describe, expect, test, beforeAll, afterAll, jest} from '@jest/globals'
-import {TestConfig} from './testConfig.js'
+import { describe, expect, test, beforeAll, afterAll, jest } from '@jest/globals'
+import { TestConfig } from './testConfig.js'
 
+import {database} from "../src/db.mjs"
 import * as messaging from "../src/messaging.mjs"
-import * as db from '../src/data.js'
+
+import ZVEI from '../src/model/zvei.mjs';
 
 const config = new TestConfig();
 
@@ -16,13 +18,14 @@ let conditionalDescribeCB = () => {
     const TESTER_CHAT_ID = -1000000000;
 
     beforeAll(async () => {
-        messaging.init(null, config.alert_time_zone, config.messaging);
+        messaging.init(/**@type {any} */(null), config.alert_time_zone, config.messaging);
     });
 
+    // TODO run this test again!
     test('graceful handling of obsolete token', async () => {
 
-        const remove_user_mock = jest.spyOn(db, "remove_user").mockImplementation((input) => {
-            if(!(typeof (input) == "number" && !isNaN(input))){
+        const remove_user_mock = jest.spyOn(database.prototype, "remove_user").mockImplementation((input) => {
+            if (!(typeof (input) == "number" && !isNaN(input))) {
                 return Promise.resolve(false);
             }
             return Promise.resolve(true);
@@ -43,30 +46,29 @@ let conditionalDescribeCB = () => {
     });
 
     test('no error when sending alert', async () => {
-      
+
         const timestamp = Date.now();
-        const zvei = 99999;
-        const description = "JEST TEST";
-      
+        const zvei = new ZVEI(99999, "JEST TEST", 0, "00:00", "00:00");
+
         const token_chat_array = {
-          token: VALID_DEVICE_TOKEN,
-          chat_id: TESTER_CHAT_ID.toString(),
-          user_id: 0
+            token: VALID_DEVICE_TOKEN,
+            chat_id: TESTER_CHAT_ID.toString(),
+            user_id: 0
         }
-      
-        const result = await messaging.sendAlert([token_chat_array], timestamp, zvei, description, false);
+
+        const result = await messaging.sendAlert([token_chat_array], timestamp, config.alert_time_zone, zvei);
         expect(result).toBeTruthy();
     });
 
-    test('no error when probing user token', async() => {
-        const remove_user_mock = jest.spyOn(db, "remove_user").mockImplementation((input) => {
-            if(!(typeof (input) == "number" && !isNaN(input))){
+    test('no error when probing user token', async () => {
+        const remove_user_mock = jest.spyOn(database.prototype, "remove_user").mockImplementation((input) => {
+            if (!(typeof (input) == "number" && !isNaN(input))) {
                 return Promise.resolve(false);
             }
             return Promise.resolve(true);
         });
 
-        const probe = {user_id: 0, token: INVALID_DEVICE_TOKEN};
+        const probe = { user_id: 0, token: INVALID_DEVICE_TOKEN };
 
         expect(async () => {
             await messaging.heartbeatProbe([probe]);
@@ -78,8 +80,8 @@ let conditionalDescribeCB = () => {
     })
 };
 
-if(config.tests.skip_messaging){
+if (config.tests.skip_messaging) {
     describe.skip(conditionalDescribeName, conditionalDescribeCB);
-}else{
+} else {
     describe(conditionalDescribeName, conditionalDescribeCB);
 }

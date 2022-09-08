@@ -3,7 +3,6 @@
 import * as winston from 'winston';
 import Transport from 'winston-transport';
 
-import * as data from './data.js';
 import * as telegram_bot from './telegram/bot.mjs';
 
 const MESSAGE = Symbol.for('message')
@@ -28,7 +27,7 @@ export default class TelegramTransport extends Transport {
 
     /**
      * 
-     * @param {typeof data.get_chat_ids_from_zvei} dbfun 
+     * @param {any} dbfun 
      * @param {typeof telegram_bot.queue_message} msgfun 
      */
     constructor(dbfun, msgfun) {

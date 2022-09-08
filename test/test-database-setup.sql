@@ -13,7 +13,8 @@ INSERT INTO "ZVEI" VALUES
 (3, "SYSTEM WARNING", 0, "00:00", "00:00"),
 (4, "SYSTEM ERROR", 0, "00:00", "00:00"),
 (5, "SYSTEM REPORT", 0, "00:00", "00:00"),
-(10, "SYSTEM ALL ALERTS", 0, "00:00", "00:00");
+(10, "SYSTEM ALL ALERTS", 0, "00:00", "00:00"),
+(12345, "Testing Purposes ZVEI", 0, "00:03", "00:05");
 
 
 CREATE TABLE "Groups" (
@@ -23,6 +24,10 @@ CREATE TABLE "Groups" (
 "auth_token" TEXT UNIQUE,
 PRIMARY KEY("group_id")
 );
+
+INSERT INTO "Groups" VALUES -- auth tokens generated using hat(40,16) so they *should* be rather unique
+(1, "Initial Group 1", null, "9f2e8c7abc"),
+(2, "Initial Group 2", null, "9f674912c3");
 
 CREATE TABLE "Alarms" (
 "zvei_id" INTEGER NOT NULL,

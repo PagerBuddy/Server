@@ -14,9 +14,10 @@ import * as  queue from './queue.js';
 import * as response_overview from './response-overview.js';
 import winston from 'winston';
 
-import * as mydata from '../data.js'
+import * as DB from '../db.mjs'
 import * as myhealth from '../health.mjs'
 import * as mymessaging from '../messaging.mjs'
+import ZVEI from '../model/zvei.mjs'
 
 /** @type {String } */
 let BOT_NAME = "";
@@ -28,7 +29,7 @@ let TIMEZONE = "";
 /** @type {number[]} */
 let TELEGRAM_ADMIN_GROUPS = [];
 
-/** @type {mydata} */
+/** @type {DB.database} */
 let data;
 
 /** @type {winston.Logger} */
@@ -41,6 +42,10 @@ let messaging;
 /** @type {TelegramBot} */
 var bot;
 
+const DEFAULT_SILENT_DAY = 2;
+const DEFAULT_SILENT_TIME_START = "19:55";
+const DEFAULT_SILENT_TIME_END = "20:30";
+
 /** 
  * A well-formated bot action response.
  * @typedef {Object} bot_response
@@ -51,7 +56,7 @@ var bot;
 
 /**
  * 
- * @param {mydata} db 
+ * @param {DB.database} db 
  * @param {{bot_token: string, bot_name: string, admin_groups: number[], response_overview: response_overview.response_overview_config}} bot_config 
  * @param {string} timezone 
  * @param {myhealth} health_ 
@@ -164,19 +169,19 @@ export async function unpin_message(chat_id, message_id) {
 /**
  * Send an alert to the provided chat id. A message string is built from the provided parameters.
  * @param {number} chat_id: The receiver of the message.
- * @param {number} zvei_id: The alert id.
- * @param {String} description: The description of the alert type ("") if none.
- * @param {Boolean} is_test_alert: Wether we are currently in test alert time.
+ * @param {ZVEI} zvei: The alert id.
  * @param {number} timestamp: The alert timestamp (typically provided from alert device.) in Unix time as ms.
+ * @param {string} alert_time_zone: The timezone of the alert
  * @param {Boolean} is_manual: If the alert was triggered manually.
  * @param {String} text: Alert content - can be arbitrary text.
  * @return {Promise<{msg_res: PromiseSettledResult<bot_response>, resp_res: PromiseSettledResult<bot_response>}>}
  */
-export async function send_alert(chat_id, zvei_id, description, is_test_alert, timestamp, is_manual, text) {
+export async function send_alert(chat_id, zvei, timestamp, alert_time_zone, is_manual, text) {
     //We have to ensure chat_id is a numeric type.
     //let chat_id_as_number = parseInt(chat_id);
 
     let alert_text = "";
+    const is_test_alert = zvei.is_test_time(timestamp, alert_time_zone);
 
     if (is_manual) {
         alert_text += "<b>Manueller Alarm (KEINE ILS)</b>\n";
@@ -184,8 +189,8 @@ export async function send_alert(chat_id, zvei_id, description, is_test_alert, t
         alert_text += "<b>Probealarmzeit</b>\n";
     }
     alert_text += text + '\n'
-    alert_text += description + "\n<code>";
-    alert_text += zvei_id + "\n";
+    alert_text += zvei.description + "\n<code>";
+    alert_text += zvei.id + "\n";
 
     let datetime = new Date(timestamp);
     const timeString = datetime.toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit", second: "2-digit", timeZone: TIMEZONE });
@@ -239,26 +244,26 @@ async function send_message_with_opts(chat_id, message, opts) {
 }
 
 
-    /**
-     * Sends the list of groups with an inline keyboard and callbacks.
-     * @param {number} chat_id Receiver of the list.
-     */
+/**
+ * Sends the list of groups with an inline keyboard and callbacks.
+ * @param {number} chat_id Receiver of the list.
+ */
 async function reply_group_list(chat_id) {
 
 
     let rows = await data.get_groups();
 
-    let opts = { 
-        reply_markup: {  
-            /** @type {Array<Array<{text: string, callback_data: string}>>} */ inline_keyboard: [] 
-        } 
+    let opts = {
+        reply_markup: {
+            /** @type {Array<Array<{text: string, callback_data: string}>>} */ inline_keyboard: []
+        }
     };
 
     let msg = "Select a Group:";
 
     for (let i in rows) {
-        let label = rows[i].group_id + ": " + rows[i].description;
-        let id = "group#" + rows[i].group_id + "#";
+        let label = rows[i].id + ": " + rows[i].description;
+        let id = "group#" + rows[i].id + "#";
 
         let row = {
             text: label,
@@ -277,8 +282,13 @@ async function reply_group_list(chat_id) {
  * @param {number} group_id 
  */
 async function reply_edit_group(chat_id, message_id, group_id) {
-    let details = await data.get_group_details(group_id);
-    let msg = `Group <b>${details[0].description}</b> \nChat ID: ${details[0].chat_id} \nToken: ${details[0].auth_token} \nWhat do you want to do?`;
+    const group_op = await data.get_group(group_id);
+    if(!group_op.isPresent()){
+        //No group - do nothing
+        return;
+    }
+    const group = group_op.get();
+    let msg = `Group <b>${group.description}</b> \nChat ID: ${group.chat_id} \nToken: ${group.auth_token} \nWhat do you want to do?`;
 
     let prefix = "group_edit#" + group_id + "#";
 
@@ -308,19 +318,19 @@ async function reply_edit_group(chat_id, message_id, group_id) {
 }
 
 
-    /**
-     * Sends the list of ZVEIs as a message update to select ZVEI for linking.
-     * @param {number} chat_id Receiver of the list.
-     * @param {number} message_id
-     * @param {number} group_id
-     */
+/**
+ * Sends the list of ZVEIs as a message update to select ZVEI for linking.
+ * @param {number} chat_id Receiver of the list.
+ * @param {number} message_id
+ * @param {number} group_id
+ */
 async function reply_group_zvei_list(chat_id, message_id, group_id) {
 
 
-    let rows = await data.get_zvei();
+    let rows = await data.get_ZVEIs();
 
-    let opts = { 
-        message_id: message_id, 
+    let opts = {
+        message_id: message_id,
         chat_id: chat_id,
         reply_markup: {
             /** @type {{text: string, callback_data: string}[][]} */ inline_keyboard: []
@@ -332,8 +342,8 @@ async function reply_group_zvei_list(chat_id, message_id, group_id) {
     let prefix = "group_link_zvei#" + group_id + "#";
 
     for (let i in rows) {
-        let label = rows[i].zvei_id + ": " + minimize_text(rows[i].description);
-        let id = prefix + rows[i].zvei_id + "#";
+        let label = rows[i].id + ": " + minimize_text(rows[i].description);
+        let id = prefix + rows[i].id + "#";
 
         let row = {
             text: label,
@@ -346,19 +356,19 @@ async function reply_group_zvei_list(chat_id, message_id, group_id) {
 }
 
 
-    /**
-     * Sends the list of ZVEIs as a message update to select ZVEI for unlinking.
-     * @param {number} chat_id Receiver of the list.
-     * @param {number} message_id
-     * @param {number} group_id
-     */
+/**
+ * Sends the list of ZVEIs as a message update to select ZVEI for unlinking.
+ * @param {number} chat_id Receiver of the list.
+ * @param {number} message_id
+ * @param {number} group_id
+ */
 async function reply_group_current_zvei_list(chat_id, message_id, group_id) {
 
 
-    let rows = await data.get_group_alarms(group_id);
+    let rows = await data.get_group_zveis(group_id);
 
-    let opts = { 
-        message_id: message_id, 
+    let opts = {
+        message_id: message_id,
         chat_id: chat_id,
         reply_markup: {
             /** @type {Array<Array<{text: string, callback_data: string}>>} */ inline_keyboard: []
@@ -370,8 +380,8 @@ async function reply_group_current_zvei_list(chat_id, message_id, group_id) {
     let prefix = "group_unlink_zvei#" + group_id + "#";
 
     for (let i in rows) {
-        let label = rows[i].zvei_id + ": " + minimize_text(rows[i].description);
-        let id = prefix + rows[i].zvei_id + "#";
+        let label = rows[i].id + ": " + minimize_text(rows[i].description);
+        let id = prefix + rows[i].id + "#";
 
         let row = {
             text: label,
@@ -391,7 +401,7 @@ async function reply_group_current_zvei_list(chat_id, message_id, group_id) {
  * @param {number} zvei_id 
  */
 async function unlink_group_zvei(chat_id, message_id, group_id, zvei_id) {
-    await data.remove_alarm(zvei_id, group_id);
+    await data.unlink_zvei_and_group_id(zvei_id, group_id);
 
     let msg = `Unlinked group ${group_id} and ZVEI ${zvei_id}.`;
 
@@ -411,7 +421,7 @@ async function unlink_group_zvei(chat_id, message_id, group_id, zvei_id) {
  * @param {number} zvei_id 
  */
 async function link_group_zvei(chat_id, message_id, group_id, zvei_id) {
-    await data.add_alarm(zvei_id, group_id);
+    await data.link_zvei_with_group_id(zvei_id, group_id);
 
     let msg = `Linked group ${group_id} to ZVEI ${zvei_id}.`;
 
@@ -430,7 +440,13 @@ async function link_group_zvei(chat_id, message_id, group_id, zvei_id) {
  * @param {number} group_id 
  */
 async function delete_group(chat_id, message_id, group_id) {
-    await data.remove_group(group_id);
+    const group_op = await data.get_group(group_id);
+    if(!group_op.isPresent()){
+        //no group found - do nothing
+        return;
+    }
+
+    await data.remove_group(group_op.get());
 
     let msg = `Deleted group ${group_id}.`;
 
@@ -443,16 +459,16 @@ async function delete_group(chat_id, message_id, group_id) {
 }
 
 
-    /**
-     * Sends the list of ZVEIs with an inline keyboard and callbacks.
-     * @param {number} chat_id Receiver of the list.
-     */
+/**
+ * Sends the list of ZVEIs with an inline keyboard and callbacks.
+ * @param {number} chat_id Receiver of the list.
+ */
 async function reply_zvei_list(chat_id) {
 
 
-    let rows = await data.get_zvei();
+    let rows = await data.get_ZVEIs();
 
-    let opts = { 
+    let opts = {
         reply_markup: {
             /** @type {Array<Array<{text: string, callback_data: string}>>} */ inline_keyboard: []
         }
@@ -461,8 +477,8 @@ async function reply_zvei_list(chat_id) {
     let msg = "Select a ZVEI:";
 
     for (let i in rows) {
-        let label = rows[i].zvei_id + ": " + minimize_text(rows[i].description);
-        let id = "zvei#" + rows[i].zvei_id + "#";
+        let label = rows[i].id + ": " + minimize_text(rows[i].description);
+        let id = "zvei#" + rows[i].id + "#";
 
         let row = {
             text: label,
@@ -481,7 +497,12 @@ async function reply_zvei_list(chat_id) {
  * @param {number} zvei_id 
  */
 async function delete_zvei(chat_id, message_id, zvei_id) {
-    await data.remove_zvei(zvei_id);
+    const zvei_op = await data.get_ZVEI(zvei_id);
+    if(!zvei_op.isPresent()){
+        //zvei not found
+        return;
+    }
+    await data.remove_ZVEI(zvei_op.get());
 
     let msg = `Deleted ZVEI ${zvei_id}.`;
 
@@ -500,12 +521,17 @@ async function delete_zvei(chat_id, message_id, zvei_id) {
  * @param {number} zvei_id 
  */
 async function edit_zvei(chat_id, message_id, zvei_id) {
-    let description = await data.get_zvei_details(zvei_id);
-    let msg = `ZVEI ${description} \n What do you want to do?`;
+    const zvei_op = await data.get_ZVEI(zvei_id);
+    if(!zvei_op.isPresent()){
+        //zvei not found - do nothing
+        return;
+    }
+    const description = zvei_op.get().description
+    const msg = `ZVEI ${description} \n What do you want to do?`;
 
-    let prefix = "zvei_edit#" + zvei_id + "#";
+    const prefix = "zvei_edit#" + zvei_id + "#";
 
-    let opts = {
+    const opts = {
         reply_markup: {
             inline_keyboard: [
                 [{
@@ -528,7 +554,13 @@ async function edit_zvei(chat_id, message_id, zvei_id) {
  * @param {string} group_description 
  */
 async function add_group(chat_id, group_description) {
-    let auth_token = await data.add_group(group_description);
+    const auth_token_op = await data.add_group(group_description);
+    if(!auth_token_op.isPresent()){
+        //something went wrong - do nothing
+        return;
+    }
+    const auth_token = auth_token_op.get();
+
     const msg = `Added new group <b>${group_description}</b>`;
     queue_message(chat_id, msg, 120 * 1000);
 
@@ -545,23 +577,32 @@ async function add_group(chat_id, group_description) {
  * @param {string} zvei_description 
  */
 async function add_zvei(chat_id, zvei_id, zvei_description) {
-    await data.add_zvei(zvei_id, zvei_description, 2, "19:55", "20:30");
+    let zvei;
+    try{
+        zvei = new ZVEI(zvei_id, zvei_description, DEFAULT_SILENT_DAY, DEFAULT_SILENT_TIME_START, DEFAULT_SILENT_TIME_END);
+    }catch(error){
+        log.error(error);
+        log.error("Error parsing ZVEI input.");
+        return;
+    }
+
+    await data.add_ZVEI(zvei);
     const msg = `Added ZVEI <b>${zvei_id}</b> with default test time filter.`;
     queue_message(chat_id, msg, 120 * 1000);
 }
 
-    /**
-     * Edit an existing message.
-     * @param {string} message The new metruessage text.
-     * @param {TelegramBot.EditMessageTextOptions} opts The message options. Must contain reference to previous message to edit.
-     * @returns {Promise<bot_response>} If sending the message was successfull.
-     */
+/**
+ * Edit an existing message.
+ * @param {string} message The new metruessage text.
+ * @param {TelegramBot.EditMessageTextOptions} opts The message options. Must contain reference to previous message to edit.
+ * @returns {Promise<bot_response>} If sending the message was successfull.
+ */
 async function send_message_edit(message, opts) {
 
 
     if (bot == null) {
         log.error("Bot not initialised. Cannot send message.")
-        return {success: false, resend: true, msg_id: 0};
+        return { success: false, resend: true, msg_id: 0 };
     }
 
     let msg_id = 0;
@@ -574,14 +615,14 @@ async function send_message_edit(message, opts) {
             //Message has probably gone away
             log.debug("Could not send message edit. Message was probably deleted");
             //TODO: Perhaps test this in the future and probe a more precise error
-            return {success: false, resend: false, msg_id: 0};
+            return { success: false, resend: false, msg_id: 0 };
         } else {
             log.error("Error trying to edit message.");
             return bot_error_send(error);
         }
     }
     health.telegram_status(true);
-    return {success: true, resend: false, msg_id: msg_id};
+    return { success: true, resend: false, msg_id: msg_id };
 }
 
 /**
@@ -593,9 +634,9 @@ async function is_admin_chat(chat_id) {
     return TELEGRAM_ADMIN_GROUPS.includes(chat_id);
 }
 
-    /**
-     * Remove all user subscriptions that are not valid anymore. This should be called regularly.
-     */
+/**
+ * Remove all user subscriptions that are not valid anymore. This should be called regularly.
+ */
 export async function remove_invalid_user_subscriptions() {
 
     log.debug("Checking all user DB entries for invalid subscriptions.");
@@ -604,7 +645,9 @@ export async function remove_invalid_user_subscriptions() {
     let count = 0;
     for (let id in list) {
         if (!await is_chat_member(parseInt(list[id].chat_id), list[id].user_id)) {
-            data.remove_user_link(list[id].user_id, list[id].group_id); //Do not await this to speed up stuff.
+
+
+            data.remove_user_from_group_by_ids(list[id].user_id, list[id].group_id); //Do not await this to speed up stuff.
             count++;
         }
     }
@@ -654,16 +697,22 @@ async function is_chat_member(chat_id, user_id) {
 async function subscribe(user_id, token, chat_ids) {
 
     //Start by clearing user from DB
-    await data.remove_user(user_id);
-
+    let user_op = await data.get_user(user_id);
+    if(user_op.isPresent()){
+        await data.remove_user(user_op.get());
+    }
+    
     if (chat_ids.length < 1) {
         //Empty list: The user has unsubscribed all ids - do not add him again
         return;
     }
 
-    await data.update_user(user_id, token);
+    let edit_user_op = await data.update_user(user_id, token);
+    if(!edit_user_op.isPresent()){
+        //something went wrong
+        return;
+    }
 
-    let group_id = null;
     for (let i in chat_ids) {
         let permission = await is_chat_member(chat_ids[i], user_id);
         if (!permission) {
@@ -671,17 +720,22 @@ async function subscribe(user_id, token, chat_ids) {
             continue;
         } else {
             // Get group ID from chat ID
-            group_id = await data.get_group_id_from_chat_id(chat_ids[i]);
+            const group_op = await data.get_group_from_chat_id(chat_ids[i]);
+            if(!group_op.isPresent()){
+                //group not found
+                return;
+            }
             // Link the user to the group
-            await data.add_user_group(user_id, group_id);
+            
+            await data.add_user_to_group(edit_user_op.get(), group_op.get());
         }
     }
 }
 
-    /** Handle bot errors that occur on message send
-     * @param {any} error The error message.
-     * @returns {bot_response} If a sent message should be requeued.
-     */
+/** Handle bot errors that occur on message send
+ * @param {any} error The error message.
+ * @returns {bot_response} If a sent message should be requeued.
+ */
 function bot_error_send(error) {
 
 
@@ -739,7 +793,7 @@ function bot_error_send(error) {
     } else {
         log.error("An unkown error occurred in telegram bot: " + error);
     }
-    return {success: false, resend: resend, msg_id: 0 };
+    return { success: false, resend: resend, msg_id: 0 };
 }
 
 /**
@@ -765,7 +819,7 @@ export function start_bot() {
 
     bot.onText(new RegExp(`(?<=^\\/subscribe)(?:@${BOT_NAME})?\\s+[A-Za-z0-9\\+\\/=]+\\s*$`), async function (msg, match) {
         let user_id = msg.from?.id
-        if(!user_id || !match){
+        if (!user_id || !match) {
             return;
         }
 
@@ -782,33 +836,34 @@ export function start_bot() {
     //User requests FCM test in app
     bot.onText(new RegExp(`^\\/testalert(?:@${BOT_NAME})?\\s*$`), async function (msg, match) {
         const user_id = msg.from?.id;
-        if(!user_id){
+        if (!user_id) {
             return;
         }
+
         const token = await data.user_token(user_id);
         const chat_ids = await data.user_chat_ids(user_id);
 
-        if (token.length < 1 || chat_ids.length < 1) {
+        if (!token.isPresent() || chat_ids.length < 1) {
             log.debug("User requested test without beeing registered for an alert.");
             return;
         } else {
             log.debug("Sending FCM test to user.");
         }
 
-        messaging.sendTest(token, chat_ids[0], user_id);
+        messaging.sendTest(token.get(), chat_ids[0], user_id);
     });
 
     //Match auth scenario - only with valid token args to avoid DDoS attractiveness
     bot.onText(new RegExp(`^\\/(?:auth|start)(?:@${BOT_NAME})?\\s+([A-Za-z0-9]{10})\\s*$`), async function (msg, match) {
-        if(!match){
+        if (!match) {
             return;
         }
         let token = match[1];
 
         let response = '';
-        let groupID = await data.authenticate_group(msg.chat.id, token);
-        if (groupID != -1) {
-            let zveis = await data.get_zvei_ids_for_group(groupID);
+        let groupO = await data.authenticate_group(msg.chat.id, token);
+        if (groupO.isPresent()) {
+            let zveis = await data.get_group_zveis(groupO.get().id);
             response = `You have successfully authenticated this chat and will receive alerts for following alert sequences: ${zveis}`;
         } else {
             response = "Could not authenticate chat. Either the authentication token is invalid or this chat is already registered for an alert group.";
@@ -817,22 +872,22 @@ export function start_bot() {
     });
 
     bot.on("callback_query", async (callbackQuery) => {
-        if(!callbackQuery.data) return;
-        if(!callbackQuery.message) return;
+        if (!callbackQuery.data) return;
+        if (!callbackQuery.message) return;
 
         let zvei_match = callbackQuery.data.match(/#([0-9]{1,5})#/);
         let zvei_id = 0;
-        if(zvei_match){
+        if (zvei_match) {
             zvei_id = parseInt(zvei_match[1]);
         }
         let chat_id = callbackQuery.message.chat.id;;
 
         let group_id = 0;
         let group_match = callbackQuery.data.match(/#([0-9]+)#/);
-        if(group_match){
+        if (group_match) {
             group_id = parseInt(group_match[1]);
         }
-        
+
         switch (true) {
             case /^zvei#[0-9]{1,5}#/.test(callbackQuery.data):
                 await edit_zvei(chat_id, callbackQuery.message.message_id, zvei_id);
@@ -866,7 +921,7 @@ export function start_bot() {
 
             case /^group_link_zvei#[0-9]+#[0-9]{1,5}#/.test(callbackQuery.data):
                 let zvei_match = callbackQuery.data.match(/#[0-9]+#([0-9]+)#/);
-                if(!zvei_match) return;
+                if (!zvei_match) return;
                 zvei_id = parseInt(zvei_match[1]);
                 chat_id = callbackQuery.message.chat.id;
                 await link_group_zvei(chat_id, callbackQuery.message.message_id, group_id, zvei_id);
@@ -875,7 +930,7 @@ export function start_bot() {
 
             case /^group_unlink_zvei#[0-9]+#[0-9]{1,5}#/.test(callbackQuery.data):
                 let zvei_match2 = callbackQuery.data.match(/#[0-9]+#([0-9]+)#/);
-                if(!zvei_match2) return;
+                if (!zvei_match2) return;
                 zvei_id = parseInt(zvei_match2[1]);
                 chat_id = callbackQuery.message.chat.id;
                 await unlink_group_zvei(chat_id, callbackQuery.message.message_id, group_id, zvei_id);
@@ -906,7 +961,7 @@ export function start_bot() {
 
     bot.onText(/^\/.+/, async function (msg, match) {
         let text = msg.text;
-        if(!text) return;
+        if (!text) return;
         let args = text.split(' ');
         // First argument is the command itself, remove it
         args.shift();
@@ -937,10 +992,10 @@ export function start_bot() {
 
             case (new RegExp(`^\\/addZVEI(?:@${BOT_NAME})?\\s[0-9]{1,5}\\s([\\wäÄöÖüÜß()\\-\\s]+)`)).test(text):
                 let matches1 = text.match(new RegExp(`\\/addZVEI(?:@${BOT_NAME})?\\s[0-9]{1,5}\\s([\\wäÄöÖüÜß()\\-\\s]+)`));
-                if(!matches1) return;
+                if (!matches1) return;
                 let zvei_description = matches1[1];
                 let matches2 = text.match(new RegExp(`\\/addZVEI(?:@${BOT_NAME})?\\s([0-9]{1,5})\\s`));
-                if(!matches2) return;
+                if (!matches2) return;
                 let zvei_id = parseInt(matches2[1]);
                 await add_zvei(msg.chat.id, zvei_id, zvei_description);
                 return;
@@ -951,7 +1006,7 @@ export function start_bot() {
 
             case (new RegExp(`^\\/addGroup(?:@${BOT_NAME})?\\s([\\wäÄöÖüÜß()\\-\\s]+)`)).test(text):
                 let matches3 = text.match(new RegExp(`\\/addGroup(?:@${BOT_NAME})?\\s([\\wäÄöÖüÜß()\\-\\s]+)`));
-                if(!matches3) return;
+                if (!matches3) return;
                 let group_description = matches3[1];
                 await add_group(msg.chat.id, group_description);
                 return;
