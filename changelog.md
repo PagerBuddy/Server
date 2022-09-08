@@ -1,4 +1,4 @@
-# Version 1.1.0 (TBA)
+# Version 1.1.0 (2022-09-08)
 
 ## Added
 * Data model using JavaScript classes:
