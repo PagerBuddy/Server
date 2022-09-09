@@ -36,8 +36,16 @@ export function init(config, health_) {
 }
 
 /**
+ * @callback AlarmCallback
+ * @param {number} zvei_id
+ * @param {number} timestamp
+ * @param {number} information_content
+ * @param {string} text
+ */
+
+/**
  * Subscribe to input devices.
- * @param {{ (zvei_id: number, timestamp: number, information_content: number, text?: string): void}} alarm_callback Callback to fire with an alarm item.
+ * @param {AlarmCallback} alarm_callback Callback to fire with an alarm item.
  * @returns {Promise<boolean>}
  */
 export function start_listening(alarm_callback) {

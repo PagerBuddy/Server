@@ -1,9 +1,6 @@
-name: Deploy JSDocs
+name: Test JSDocs
 
-on:
-  push:
-    branches:
-      - main
+on: [push]
 
 jobs:
   deploy:
@@ -20,9 +17,3 @@ jobs:
           config_file: jsdoc.json
           template: docdash
           front_page: README.md
-
-      - name: Deploy
-        uses: peaceiris/actions-gh-pages@v3
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./out
