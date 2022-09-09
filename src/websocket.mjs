@@ -40,7 +40,7 @@ export function init(config, health_) {
  * @param {number} zvei_id
  * @param {number} timestamp
  * @param {number} information_content
- * @param {?string} text
+ * @param {string} text
  */
 
 /**

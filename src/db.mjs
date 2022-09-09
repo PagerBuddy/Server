@@ -242,6 +242,7 @@ export class database {
 
 
         return new Promise((resolve, _) => {
+            const logger_instance = this.logger;
             this.db.run(sql, params, function (/** @type {any} */error) {
                 if (error) {
                     resolve(Optional.empty());
@@ -251,8 +252,8 @@ export class database {
                         const g = new Group(this.lastID, description, null, auth_token);
                         resolve(Optional.of(g));
                     }catch(error){
-                        this.logger.error(error);
-                        this.logger.error("Error creating group.");
+                        logger_instance.error(error);
+                        logger_instance.error("Error creating group.");
                         resolve(Optional.empty());
                     }
                 }
