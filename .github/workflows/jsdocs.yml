@@ -1,4 +1,4 @@
-name: JSDocs
+name: Deploy JSDocs
 
 on:
   push:
