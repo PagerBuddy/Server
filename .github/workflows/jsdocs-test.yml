@@ -1,0 +1,22 @@
+name: Test JSDocs
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Build
+        uses: andstor/jsdoc-action@v1
+        with:
+          source_dir: ./src
+          output_dir: ./out
+          config_file: jsdoc.json
+          template: docdash
+          front_page: README.md
