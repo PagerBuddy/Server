@@ -14,8 +14,7 @@ export class database {
      * @param {string} timezone 
      * @param {number} history_timeout 
      * @param {sqlite3.Database} db The sqlite3 database object
-     * @param {boolean} trace Whether the issued SQL queries are printed to the console. Defaults to `false`
-     * @return
+     * @param {boolean} [trace=false] Whether the issued SQL queries are printed to the console. Defaults to `false`
      */
     constructor(timezone, history_timeout, db, trace = false) {
         this.timezone = timezone;
@@ -164,7 +163,7 @@ export class database {
         WHERE group_id = ?
     `;
         const params = [group_id];
-        /**@type {{group_id: number, description: string, chat_id: string, auth_token: string}[]}   */
+        /**@type {Array<{group_id: number, description: string, chat_id: string, auth_token: string}>}   */
         const rows = await this.#sql_query(sql, params);
         if (rows.length != 1) {
             return Optional.empty()
@@ -241,7 +240,6 @@ export class database {
     `;
         const params = [description, auth_token];
 
-        const logger_instance = this.logger;
 
         return new Promise((resolve, _) => {
             this.db.run(sql, params, function (/** @type {any} */error) {
@@ -253,8 +251,8 @@ export class database {
                         const g = new Group(this.lastID, description, null, auth_token);
                         resolve(Optional.of(g));
                     }catch(error){
-                        logger_instance.error(error);
-                        logger_instance.error("Error creating group.");
+                        this.logger.error(error);
+                        this.logger.error("Error creating group.");
                         resolve(Optional.empty());
                     }
                 }
@@ -340,7 +338,7 @@ export class database {
     `;
 
         let group_id = -1
-        /**@type {{group_id: number}[]} */
+        /**@type {Array<{group_id: number}>} */
         const group_res = await this.#sql_query(sqlCheck, [auth_token]);
 
         if (group_res.length != 1) {

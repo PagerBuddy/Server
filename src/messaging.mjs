@@ -291,7 +291,7 @@ function getFCMJSON(device_token, chat_id, zvei_id, zvei_description, is_test_ti
 
 /**
  * Sends a non-user-facing notification to the specified tokens to check if the tokens are (still) valid. Possibly necessary cleanup is handled in the send function.
- * @param {{user_id: number, token: string}[]} check_list List of users to check.
+ * @param {Array<{user_id: number, token: string}>} check_list List of users to check.
  */
 export async function heartbeatProbe(check_list) {
 

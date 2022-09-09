@@ -4,14 +4,12 @@
 import * as winston from 'winston'
 import TelegramTransport from './telegramTransport.mjs';
 
-import * as DB from './db.mjs'
 import * as telegram_bot from './telegram/bot.mjs';
 
-//This is a little hacky for my liking
 /**
- * 
+ * TODO specify the chat id callback
  * @param {any} chat_id_callback 
- * @param {typeof telegram_bot.queue_message} bot_queue_callback 
+ * @param {telegram_bot.queue_message} bot_queue_callback 
  */
 export function connect_telegram_transport(chat_id_callback, bot_queue_callback){
     winston.loggers.loggers.forEach(logger => {
