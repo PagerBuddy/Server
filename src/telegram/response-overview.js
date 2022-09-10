@@ -26,6 +26,9 @@ let REACT_TIMEOUT_MS;
 /** @type {boolean} */
 let PIN_MESSAGES;
 
+/** @type {number[]} */
+let SPECIAL_OPTION_CHATS;
+
 /** @type {typeof bot.queue_message} */
 let send_callback;
 /** @type {typeof bot.queue_edit} */
@@ -47,6 +50,7 @@ let log;
  * @property {number} cooldown_time
  * @property {number} react_timeout
  * @property {boolean} pin_messages
+ * @property {number[]} special_option_chat_ids
  */
 
 /**
@@ -68,6 +72,7 @@ export function init(config, timezone, edit_callback_, send_callback_, pin_callb
     COOLDOWN_MS = config.cooldown_time;
     REACT_TIMEOUT_MS = config.react_timeout;
     PIN_MESSAGES = config.pin_messages;
+    SPECIAL_OPTION_CHATS = config.special_option_chat_ids;
 
     send_callback = send_callback_;
     edit_callback = edit_callback_;
@@ -173,7 +178,10 @@ function get_response_user_data(callbackQuery, accept) {
     let time_string = "";
     let backfill = false; //"Nachrücken"
     if (accept == true) {
-        if (estimated_time > 20) {
+        let matches = callbackQuery.data?.match(/(?<=#)direct/);
+        if(matches){
+            time_string = "direkt";
+        }else if (estimated_time > 20) {
             eta = new Date(Date.now() + 20 * 60 * 1000);
             time_string = ">" + eta.toLocaleString("de-DE", { hour: '2-digit', minute: '2-digit', timeZone: TIMEZONE });
             backfill = true;
@@ -406,6 +414,12 @@ export async function create_response_overview(chat_id, is_test) {
         },
         parse_mode: 'HTML'
     };
+
+    if(SPECIAL_OPTION_CHATS.includes(chat_id)){
+        const special_option = [{text: "Direkt", callback_data: "accept#direct"}];
+        /**@type {TelegramBot.InlineKeyboardMarkup} */ (opts.reply_markup).inline_keyboard.push(special_option);
+    }
+
     //TODO: Timeout?
     let res = await send_callback(chat_id, msg, 60 * 1000, opts);
     if (PIN_MESSAGES) {
