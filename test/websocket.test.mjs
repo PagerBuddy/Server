@@ -1,4 +1,4 @@
-import {describe, expect, test, beforeAll, afterAll, jest} from '@jest/globals'
+import {describe, expect, test, beforeAll, afterAll, jest, beforeEach, afterEach} from '@jest/globals'
 import {TestConfig} from './testConfig.js';
 
 import * as websocket from '../src/websocket.mjs';
@@ -30,7 +30,7 @@ describe("Websocket", () => {
     /**@type {function} */
     let disconnect_emitter;
 
-    beforeAll(() => {
+    beforeEach(() => {
         const mock_callback = {
             on: jest.fn((type, cb) => {
                 switch(type){
@@ -73,11 +73,20 @@ describe("Websocket", () => {
         websocket.init(config, mock_health);
     });
 
-    test("inactive websocket lifecycle does not produce error", async () => {
+    test("standard websocket lifecycle does not produce error", async () => {
         const res = await websocket.start_listening(() => {});
         expect(res).toBeTruthy();
+    });
 
-        websocket.stop_listening();
+    test("disabled websocket does not initialise", async () => {
+        const config = {
+            enabled: false,
+            port: 0
+        }
+        websocket.init(config, mock_health);
+
+        const res = await websocket.start_listening(() => {});
+        expect(res).toBeFalsy();
     });
 
     test("health event is reported", async () =>{
@@ -85,8 +94,6 @@ describe("Websocket", () => {
 
         health_emitter(sample_health);
         expect(mock_health.report_health).toHaveBeenCalledWith(sample_health);
-
-        websocket.stop_listening();
     });
 
     test("zvei event is handled correctly", async () => {
@@ -95,8 +102,6 @@ describe("Websocket", () => {
         
         zvei_emitter(sample_zvei);
         expect(callback_mock).toHaveBeenCalledWith(parseInt(sample_zvei.zvei), sample_zvei.timestamp, 1, "");
-
-        websocket.stop_listening();
     });
 
     test("aprt event is handled correctly", async () => {
@@ -107,23 +112,21 @@ describe("Websocket", () => {
 
         const ref_msg = '<b>' + sample_aprt.emergencyReason + '</b>\n' + sample_aprt.emergencyCity;
         expect(callback_mock).toHaveBeenCalledWith(parseInt(sample_aprt.subZvei), sample_aprt.timestamp, 2, ref_msg);
-
-        websocket.stop_listening();
     });
 
     test("status event does not cause error", async () => {
         await websocket.start_listening(() => {});
 
         expect(() => {status_emitter(sample_status)}).not.toThrow();
-
-        websocket.stop_listening();
     });
 
     test("disconnect event does not cause error", async () => {
         await websocket.start_listening(() => {});
 
         expect(() => {disconnect_emitter()}).not.toThrow();
+    });
 
+    afterEach(() => {
         websocket.stop_listening();
     });
 
