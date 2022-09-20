@@ -11,7 +11,7 @@ import ZVEI from '../src/model/zvei.mjs';
 
 const config = new TestConfig();
 
-//These can only be run using the actual bot API wit necessary telegram authentication secrets
+//These can only be run using the actual bot API with necessary telegram authentication secrets
 let conditionalDescribeName = 'bot operation - online';
 let conditionalDescribeCB = () =>{
     let TESTER_CHAT_ID = 0;
