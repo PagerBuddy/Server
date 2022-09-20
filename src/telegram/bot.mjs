@@ -946,6 +946,16 @@ export function start_bot() {
                 }
 
                 break;
+            
+            case callbackQuery.data == "accept#direct":
+                await response_overview.respond(callbackQuery, true);
+                try {
+                    await bot.answerCallbackQuery(callbackQuery.id);
+                } catch (error) {
+                    // This can take too long and timeout
+                }
+
+                break;
 
             case callbackQuery.data == "reject":
                 await response_overview.respond(callbackQuery, false);

@@ -1,3 +1,15 @@
+# Version 1.1.2 (2022-09-10)
+
+## Added
+* Configuration option for special reply option "direct"
+
+## Changed
+
+## Fixed 
+* JSDoc generation bugs
+
+## Removed
+
 # Version 1.1.1 (2022-09-08)
 
 ## Added

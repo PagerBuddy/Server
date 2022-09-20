@@ -10,7 +10,7 @@ const LEVEL = Symbol.for('level')
 
 
 // TODO das hier über winston.levels holen
-/**@type {Object.<typeof LEVEL, number>} */
+/**@type {Object.<LEVEL, number>} */
 const levelToZVEI = { 'silly': 0, 'debug': 1, 'info': 2, 'warn': 3, 'error': 4 };
 
 const pbTelegramFormat = winston.format.combine(
@@ -26,9 +26,9 @@ export default class TelegramTransport extends Transport {
     //Theoretically we could pass the whole format here, but I (Max) quite like the compact format for Telegram
 
     /**
-     * 
+     * // TODO specify the DB fun
      * @param {any} dbfun 
-     * @param {typeof telegram_bot.queue_message} msgfun 
+     * @param {telegram_bot.queue_message} msgfun 
      */
     constructor(dbfun, msgfun) {
         super({ format: winston.format.combine(pbTelegramFormat) });
@@ -36,10 +36,16 @@ export default class TelegramTransport extends Transport {
         this.sendTelegramMsg = msgfun;
     }
 
+
+    /**
+     * This is a rather crude definition that only is necessary to appease JSDoc
+     * @callback CB
+     */
+
     /**
      * 
      * @param {any} info 
-     * @param {() => void} callback 
+     * @param {CB} callback 
      */
     async log(info, callback = () => { }) {
 
