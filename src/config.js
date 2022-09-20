@@ -94,6 +94,7 @@ export class Config {
             this.telegram.response_overview.cooldown_time = response_config.COOLDOWN_MS ?? 900000;
             this.telegram.response_overview.react_timeout = response_config.REACT_TIMEOUT_MS ?? 3000;
             this.telegram.response_overview.pin_messages = response_config.PIN_MESSAGES ?? false;
+            this.telegram.response_overview.special_option_chat_ids = response_config.SPECIAL_OPTION_CHAT_IDS ?? [];
         }
 
         const timeout_config = config.TIMEOUTS;
@@ -212,7 +213,8 @@ export class Config {
             chat_ids: /**@type {number[]} */ ([]),
             cooldown_time: 900000,
             react_timeout: 3000,
-            pin_messages: false
+            pin_messages: false,
+            special_option_chat_ids: /**@type {number[]} */ ([])
         }
     };
 
