@@ -4,6 +4,7 @@ import Schleife from '../../src/katsys/schleife.mjs';
 
 const channels = ['456', 'RD_ER']
 const multi_schleifen = '456 25123 12:13\nRD_ER 5123 12:13\nRD_FOOO 1234 23:59\n123 54728 14:15';
+const multi_schleifen_additional_ws = '456 25123 12:13 \n RD_ER 5123 12:13\n RD_FOOO 1234 23:59 \n123 54728 14:15 ';
 
 const interesting = ['456 25123 12:13', 'RD_ER 5123 12:13',]
 const boring = ['RD_FOOO 1234 23:59', '123 54728 14:15']
@@ -12,8 +13,6 @@ const invalid_times = ['456 25123 12.13', '456 25123 12']
 const missing_time = ['456 25123 ', '456 25123']
 const short_zvei = '456 251 12:13'
 const long_vzei = '456 25124343 12:13'
-
-console.log("foo")
 
 describe("Creating Schleifen", () => {
     test.each(valid_schleifen)('Creating from valid data should not throw an exception: %s', (s) => {
@@ -45,6 +44,14 @@ describe("Creating Schleifen", () => {
     test.each([short_zvei, long_vzei])("Invalid ZVEIs: %s", zvei => {
         expect(() => { new Schleife(zvei) }).toThrow()
     })
+
+    test.each(multi_schleifen.split('\n'))("Multiple Schleifen are handled correctly", (schleife) => {
+        expect(() => { new Schleife(schleife) }).not.toThrow();
+    });
+
+    test.each(multi_schleifen_additional_ws.split('\n'))("Multiple Schleifen with additional whitespace are handled correctly", (schleife) => {
+        expect(() => { new Schleife(schleife) }).toThrow();
+    });
 
 });
 
