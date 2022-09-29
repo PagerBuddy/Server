@@ -50,7 +50,7 @@ describe("Creating Schleifen", () => {
     });
 
     test.each(multi_schleifen_additional_ws.split('\n'))("Multiple Schleifen with additional whitespace are handled correctly", (schleife) => {
-        expect(() => { new Schleife(schleife) }).toThrow();
+        expect(() => { new Schleife(schleife) }).not.toThrow();
     });
 
 });
