@@ -1,4 +1,4 @@
-# Version 1.1.3 (2022-09-24)
+# Version 1.1.3 (2022-09-25)
 
 ## Added
 
@@ -9,6 +9,7 @@
 * Service had insufficient priviliges for SQLite
 * Logging bug
 * Excessive reporting on empty alerts from KatSys
+* Default alert silent time to never
 
 ## Removed
 

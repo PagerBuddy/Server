@@ -61,7 +61,7 @@ describe("ZVEI creation", () => {
         {
             id: 201,
             desc: "JEST TeST ZVEI agaiN",
-            day: -1,
+            day: -2,
             start: "02:00",
             end: "03:02"
         },

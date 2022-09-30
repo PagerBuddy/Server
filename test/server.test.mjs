@@ -70,7 +70,7 @@ describe("server operation", () => {
         
         let result = await server.queue_alarm(zvei, timestamp, information_content);
 
-        const zvei_obj = new ZVEI(zvei, "", 0, "00:00", "00:00");
+        const zvei_obj = new ZVEI(zvei);
         expect(spyMessaging).toHaveBeenCalledWith([], timestamp, config.alert_time_zone, zvei_obj);
         expect(result).toBeTruthy();
 
