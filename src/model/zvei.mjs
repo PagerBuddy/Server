@@ -25,7 +25,7 @@ export default class ZVEI {
         this.description = description;
 
         if (test_day < -1 || test_day >= 7) {
-            throw new Error(`Test day '${test_day}' is not from the range [0,6]`);
+            throw new Error(`Test day '${test_day}' is not from the range [-1,6]`);
         }
         this.test_day = test_day;
 
