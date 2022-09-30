@@ -6,7 +6,7 @@ ExecStart=/usr/bin/node %pagerbuddy%/scripts/start.mjs
 Restart=always
 RestartPreventExitStatus=1000
 RestartSec=2
-DynamicUser=yes
+User=nobody
 Group=nogroup
 Type=simple
 Environment=NODE_PORT=3000

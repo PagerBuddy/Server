@@ -14,7 +14,8 @@
             "CHAT_IDS": [],
             "COOLDOWN_MS": 900000,
             "REACT_TIMEOUT_MS": 3000,
-            "PIN_MESSAGES": false
+            "PIN_MESSAGES": false,
+            "SPECIAL_OPTION_CHAT_IDS": []
         }
     },
     "TIMEOUTS": {

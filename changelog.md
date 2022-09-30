@@ -1,3 +1,29 @@
+# Version 1.1.3 (2022-09-24)
+
+## Added
+
+## Changed
+
+## Fixed 
+* Database structure not allowing for unknown ZVEIs in history
+* Service had insufficient priviliges for SQLite
+* Logging bug
+* Excessive reporting on empty alerts from KatSys
+
+## Removed
+
+# Version 1.1.2 (2022-09-10)
+
+## Added
+* Configuration option for special reply option "direct"
+
+## Changed
+
+## Fixed 
+* JSDoc generation bugs
+
+## Removed
+
 # Version 1.1.1 (2022-09-08)
 
 ## Added

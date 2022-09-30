@@ -50,7 +50,6 @@ PRIMARY KEY("user_id", "group_id")
 CREATE TABLE "AlarmHistory"(
 "zvei_id" INTEGER NOT NULL,
 "timestamp" INTEGER NOT NULL,       
-"alert_level" INTEGER NOT NULL,   -- How much information content the alert had. Only higher information content should be repeated. 1 = ZVEI, 2 = Tetra, 3 = SMS, 4 = Fax
-FOREIGN KEY("zvei_id") REFERENCES "ZVEI"("zvei_id") ON DELETE CASCADE
+"alert_level" INTEGER NOT NULL   -- How much information content the alert had. Only higher information content should be repeated. 1 = ZVEI, 2 = Tetra, 3 = SMS, 4 = Fax
 );
 

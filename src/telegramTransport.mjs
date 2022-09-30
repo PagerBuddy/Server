@@ -2,6 +2,7 @@
 
 import * as winston from 'winston';
 import Transport from 'winston-transport';
+import ZVEI from './model/zvei.mjs';
 
 import * as telegram_bot from './telegram/bot.mjs';
 
@@ -26,8 +27,7 @@ export default class TelegramTransport extends Transport {
     //Theoretically we could pass the whole format here, but I (Max) quite like the compact format for Telegram
 
     /**
-     * // TODO specify the DB fun
-     * @param {any} dbfun 
+     * @param {function(ZVEI): Promise<number[]>} dbfun 
      * @param {telegram_bot.queue_message} msgfun 
      */
     constructor(dbfun, msgfun) {
@@ -38,14 +38,9 @@ export default class TelegramTransport extends Transport {
 
 
     /**
-     * This is a rather crude definition that only is necessary to appease JSDoc
-     * @callback CB
-     */
-
-    /**
      * 
      * @param {any} info 
-     * @param {CB} callback 
+     * @param {function():void} callback 
      */
     async log(info, callback = () => { }) {
 
@@ -53,7 +48,8 @@ export default class TelegramTransport extends Transport {
             this.emit('logged', info);
         });
 
-        const zvei = levelToZVEI[info[LEVEL]]
+        const zvei_id = levelToZVEI[info[LEVEL]]
+        const zvei = new ZVEI(zvei_id);
 
         const chat_ids = await this.dbfun(zvei);
 
