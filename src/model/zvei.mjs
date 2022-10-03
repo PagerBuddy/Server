@@ -7,11 +7,11 @@ export default class ZVEI {
      * 
      * @param {string|number} zvei_id 
      * @param {string} [description = ""]
-     * @param {number} [test_day = 0]
+     * @param {number} [test_day = -1]
      * @param {string} [test_time_start = "00:00"]
      * @param {string} [test_time_end = "00:00"]
      */
-    constructor(zvei_id, description = "", test_day = 0, test_time_start = "00:00", test_time_end = "00:00") {
+    constructor(zvei_id, description = "", test_day = -1, test_time_start = "00:00", test_time_end = "00:00") {
         
         const validated_id = ZVEI.validate_zvei_id(zvei_id)
         if (!validated_id.isPresent()) {
@@ -24,8 +24,8 @@ export default class ZVEI {
         }
         this.description = description;
 
-        if (test_day < 0 || test_day >= 7) {
-            throw new Error(`Test day '${test_day}' is not from the range [0,6]`);
+        if (test_day < -1 || test_day >= 7) {
+            throw new Error(`Test day '${test_day}' is not from the range [-1,6]`);
         }
         this.test_day = test_day;
 
@@ -46,7 +46,7 @@ export default class ZVEI {
     /**
      * Check whether the input is a valid ZVEI ID and, if so, returns it as a number
      * 
-     * An ID is valid if it is a number from the range [0,9999]. The method tries to parse strings using `parseInt`.
+     * An ID is valid if it is a number from the range [0,99999]. The method tries to parse strings using `parseInt`.
      * 
      * @param {string|number} zvei_id 
      * @returns {Optional<number>} empty optional if the ID was not valid; optional containing the number if it was a valid ID

@@ -9,6 +9,7 @@ export default class Schleife {
      * @param {string} schleife_desc The textual description of the Schleife
      */
     constructor(schleife_desc) {
+        schleife_desc = schleife_desc.trim()
         if (!schleife_desc) {
             throw new Error('No parameter provided')
         }

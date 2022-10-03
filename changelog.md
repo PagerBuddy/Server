@@ -1,3 +1,18 @@
+# Version 1.1.3 (2022-09-25)
+
+## Added
+
+## Changed
+
+## Fixed 
+* Database structure not allowing for unknown ZVEIs in history
+* Service had insufficient priviliges for SQLite
+* Logging bug
+* Excessive reporting on empty alerts from KatSys
+* Default alert silent time to never
+
+## Removed
+
 # Version 1.1.2 (2022-09-10)
 
 ## Added

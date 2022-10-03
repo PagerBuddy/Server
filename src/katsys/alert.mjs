@@ -42,15 +42,19 @@ export class KatSysAlert {
 
         this.msg = `<b>${keyword}</b>\n${location}`
 
-        const raw_schleifen = schleifen_delta.split('\n');
-        raw_schleifen.forEach((raw_schleife) => {
-            try {
-                const schleife = new Schleife(raw_schleife);
-                this.schleifen.push(schleife);
-            } catch (error) {
-                logger?.warn("Error generating alert list: " + error);
-            }
-        });
+        //schleifen_delta may be empty - do not bother with extrusion then
+        if(schleifen_delta.length > 0){
+            const raw_schleifen = schleifen_delta.split('\n');
+            raw_schleifen.forEach((raw_schleife) => {
+                try {
+                    const schleife = new Schleife(raw_schleife);
+                    this.schleifen.push(schleife);
+                } catch (error) {
+                    logger?.warn("Error generating alert list: " + error);
+                }
+            });
+        }
+
 
         const date_parts = alert_date.split(".")
         if (date_parts.length != 3) {
