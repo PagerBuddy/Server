@@ -209,7 +209,7 @@ function setup_cleaner(timezone, hour = 0) {
     telegram_bot.remove_invalid_user_subscriptions();
 
     //Check and remove all invalid FCM device IDs
-    const check_list = await db.get_check_users_list();
+    const check_list = await db.get_check_fcm_users_list();
     await messaging.heartbeatProbe(check_list);
 
   });
