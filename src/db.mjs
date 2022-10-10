@@ -661,7 +661,7 @@ export class database {
 
 
     /**
-     * Gets the list of alarm subscriptions for FCM.
+     * Gets the list of alarm subscriptions for Telegram check.
      * @returns {Promise<Array<{user_id: number, group_id: number, chat_id: string, token: string}>>} An array of alert subscriptions [[user_id, group_id, chat_id]].
      */
     async get_check_users_list() {
@@ -672,10 +672,25 @@ export class database {
         FROM Groups
         JOIN UserGroups ON Groups.group_id = UserGroups.group_id
         JOIN Users ON UserGroups.user_id = Users.user_id
-    `;
+        `;
 
         let rows = await this.#sql_query(sql, []);
         return rows;
+    }
+
+    /**
+     * Gets the list of alarm subscriptions for FCM.
+     * @returns {Promise<Array<{user_id: number, token: string}>>} An array of alert subscriptions [[user_id, group_id, chat_id]].
+     */
+    async get_check_fcm_users_list() {
+
+            let sql = `
+            SELECT Users.user_id, Users.token
+            FROM Users
+            `;
+    
+            let rows = await this.#sql_query(sql, []);
+            return rows;
     }
 
     /**

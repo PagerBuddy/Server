@@ -139,7 +139,14 @@ async function sendFcmMessages(fcmMessage, user_ids) {
               //Device ID does not exist (any more) - delete it.
               const user_id = user_ids[msg];
               log.debug("FCM responded entity not found. Removing user.");
-              
+
+              let user = new User(user_id, "", "");
+              db.remove_user(user);
+            } else if (jsonResponse.error.code == 400 && jsonResponse.error.status == "INVALID_ARGUMENT") {
+              //This seems to occur for obsolete tokens
+              const user_id = user_ids[msg];
+              log.debug("FCM responded invalid (token) argument. Removing user.");
+
               let user = new User(user_id, "", "");
               db.remove_user(user);
             } else {
