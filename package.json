@@ -7,7 +7,7 @@
     "private": true,
     "type": "module",
     "dependencies": {
-        "googleapis": "^108.0.0",
+        "googleapis": "^109.0.0",
         "hat": "^0.0.3",
         "http": "^0.0.1-security",
         "https": "^1.0.0",
