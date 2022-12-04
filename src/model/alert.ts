@@ -1,0 +1,88 @@
+import { DateTime } from "luxon";
+import { Entity, PrimaryGeneratedColumn, Column, BaseEntity } from "typeorm";
+import AlertSource from "./sources/alert_source";
+import Unit from "./unit";
+
+export enum INFORMATION_CONTENT {ID, KEYWORD, COMPLETE};
+
+@Entity()
+export default class Alert extends BaseEntity{
+
+    @PrimaryGeneratedColumn()
+    id!: number;
+
+    @Column()
+    readonly timestamp: DateTime;
+
+    @Column()
+    keyword: string; 
+
+    @Column()
+    message: string;
+
+    @Column()
+    location: string;
+
+    @Column()
+    informationContent: INFORMATION_CONTENT;
+
+    @Column()
+    readonly unit: Unit;
+
+    @Column()
+    sources: AlertSource[];
+
+    updateCallbacks: ((update: Alert) => void)[] = [];
+
+    constructor(
+        unit: Unit, 
+        timestamp: DateTime, 
+        informationContent: INFORMATION_CONTENT, 
+        keyword: string = "", 
+        message: string = "", 
+        location: string = "", 
+        sources: AlertSource[]){
+            super();
+            this.unit = unit;
+            this.timestamp = timestamp;
+            this.informationContent = informationContent;
+            this.keyword = keyword;
+            this.message = message;
+            this.location = location;
+            this.sources = sources;
+    }
+
+    get isSilentAlert(): boolean {
+        return this.unit.isSilentTime(this.timestamp);
+    }
+
+    /**
+     * Multiple sources may emit multiple events with different information content for the same alert.
+     * These must be merged into one alert. Merging criteria are source specific and will be decided there.
+     * @param update 
+     */
+    public alertUpdate(update: Alert) : void{
+        //Update list of sources that emitted this alert
+        update.sources.forEach(newSource => {
+            if(!this.sources.some((source) => source.id == newSource.id)){
+                this.sources.push(newSource);
+            }
+        });
+
+        //Only update if better information
+        if(update.informationContent > this.informationContent){
+            this.keyword = update.keyword;
+            this.message = update.message;
+            this.location = update.location;
+
+            this.updateCallbacks.forEach(callback => {
+                callback(this);
+            });
+        }
+    }
+
+    public registerUpdateCallback(callback: (update: Alert) => void){
+        this.updateCallbacks.push(callback);
+    }
+
+}

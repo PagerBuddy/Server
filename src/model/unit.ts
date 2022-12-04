@@ -1,4 +1,7 @@
+import { DateTime } from "luxon";
 import { Entity, PrimaryGeneratedColumn, Column, BaseEntity } from "typeorm";
+import { isEntityName } from "typescript";
+import Alert from "./alert";
 import SilentConfiguration, { SilentNever } from "./silent_configuration";
 
 /**
@@ -32,6 +35,33 @@ export default class Unit extends BaseEntity{
         this.silentTime = silentTime;
     }
 
- 
+    public isSilentTime(timestamp: DateTime) : boolean {
+        return this.silentTime.isInSilentPeriod(timestamp);
+    }
 
+    public isMatchingAlert(alert: Alert) : boolean {
+        return alert.unit.unitCode == this.unitCode;
+    }
+}
+
+@Entity()
+export class UnitSubscription extends BaseEntity{
+    @PrimaryGeneratedColumn()
+    id!: number;
+
+    @Column()
+    unit: Unit;
+
+    @Column()
+    active: boolean;
+
+    constructor(unit: Unit, active: boolean = true){
+        super();
+        this.unit = unit;
+        this.active = active;
+    }
+
+    public isMatchingAlert(alert: Alert): boolean{
+        return this.unit.isMatchingAlert(alert);
+    }
 }
