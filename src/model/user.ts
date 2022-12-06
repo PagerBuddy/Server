@@ -64,5 +64,9 @@ export default class User extends BaseEntity{
         }
     }
 
+    public getPrintName() : string {
+        return `${this.firstName} ${this.lastName}`;
+    }
+
 
 }

@@ -11,7 +11,7 @@ export default abstract class GroupSink extends AlertSink{
         super(active, subscriptions);
     }
 
-    abstract sendAlert(alert: AlertResponse): void;
+    abstract sendAlert(alert: AlertResponse): Promise<void>;
 
     protected isRelevantAlert(alert: alert): boolean {
         return super.isRelevantAlert(alert);

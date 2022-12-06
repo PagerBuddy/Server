@@ -1,6 +1,7 @@
 import { Entity, PrimaryGeneratedColumn, Column, BaseEntity } from "typeorm";
 import Alert from "../alert";
 import Group from "../group";
+import { User } from "../user.mjs";
 import UserResponse from "./user_response";
 
 /**
@@ -52,6 +53,14 @@ export default class AlertResponse extends BaseEntity{
 
     public registerUpdateCallback(callback: (update: AlertResponse) => void){
         this.updateCallbacks.push(callback);
+    }
+
+    public getLocalisedResponses(timeZone: string, locale: string) : UserResponse[] {
+        const userResponses = this.responses;
+        userResponses.forEach(response => {
+            response.timestamp = response.timestamp.setZone(timeZone).setLocale(locale);
+        });
+        return userResponses;
     }
 
 }

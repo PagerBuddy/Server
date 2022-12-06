@@ -1,6 +1,7 @@
 import { DateTime } from "luxon";
 import { Entity, PrimaryGeneratedColumn, Column, BaseEntity } from "typeorm";
 import AlertSource from "./sources/alert_source";
+import AlertSourceManual from "./sources/alert_source_manual";
 import Unit from "./unit";
 
 export enum INFORMATION_CONTENT {ID, KEYWORD, COMPLETE};
@@ -54,6 +55,10 @@ export default class Alert extends BaseEntity{
 
     get isSilentAlert(): boolean {
         return this.unit.isSilentTime(this.timestamp);
+    }
+
+    get isManualAlert(): boolean {
+        return this.sources.length == 1 && this.sources.some((src) => src instanceof AlertSourceManual);
     }
 
     /**

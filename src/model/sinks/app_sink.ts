@@ -27,7 +27,7 @@ export default class AppSink extends UserSink{
         this.token = token;
     }
 
-    sendAlert(alert: AlertResponse): void {
+    async sendAlert(alert: AlertResponse): Promise<void> {
         if(super.isRelevantAlert(alert.alert)){
             //TODO: Output alert to FCM
 

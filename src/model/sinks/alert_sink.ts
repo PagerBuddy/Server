@@ -21,7 +21,7 @@ export default abstract class AlertSink extends BaseEntity{
         this.subscriptions = subscriptions;
     }
 
-    abstract sendAlert(alert: AlertResponse): void;
+    abstract sendAlert(alert: AlertResponse): Promise<void>;
 
     protected isRelevantAlert(alert: Alert) : boolean{
         return this.active && this.subscriptions.some((sub) => sub.isMatchingAlert(alert));

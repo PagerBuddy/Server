@@ -43,4 +43,20 @@ export default class ResponseConfiguration extends BaseEntity{
             return false;
         }
     }
+
+    public getSortedResponseOptions() : ResponseOption[] {
+        const responseOptions = this.options;
+        responseOptions.sort((a, b) => {
+            if(a.type != b.type){
+                return a.type - b.type;
+            }else{
+                const aTime = a.enableEstimatedArrival ? a.estimatedArrivalOffset.toMillis() : Number.MAX_VALUE;
+                const bTime = b.enableEstimatedArrival ? b.estimatedArrivalOffset.toMillis() : Number.MAX_VALUE;
+
+                return aTime - bTime;
+            }
+        });
+
+        return responseOptions;
+    }
 }
