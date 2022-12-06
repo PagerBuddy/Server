@@ -6,6 +6,7 @@ import { DateTime } from "luxon";
 import UserResponse from "../model/response/user_response";
 import { RESPONSE_TYPE } from "../model/response/response_option";
 import ResponseConfiguration from "../model/response/response_configuration";
+import TelegramSink from "../model/sinks/telegram_sink";
 
 //Telegram markup constants
 const LINE_BREAK = "\n";
@@ -53,7 +54,11 @@ export default class TelegramConnector {
         return TelegramConnector.instance;
     }
 
-    public async sendAlert(chatId: number, alert: Alert): Promise<TelegramSendResult> {
+    public sendAlert(
+        chatId: number, 
+        alert: Alert,
+        msgId: number = 0,
+        msgText: string = ""): { awaitableResult: Promise<TelegramSendResult>, cancellationToken: AbortController, messageText: string } {
         let outText: string[] = [];
 
         if (alert.isManualAlert) {
@@ -67,9 +72,26 @@ export default class TelegramConnector {
 
         outText.push(LINE_BREAK, "<a href='", PAGERBUDDY_URL, "'>PagerBuddy</a>");
 
-        return await this.outputQueue.add(async () => {
-            return await this.sendMessage(chatId, outText.join(""));
-        }, { priority: TelegramConnector.PRIORITY_ALERT });
+        const message = outText.join("");
+        if(msgText == message){
+            //Do not bother with update - text has not changed
+            return {awaitableResult: Promise.resolve(new TelegramSendResult(true, false, msgId)), cancellationToken: new AbortController(), messageText: message};
+        }
+
+        const cancellationToken = new AbortController();
+        let queueResult;
+        if(msgId != 0){
+            //We have an update
+            queueResult = this.outputQueue.add(async () => {
+                return await this.sendMessage(chatId, message);
+            }, { priority: TelegramConnector.PRIORITY_ALERT, signal: cancellationToken.signal});
+        }else{
+            queueResult = this.outputQueue.add(async () => {
+                return await this.sendMessage(chatId, message);
+            }, { priority: TelegramConnector.PRIORITY_ALERT, signal: cancellationToken.signal});
+        }
+
+        return {awaitableResult: queueResult, cancellationToken: cancellationToken, messageText: message};
     }
 
     public sendResponseInterface(
@@ -282,9 +304,9 @@ export default class TelegramConnector {
                     //The request is malformed. Log this and remove request from list
                     if (error.response.body.parameters?.migrate_to_chat_id) {
                         //Chat ID is obsolete - update with new ID
-                        const new_id = error.response.body.parameters.migrate_to_chat_id.toString();
+                        const newId = error.response.body.parameters.migrate_to_chat_id;
                         log.error("Could not send message. Chat migrated to new ID. Will update database with new chat id for future requests.");
-                        migrate_chat_id(chatId, new_id);
+                        TelegramSink.migrateChatId(chatId, newId);
                     } else {
                         log.error("Malformed telegram request. Removing unsent message. This is probably an implementation fault! Error: " + error.message);
                     }

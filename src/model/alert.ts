@@ -90,4 +90,19 @@ export default class Alert extends BaseEntity{
         this.updateCallbacks.push(callback);
     }
 
+    public getLocalisedCopy(timeZone: string, locale: string) : Alert {
+        const localisedAlert = new Alert(
+            this.unit, 
+            this.timestamp.setZone(timeZone).setLocale(locale),
+            this.informationContent,
+            this.keyword,
+            this.message,
+            this.location,
+            this.sources);
+        
+        return localisedAlert;
+    }
+
+    
+
 }

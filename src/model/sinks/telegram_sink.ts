@@ -39,50 +39,69 @@ export default class TelegramSink extends GroupSink{
         if(super.isRelevantAlert(alert.alert)){
 
             //Convert timestamp to destination timezone
-            const localisedAlert = new Alert(
-                alert.alert.unit, 
-                alert.alert.timestamp.setZone(this.timeZone).setLocale(this.locale),
-                alert.alert.informationContent,
-                alert.alert.keyword,
-                alert.alert.message,
-                alert.alert.location,
-                alert.alert.sources);
+            const localisedAlert = alert.alert.getLocalisedCopy(this.timeZone, this.locale);
 
-            //TODO: send alert to Telegram
             const telegramConnector = TelegramConnector.getInstance();
-            const msgResult = await telegramConnector.sendAlert(this.chatId, localisedAlert);
+            const alertResult = telegramConnector.sendAlert(this.chatId, localisedAlert);
 
-            if(!msgResult.success){
+            const messageResult = await alertResult.awaitableResult;
+            if(!messageResult.success){
                 //Something went wrong
                 return;
             }
+            let alertAbortController = alertResult.cancellationToken;
+            let alertMessageText = alertResult.messageText;
 
-            let abortController = new AbortController();
+            let interfaceAbortController = new AbortController();
             let interfaceMessageId = 0;
             let interfaceMessageText = "";
 
             if(alert.group.responseConfiguration.allowResponses){
                 const userResponses = alert.getLocalisedResponses(this.timeZone, this.locale);
                 const interfaceResult = telegramConnector.sendResponseInterface(this.chatId, userResponses, alert.group.responseConfiguration);
-                abortController = interfaceResult.cancellationToken;
+                interfaceAbortController = interfaceResult.cancellationToken;
                 interfaceMessageId = (await interfaceResult.awaitableResult).messageId;
                 interfaceMessageText = interfaceResult.messageText;
             }
         
 
             alert.registerUpdateCallback((update: AlertResponse) => {
+                if(messageResult.messageId != 0){
+                    alertAbortController.abort();
+
+                    const localisedUpdate = update.alert.getLocalisedCopy(this.timeZone, this.locale);
+                    const updateResult = telegramConnector.sendAlert(this.chatId, localisedUpdate);
+                    alertAbortController = updateResult.cancellationToken;
+                    alertMessageText = updateResult.messageText;
+                }
                 if(interfaceMessageId != 0){
-                    abortController.abort();
+                    interfaceAbortController.abort();
 
                     const userResponses = update.getLocalisedResponses(this.timeZone, this.locale);
                     const interfaceResult = telegramConnector.sendResponseInterface(this.chatId, userResponses, update.group.responseConfiguration, interfaceMessageId, interfaceMessageText);
-                    abortController = interfaceResult.cancellationToken;
+                    interfaceAbortController = interfaceResult.cancellationToken;
                     interfaceMessageText = interfaceResult.messageText;
                 }
-                //TODO: Handle updates
-
             });
         }
-        
+    }
+
+    /**
+     * In some scenarios the chatID of a Telegram chat will change (max. one time). The bot will be able to detect
+     * such a migration event from the error response.
+     * @param newChatId 
+     */
+    public migrateChatId(newChatId: number) : void {
+        this.chatId = newChatId;
+    }
+
+    /**
+     * As a migration error can occur anywhere in a Telegram operation and many different sinks may be using
+     * the same chatID, we need a helper to change all relevant IDs once.
+     * @param oldChatId 
+     * @param newChatId 
+     */
+    public static migrateChatId(oldChatId: number, newChatId: number): void{
+        //TODO: Iterate instances and search for all occurances of oldId
     }
 }
