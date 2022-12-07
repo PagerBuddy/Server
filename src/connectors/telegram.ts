@@ -7,6 +7,7 @@ import UserResponse from "../model/response/user_response";
 import { RESPONSE_TYPE } from "../model/response/response_option";
 import ResponseConfiguration from "../model/response/response_configuration";
 import TelegramSink from "../model/sinks/telegram_sink";
+import Log from "../log";
 
 //Telegram markup constants
 const LINE_BREAK = "\n";
@@ -32,6 +33,8 @@ export default class TelegramConnector {
     //No offical numbers for flood limits exist - here is an unoffical overview: https://limits.tginfo.me/en
     //10 messages per second seems to be safe
     private static OUPUT_PER_SECOND = 10;
+
+    private log = Log.getLogger(TelegramConnector.name);
 
     private constructor() {
         //TODO: setup stuff here
@@ -92,6 +95,12 @@ export default class TelegramConnector {
         }
 
         return {awaitableResult: queueResult, cancellationToken: cancellationToken, messageText: message};
+    }
+
+    public async sendText(chatId: number, message: string) : Promise<TelegramSendResult> {
+        return await this.outputQueue.add(async () => {
+            return await this.sendMessage(chatId, message);
+        }, { priority: TelegramConnector.PRIORITY_STANDARD});
     }
 
     public sendResponseInterface(
@@ -190,11 +199,11 @@ export default class TelegramConnector {
 
         if (!message || message.length < 1) {
             //We cannot send empty message
-            log.warn("Attempted to send an empty message. Will remove unsent message from queue.");
+            this.log.warn("Attempted to send an empty message. Will remove unsent message from queue.");
             return new TelegramSendResult(false);
         } else if (!chatId || chatId == 0) {
             //We need a valid chat id
-            log.warn("Attempted to send a message to an empty chat id. Will remove unsent message from queue.");
+            this.log.warn("Attempted to send a message to an empty chat id. Will remove unsent message from queue.");
             return new TelegramSendResult(false);
         }
 
@@ -233,11 +242,11 @@ export default class TelegramConnector {
         } catch (err: any) {
             if (isTelegramErrorTelegram(err) && err.response.body.error_code == 400) {
                 //Message has probably gone away
-                log.debug("Could not send message edit. Message was probably deleted");
+                this.log.debug("Could not send message edit. Message was probably deleted");
                 //TODO: Perhaps test this in the future and probe a more precise error
                 return new TelegramSendResult(false);
             } else {
-                log.error("Error trying to edit message.");
+                this.log.error("Error trying to edit message.");
                 return this.botErrorSend(err, chatId);
             }
         }
@@ -257,7 +266,7 @@ export default class TelegramConnector {
             if (isTelegramErrorTelegram(error)) {
                 err = error.message;
             }
-            log.warn("Bot could not pin a message. Error: " + err);
+            this.log.warn("Bot could not pin a message. Error: " + err);
             return false;
         }
         return true;
@@ -275,7 +284,7 @@ export default class TelegramConnector {
             if (isTelegramErrorTelegram(error)) {
                 err = error.message;
             }
-            log.warn("Bot could not unpin a message. Error: " + err);
+            this.log.warn("Bot could not unpin a message. Error: " + err);
             return false;
         }
         return true;
@@ -305,17 +314,17 @@ export default class TelegramConnector {
                     if (error.response.body.parameters?.migrate_to_chat_id) {
                         //Chat ID is obsolete - update with new ID
                         const newId = error.response.body.parameters.migrate_to_chat_id;
-                        log.error("Could not send message. Chat migrated to new ID. Will update database with new chat id for future requests.");
+                        this.log.error("Could not send message. Chat migrated to new ID. Will update database with new chat id for future requests.");
                         TelegramSink.migrateChatId(chatId, newId);
                     } else {
-                        log.error("Malformed telegram request. Removing unsent message. This is probably an implementation fault! Error: " + error.message);
+                        this.log.error("Malformed telegram request. Removing unsent message. This is probably an implementation fault! Error: " + error.message);
                     }
                     resend = false;
                     break;
                 case 403:
                     //Forbidden
                     //We have been blacklisted/removed from chat.
-                    log.warn("Telegram sent us a forbidden error. Probably the bot was blocked by the user. Removing unsent message from queue. Error: " + error.message);
+                    this.log.warn("Telegram sent us a forbidden error. Probably the bot was blocked by the user. Removing unsent message from queue. Error: " + error.message);
                     resend = false;
                     break;
                 case 420:
@@ -324,26 +333,26 @@ export default class TelegramConnector {
                     //Halt the queue and wait specified time before next call.
                     const retryDelay = error.response.body.parameters?.retry_after ?? 10; //Default to 10s
                     this.pauseQueue(retryDelay);
-                    log.warn(`Telegram sent us a flood error. We have to wait ${retryDelay}s before the next request. Error: ` + error.message);
+                    this.log.warn(`Telegram sent us a flood error. We have to wait ${retryDelay}s before the next request. Error: ` + error.message);
                     break;
                 case 500:
                 case 502:
                     //Telegram server error
                     this.pauseQueue(10); //Pause queue before next retry attempt.
-                    log.debug("Telegram has an internal server error. We will have to wait for the problem to be fixed. Error: " + error.message);
+                    this.log.debug("Telegram has an internal server error. We will have to wait for the problem to be fixed. Error: " + error.message);
                     health.telegram_status(false);
                     break;
                 default:
-                    log.error("Unexpected error from Telegram: " + error);
+                    this.log.error("Unexpected error from Telegram: " + error);
             }
         } else if (isTelegramErrorFatal(error)) {
             this.pauseQueue(10); //Pause queue before next retry attempt.
-            log.error("Fatal error in telegram bot: " + error);
+            this.log.error("Fatal error in telegram bot: " + error);
         } else if (isTelegramErrorParse(error)) {
             this.pauseQueue(10); //Pause queue before next retry attempt.
-            log.error("Parse error in telegram bot: " + error);
+            this.log.error("Parse error in telegram bot: " + error);
         } else {
-            log.error("An unkown error occurred in telegram bot: " + error);
+            this.log.error("An unkown error occurred in telegram bot: " + error);
         }
         return new TelegramSendResult(false, resend, 0);
     }

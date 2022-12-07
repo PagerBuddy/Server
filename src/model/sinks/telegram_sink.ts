@@ -16,12 +16,12 @@ export default class TelegramSink extends GroupSink{
     enableForSilentAlert: boolean;
 
     @Column()
-    timeZone: string; //As we are sending out parsed messages we must know the timezone of the intended recipients
+    private timeZone: string; //As we are sending out parsed messages we must know the timezone of the intended recipients
 
     @Column()
-    locale: string;
+    private locale: string;
 
-    constructor(active: boolean = true, subscriptions: UnitSubscription[] = [], chatId: number, enableForSilentAlert: true, timeZone: string, locale: string){
+    public constructor(active: boolean = true, subscriptions: UnitSubscription[] = [], chatId: number, enableForSilentAlert: true, timeZone: string, locale: string){
         super(active, subscriptions);
         this.chatId = chatId;
         this.enableForSilentAlert = enableForSilentAlert;
@@ -35,7 +35,7 @@ export default class TelegramSink extends GroupSink{
         this.locale = locale;
     }
 
-    async sendAlert(alert: AlertResponse): Promise<void>{
+    public async sendAlert(alert: AlertResponse): Promise<void>{
         if(super.isRelevantAlert(alert.alert)){
 
             //Convert timestamp to destination timezone
