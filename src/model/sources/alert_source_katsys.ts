@@ -41,14 +41,20 @@ export default class AlertSourceKatSys extends AlertSource{
         this.katSysConnector = new KatSysConnector(
             {masterToken: this.masterToken, subToken: this.subToken, certificate: this.certificate}, 
             this.decodeChannels, 
-            this.emitAlert);
+            this.emitAlert,
+            this.reportStatus);
     }
 
     public stop() : void {
         this.katSysConnector?.close();
     }
 
+    protected reportStatus(timestamp: DateTime) : void{
+        super.reportStatus(timestamp);
+    }
+
     protected emitAlert(alert: Alert) : void{
+        alert.sources = [this];
         super.emitAlert(alert);
     }
 }

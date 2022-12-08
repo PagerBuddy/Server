@@ -33,7 +33,7 @@ export default class Alert extends BaseEntity{
     @Column()
     sources: AlertSource[];
 
-    updateCallbacks: ((update: Alert) => void)[] = [];
+    private updateCallbacks: ((update: Alert) => void)[] = [];
 
     constructor(
         unit: Unit, 

@@ -42,6 +42,16 @@ export default class Unit extends BaseEntity{
     public isMatchingAlert(alert: Alert) : boolean {
         return alert.unit.unitCode == this.unitCode;
     }
+
+    /**
+     * Search existing units for matching code. Returns a unit stub if no matchin unit is found.
+     * @param unitCode 
+     */
+    public static fromUnitCode(unitCode: number) : Unit{
+        //TODO: search db for matching units
+
+        return new Unit("", "", unitCode);
+    }
 }
 
 @Entity()

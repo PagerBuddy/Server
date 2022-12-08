@@ -22,9 +22,9 @@ export default class AlertResponse extends BaseEntity{
     @Column()
     responses: UserResponse[];
 
-    updateCallbacks: ((update: AlertResponse) => void)[] = [];
+    private updateCallbacks: ((update: AlertResponse) => void)[] = [];
 
-    constructor(alert: Alert, group: Group, responses: UserResponse[] = []){
+    public constructor(alert: Alert, group: Group, responses: UserResponse[] = []){
         super();
         this.alert = alert;
         this.group = group;

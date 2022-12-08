@@ -6,7 +6,7 @@ const KATSYS_SCHLEIFEN_TIME_FORMAT = "HH:mm";
 export default class KatSysSchleife {
 
     private alertRegion: string;
-    private unitId: number;
+    public unitId: number;
     public alertTimestamp: DateTime;
 
     constructor(schleifeDescription: string, katSysTimestamp: DateTime) {
@@ -37,15 +37,6 @@ export default class KatSysSchleife {
     public matchRegion(decodeRegions: string[]){
         return decodeRegions.includes(this.alertRegion);
     }
-
-    public getUnit() : Unit{
-        //Retrieve unit from database, if existent. Otherwise generate dummy
-
-        //TODO: get Unit from database
-
-        return new Unit("", "", this.unitId);
-    }
-
 
     private guessAlertTimestamp(alertTime: string, katSysTimestamp: DateTime) : DateTime {
         //KatSys pings do not have a timestamp, we have to make one in KatSys time ourselfs

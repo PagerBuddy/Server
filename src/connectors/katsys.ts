@@ -1,8 +1,9 @@
 import Log from "../log";
 import WebSocket from "ws";
-import {INFORMATION_CONTENT} from "../model/alert";
-import Alert from "../model/alert";
+import Alert, {INFORMATION_CONTENT} from "../model/alert";
 import KatSysAlert from "../model/katsys/katsys_alert";
+import Unit from "../model/unit";
+import { DateTime } from "luxon";
 
 //Ref: https://developer.mozilla.org/en-US/docs/Web/API/CloseEvent/code
 const CODE_PAGERBUDDY_STOP = 4000;
@@ -15,6 +16,7 @@ export default class KatSysConnector{
     private decodeChannels: string[];
 
     private alertCallback: (alert: Alert) => void;
+    private statusCallback: (timestamp: DateTime) => void;
 
     private socket: WebSocket;
 
@@ -22,12 +24,17 @@ export default class KatSysConnector{
     private static CONNECTION_URL = "wss://connect.katsys.cloud:81";
     private static TIMEZONE = "Europe/Berlin";
 
-    constructor(connectionParameters: KatSysConnectionParameters, decodeChannels: string[], alertCallback: (alert: Alert) => void){
-        this.connectionParameters = connectionParameters;
-        this.decodeChannels = decodeChannels;
-        this.alertCallback = alertCallback;
+    constructor(
+        connectionParameters: KatSysConnectionParameters, 
+        decodeChannels: string[], 
+        alertCallback: (alert: Alert) => void,
+        statusCallback: (timestamp: DateTime) => void){
+            this.connectionParameters = connectionParameters;
+            this.decodeChannels = decodeChannels;
+            this.alertCallback = alertCallback;
+            this.statusCallback = statusCallback;
 
-        this.socket = this.connect();
+            this.socket = this.connect();
     }
 
     private connect() : WebSocket {
@@ -42,7 +49,7 @@ export default class KatSysConnector{
 
         socket.on("open", () => {
             this.log.debug('Connection to KatSys was established.');
-            this.heartbeat();
+            this.statusCallback(DateTime.now());
         });
         socket.on("close", (code: number) => {
             switch (code) {
@@ -60,7 +67,7 @@ export default class KatSysConnector{
             this.log.error("An error occured on KatSys socket: " + error.message);
         });
         socket.on("ping", () => {
-            this.heartbeat();
+            this.statusCallback(DateTime.now());
         });
         socket.on("message", (data: string) => {
             const jsonData = JSON.parse(data) as KatSysJsonUpdate;
@@ -87,20 +94,7 @@ export default class KatSysConnector{
             this.socket.close(CODE_PAGERBUDDY_STOP);
         }
     }
-    
-    /**
-     * Report KatSys connection alive to health.
-     * @returns {void}
-     */
-    private heartbeat() : void {
-        /**const health_data = {
-            timestamp: Date.now(),
-            siteId: siteID
-        };
-        //TODO: Health reporting
-        health.report_health(health_data);**/
-    }
-    
+        
     /**
      * Handle an incoming alert. Trigger callback for each viable alert in data.
      * @param {KatSysAlert} alert_data 
@@ -110,7 +104,7 @@ export default class KatSysConnector{
 
         katSysAlert.getRelevantSchleifen(this.decodeChannels).forEach(schleife => {
             const sAlert = new Alert(
-                schleife.getUnit(),
+                Unit.fromUnitCode(schleife.unitId),
                 schleife.alertTimestamp,
                 INFORMATION_CONTENT.COMPLETE,
                 katSysAlert.keyword,
@@ -120,12 +114,6 @@ export default class KatSysConnector{
             
             this.alertCallback(sAlert);
         });
-    
-        /**const health_data = {
-            timestamp: alert_data.timestamp_ms,
-            siteId: siteID
-        };
-        health.radio_activity(health_data);**/
     }
 }
 

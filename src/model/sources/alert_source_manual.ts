@@ -22,6 +22,10 @@ export default class AlertSourceManual extends AlertSource{
     public stop(): void {
     }
 
+    protected reportStatus(timestamp: DateTime) : void{
+        super.reportStatus(timestamp);
+    }
+
     protected emitAlert(alert: Alert) : void {
         super.emitAlert(alert);
     }
