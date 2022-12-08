@@ -1,5 +1,6 @@
 import { DateTime } from "luxon";
 import { ChildEntity, PrimaryGeneratedColumn, Column, BaseEntity } from "typeorm";
+import Alert from "../alert";
 import AlertSource from "./alert_source";
 
 /**
@@ -8,10 +9,20 @@ import AlertSource from "./alert_source";
 @ChildEntity()
 export default class AlertSourceManual extends AlertSource{
 
+
     constructor(
         description: string, 
         lastAlertTimestamp: DateTime = DateTime.fromMillis(0), 
         lastStatusTimestamp: DateTime = DateTime.fromMillis(0)){
             super(description, lastAlertTimestamp, lastStatusTimestamp);
+    }
+
+    public start(): void {
+    }
+    public stop(): void {
+    }
+
+    protected emitAlert(alert: Alert) : void {
+        super.emitAlert(alert);
     }
 }

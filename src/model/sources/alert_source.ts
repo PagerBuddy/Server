@@ -32,6 +32,9 @@ export default abstract class AlertSource extends BaseEntity{
         this.lastStatusTimestamp = lastStatusTimestamp;
     }
 
+    public abstract start() : void;
+    public abstract stop() : void;
+
     protected emitAlert(alert: Alert) : void {
         //TODO: Pass alert to alert router (singleton)
     }

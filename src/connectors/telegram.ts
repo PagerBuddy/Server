@@ -340,7 +340,8 @@ export default class TelegramConnector {
                     //Telegram server error
                     this.pauseQueue(10); //Pause queue before next retry attempt.
                     this.log.debug("Telegram has an internal server error. We will have to wait for the problem to be fixed. Error: " + error.message);
-                    health.telegram_status(false);
+                    //TODO: Health reporting
+                    //health.telegram_status(false);
                     break;
                 default:
                     this.log.error("Unexpected error from Telegram: " + error);
