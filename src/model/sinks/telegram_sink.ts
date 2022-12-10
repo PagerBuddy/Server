@@ -26,7 +26,7 @@ export default class TelegramSink extends GroupSink{
         this.chatId = chatId;
         this.enableForSilentAlert = enableForSilentAlert;
 
-        const tempTime = DateTime.local().setZone(timeZone).setLocale(locale);
+        const tempTime = DateTime.now().setZone(timeZone).setLocale(locale);
         if(!tempTime.isValid){
             throw Error("The specified time zone or locale string is not valid.");
         }

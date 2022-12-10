@@ -1,4 +1,6 @@
-import { Entity, PrimaryGeneratedColumn, Column, BaseEntity } from "typeorm";
+import { DateTime } from "luxon";
+import { Entity, PrimaryGeneratedColumn, Column, BaseEntity, Timestamp } from "typeorm";
+import FirebaseConnector from "../../connectors/firebase";
 import AccessToken from "../access_token";
 import AlertResponse from "../response/alert_response";
 import { UnitSubscription } from "../unit";
@@ -17,31 +19,64 @@ export default class AppSink extends UserSink{
     alertVolume: number;
 
     @Column()
+    silentAlertVolume: number;
+
+    @Column()
     token: AccessToken;
 
-    constructor(active: boolean = true, subscriptions: UnitSubscription[] = [], deviceToken: string, alertSound: string, alertVolume: number, token: AccessToken){
-        super(active, subscriptions);
-        this.deviceToken = deviceToken;
-        this.alertSound = alertSound;
-        this.alertVolume = alertVolume;
-        this.token = token;
+    @Column()
+    timeZone: string;
+
+    @Column()
+    locale: string;
+
+    constructor(
+        active: boolean = true, 
+        subscriptions: UnitSubscription[] = [], 
+        deviceToken: string, 
+        alertSound: string, 
+        alertVolume: number, 
+        silentAlertVolume: number, 
+        token: AccessToken,
+        timeZone: string,
+        locale: string){
+            super(active, subscriptions);
+            this.deviceToken = deviceToken;
+            this.alertSound = alertSound;
+            this.alertVolume = alertVolume;
+            this.silentAlertVolume = silentAlertVolume;
+            this.token = token;
+
+            if(!DateTime.now().setLocale(locale).setZone(timeZone).isValid){
+                throw new Error("Invalid time zone or locale.");
+            }
+            this.timeZone = timeZone;
+            this.locale = locale;
+    }
+
+    private invalidTokenCallback() : void {
+        //TODO: Remove invalid token?
+        //Probably send some http request to app for update
     }
 
     async sendAlert(alert: AlertResponse): Promise<void> {
         if(super.isRelevantAlert(alert.alert)){
-            //TODO: Output alert to FCM
 
-            //These fields will be interesting
-            alert.group.responseConfiguration;
-            alert.responses;
-            alert.alert.isSilentAlert;
-            alert.alert.keyword;
-            alert.alert.message;
-            alert.alert.timestamp;
-            alert.alert.location;
+            const alertPayload = alert.alert.getSerialisableAlert();
+            const configuration = {
+                alertSound: this.alertSound,
+                alertVolume: this.alertVolume,
+                silentAlertVolume: this.silentAlertVolume,
+                timeZone: this.timeZone,
+                locale: this.locale
+            };
 
-            alert.registerUpdateCallback((update: AlertResponse) => {
-                //TODO: Handle updates
+            await FirebaseConnector.getInstance().sendAlert(this.deviceToken, alertPayload, configuration, this.invalidTokenCallback);
+
+            alert.registerUpdateCallback(async (update: AlertResponse) => {
+                const updatePayload = update.alert.getSerialisableAlert();
+
+                await FirebaseConnector.getInstance().sendAlert(this.deviceToken, updatePayload, configuration, this.invalidTokenCallback);
             });
         }
     }

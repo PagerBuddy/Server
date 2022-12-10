@@ -15,14 +15,7 @@ export default abstract class AlertSource extends BaseEntity{
     lastAlertTimestamp: DateTime;
 
     @Column()
-    activeAlertTimeoutError: boolean = false;
-
-    @Column()
     lastStatusTimestamp: DateTime;
-
-    @Column()
-    activeStatusTimeoutError: boolean = false;
-
 
     constructor(description: string, lastAlertTimestamp: DateTime, lastStatusTimestamp: DateTime){
         super();

@@ -34,6 +34,9 @@ export default class TelegramConnector {
     //10 messages per second seems to be safe
     private static OUPUT_PER_SECOND = 10;
 
+    //Status indicator
+    public errorStatusSince: DateTime = DateTime.invalid("Placeholder");
+
     private log = Log.getLogger(TelegramConnector.name);
 
     private constructor() {
@@ -45,8 +48,8 @@ export default class TelegramConnector {
             onlyFirstMatch: true
         });
 
-        this.telegramBot.on("error", bot_error_operation);
-        this.telegramBot.on("polling_error", bot_error_operation)
+        this.telegramBot.on("error", this.botErrorOperation);
+        this.telegramBot.on("polling_error", this.botErrorOperation)
 
     }
 
@@ -218,6 +221,7 @@ export default class TelegramConnector {
             return this.botErrorSend(error, chatId);
         }
 
+        this.reportStatus(true);
         return new TelegramSendResult(true, false, sentMessage.message_id);
     }
 
@@ -250,6 +254,7 @@ export default class TelegramConnector {
                 return this.botErrorSend(err, chatId);
             }
         }
+        this.reportStatus(true);
         return new TelegramSendResult(true, false, msgID);
     }
 
@@ -269,6 +274,7 @@ export default class TelegramConnector {
             this.log.warn("Bot could not pin a message. Error: " + err);
             return false;
         }
+        this.reportStatus(true);
         return true;
     }
 
@@ -287,7 +293,16 @@ export default class TelegramConnector {
             this.log.warn("Bot could not unpin a message. Error: " + err);
             return false;
         }
+        this.reportStatus(true);
         return true;
+    }
+
+    private reportStatus(successfullRequest: boolean): void{
+        if(successfullRequest){
+            this.errorStatusSince = DateTime.invalid("Placeholder");
+        }else if(!this.errorStatusSince.isValid){
+            this.errorStatusSince = DateTime.now();
+        }
     }
 
     private pauseQueue(period: number): void {
@@ -297,12 +312,16 @@ export default class TelegramConnector {
         }, period * 1000);
     }
 
+    private botErrorOperation(error: Error) : void {
+        this.botErrorSend(error, 0);
+    }
+
     /** Handle bot errors that occur on message send
-     * @param {any} error The error message.
+     * @param {Error} error The error message.
      * @param {number} chatId
      * @returns {TelegramSendResult} If a sent message should be requeued etc.
      */
-    private botErrorSend(error: any, chatId: number): TelegramSendResult {
+    private botErrorSend(error: Error, chatId: number): TelegramSendResult {
         //TODO: (ONGOING) Add handlers and strategies for occuring errors
 
         let resend = true;
@@ -340,8 +359,7 @@ export default class TelegramConnector {
                     //Telegram server error
                     this.pauseQueue(10); //Pause queue before next retry attempt.
                     this.log.debug("Telegram has an internal server error. We will have to wait for the problem to be fixed. Error: " + error.message);
-                    //TODO: Health reporting
-                    //health.telegram_status(false);
+                    this.reportStatus(false);
                     break;
                 default:
                     this.log.error("Unexpected error from Telegram: " + error);
@@ -349,9 +367,11 @@ export default class TelegramConnector {
         } else if (isTelegramErrorFatal(error)) {
             this.pauseQueue(10); //Pause queue before next retry attempt.
             this.log.error("Fatal error in telegram bot: " + error);
+            this.reportStatus(false);
         } else if (isTelegramErrorParse(error)) {
             this.pauseQueue(10); //Pause queue before next retry attempt.
             this.log.error("Parse error in telegram bot: " + error);
+            this.reportStatus(false);
         } else {
             this.log.error("An unkown error occurred in telegram bot: " + error);
         }

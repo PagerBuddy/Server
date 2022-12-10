@@ -103,6 +103,43 @@ export default class Alert extends BaseEntity{
         return localisedAlert;
     }
 
-    
+    /**
+     * Produce a consise JSON object, describing the importent elements of this alert.
+     * This is most prominently used in FCM for app notification.
+     */
+    public getSerialisableAlert() : SerialisableAlert{
+        const jsonAlert = {
+            timestamp: this.timestamp.toMillis(),
+            keyword: this.keyword,
+            message: this.message,
+            location: this.location,
+            informationContent: this.informationContent.toString(),
+            silentAlert: this.isSilentAlert,
+            manualAlert: this.isManualAlert,
+            id: this.id,
+            unit: {
+                name: this.unit.name,
+                shortName: this.unit.shortName,
+                code: this.unit.unitCode
+            }
+        };
 
+        return jsonAlert;
+    }
 }
+
+export type SerialisableAlert = {
+    timestamp: number,
+    keyword: string,
+    message: string,
+    location: string,
+    informationContent: string,
+    silentAlert: boolean,
+    manualAlert: boolean,
+    id: number,
+    unit: {
+        name: string,
+        shortName: string,
+        code: number
+    }
+};
