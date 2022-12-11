@@ -6,7 +6,7 @@ import GroupSink from "./sinks/group_sink";
 import Unit from "./unit";
 import User from "./user";
 
-export default class Group extends BaseEntity{
+export default class Group extends BaseEntity {
 
     @PrimaryGeneratedColumn()
     id!: number;
@@ -32,34 +32,31 @@ export default class Group extends BaseEntity{
     @Column()
     subGroups: Group[];
 
+    constructor(); //This seems to be needed as an (optional) constructor signature for TypeORM
     constructor(
-        name: string, 
-        alertSinks: GroupSink[], 
+        name?: string,
+        alertSinks: GroupSink[] = [],
         units: Unit[] = [],
         leaders: User[] = [],
         members: User[] = [],
-        responseConfiguration: ResponseConfiguration,
-        subGroups: Group[] = []){
-            super();
-            this.name = name;
-            this.alertSinks = alertSinks;
-            this.units = units;
-            this.leaders = leaders;
-            this.members = members;
-            this.responseConfiguration = responseConfiguration;
-            this.subGroups = subGroups;
+        responseConfiguration?: ResponseConfiguration,
+        subGroups: Group[] = []) {
+        super();
+        this.name = name ?? "";
+        this.alertSinks = alertSinks;
+        this.units = units;
+        this.leaders = leaders;
+        this.members = members;
+        this.responseConfiguration = responseConfiguration ?? new ResponseConfiguration("");
+        this.subGroups = subGroups;
     }
 
-    private isRelevantAlert(alert: Alert): boolean{
+    private isRelevantAlert(alert: Alert): boolean {
         return this.units.some((unit) => unit.isMatchingAlert(alert));
     }
 
-    public handleAlert(alert: Alert){
-        if(this.isRelevantAlert(alert)){
-
-            this.subGroups.forEach(subGroup => {
-                subGroup.handleAlert(alert);
-            });
+    public handleAlert(alert: Alert) {
+        if (this.isRelevantAlert(alert)) {
 
             const response = new AlertResponse(alert, this);
 

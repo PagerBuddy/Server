@@ -1,5 +1,6 @@
 import { DateTime} from "luxon";
 import { Entity, PrimaryGeneratedColumn, Column, BaseEntity } from "typeorm";
+import AlertRouter from "../../alert_router";
 import Alert from "../alert";
 
 @Entity()
@@ -34,6 +35,6 @@ export default abstract class AlertSource extends BaseEntity{
 
     protected emitAlert(alert: Alert) : void {
         this.lastAlertTimestamp = alert.timestamp;
-        //TODO: Pass alert to alert router (singleton)
+        AlertRouter.getInstance().handleAlert(alert);
     }
 }

@@ -27,6 +27,7 @@ export default class AlertSourceManual extends AlertSource{
     }
 
     protected emitAlert(alert: Alert) : void {
+        alert.sources = [this];
         super.emitAlert(alert);
     }
 }
