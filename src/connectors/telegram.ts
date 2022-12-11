@@ -4,10 +4,11 @@ import http from "node:http";
 import Alert from "../model/alert"
 import { DateTime } from "luxon";
 import UserResponse from "../model/response/user_response";
-import { RESPONSE_TYPE } from "../model/response/response_option";
+import ResponseOption, { RESPONSE_TYPE } from "../model/response/response_option";
 import ResponseConfiguration from "../model/response/response_configuration";
 import TelegramSink from "../model/sinks/telegram_sink";
 import Log from "../log";
+import SystemConfiguration from "../model/system_configuration";
 
 //Telegram markup constants
 const LINE_BREAK = "\n";
@@ -43,7 +44,7 @@ export default class TelegramConnector {
         //TODO: setup stuff here
         this.outputQueue = new PQueue({ concurrency: 1, interval: 1000, intervalCap: TelegramConnector.OUPUT_PER_SECOND });
 
-        this.telegramBot = new TelegramBot(BOT_TOKEN, {
+        this.telegramBot = new TelegramBot(SystemConfiguration.telegramBotToken, {
             polling: true,
             onlyFirstMatch: true
         });
@@ -51,6 +52,14 @@ export default class TelegramConnector {
         this.telegramBot.on("error", this.botErrorOperation);
         this.telegramBot.on("polling_error", this.botErrorOperation)
 
+        this.telegramBot.on("callback_query", async (query: TelegramBot.CallbackQuery) => {
+            this.handleCallback(query);
+            try {
+                await this.telegramBot.answerCallbackQuery(query.id);
+            } catch (error) {
+                // This can take too long and timeout
+            }
+        });
     }
 
     public static getInstance() {
@@ -107,6 +116,7 @@ export default class TelegramConnector {
     }
 
     public sendResponseInterface(
+        alertId: number,
         chatId: number,
         responses: UserResponse[],
         responseConfiguration: ResponseConfiguration,
@@ -120,7 +130,7 @@ export default class TelegramConnector {
             return {awaitableResult: Promise.resolve(new TelegramSendResult(true, false, msgId)), cancellationToken: new AbortController(), messageText: msgText};
         }
 
-        const keyboard = this.getResponseInterfaceKeyboard(responseConfiguration);
+        const keyboard = this.getResponseInterfaceKeyboard(alertId, responseConfiguration);
         let opts: TelegramBot.SendMessageOptions | TelegramBot.EditMessageTextOptions = {
             reply_markup: {
                 inline_keyboard: keyboard
@@ -169,7 +179,7 @@ export default class TelegramConnector {
         return outText.join("");
     }
 
-    private getResponseInterfaceKeyboard(responseConfiguration: ResponseConfiguration): { text: string, callback_data: string }[][] {
+    private getResponseInterfaceKeyboard(alertId: number, responseConfiguration: ResponseConfiguration): { text: string, callback_data: string }[][] {
         const options = responseConfiguration.getSortedResponseOptions();
 
         const inlineKeyboard: { text: string, callback_data: string }[][] = [];
@@ -178,7 +188,7 @@ export default class TelegramConnector {
         options.forEach(option => {
             const item = {
                 text: option.label,
-                callback_data: `reply#${option.id.toString()}`
+                callback_data: `reply#${alertId.toString()}#%${option.id.toString()}%`
             }
             keyboardLine.push(item);
 
@@ -295,6 +305,27 @@ export default class TelegramConnector {
         }
         this.reportStatus(true);
         return true;
+    }
+
+    private handleCallback(query: TelegramBot.CallbackQuery){
+        if(!query.data || !query.message){
+            return;
+        }
+
+        //Handle user replies to alert - this is unfortunately a bit of a guessing game when parsing users.
+        const matchReply = query.data.match(/^reply#(?<alertId>[0-9]+)#%(?<replyId>[0-9]+)%/);
+        if(matchReply && matchReply.groups?.alertId && matchReply.groups.replyId){
+            const alertId = parseInt(matchReply.groups.alertId);
+            const replyId = parseInt(matchReply.groups.replyId);
+
+            const replyChatId = query.message.chat.id;
+            const altName = query.from.first_name + (query.from.last_name ? " " + query.from.last_name : "");
+            const replyUser = query.from.username ?? altName;
+
+            const timestamp = DateTime.now();
+
+            TelegramSink.responseCallback(alertId, replyId, replyUser, replyChatId, timestamp);
+        }        
     }
 
     private reportStatus(successfullRequest: boolean): void{

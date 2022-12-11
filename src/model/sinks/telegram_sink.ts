@@ -3,7 +3,10 @@ import { Entity, PrimaryGeneratedColumn, Column, BaseEntity } from "typeorm";
 import TelegramConnector from "../../connectors/telegram";
 import Alert from "../alert";
 import AlertResponse from "../response/alert_response";
+import ResponseOption from "../response/response_option";
+import UserResponse from "../response/user_response";
 import { UnitSubscription } from "../unit";
+import User from "../user";
 import GroupSink from "./group_sink";
 
 @Entity()
@@ -35,6 +38,23 @@ export default class TelegramSink extends GroupSink{
         this.locale = locale;
     }
 
+    public static responseCallback(alertId: number, responseId: number, userName: string, chatId: number, timestamp: DateTime) : void {
+        const responseOption = ResponseOption.fromID(responseId);
+        const alert = AlertResponse.fromId(alertId);
+
+        const sink = alert?.group.alertSinks.find((sink) => {
+            return sink instanceof TelegramSink && sink.chatId == chatId;
+        });
+
+        const user = User.fromTelegramName(userName);
+        const userInGroup = alert?.group.members.some((member) => member.id == user?.id);
+
+        if(responseOption && sink && user && userInGroup){
+            const userResponse = new UserResponse(timestamp, sink, user, responseOption);
+            alert?.userResponded(userResponse);
+        }
+    }
+
     public async sendAlert(alert: AlertResponse): Promise<void>{
         if(super.isRelevantAlert(alert.alert)){
 
@@ -58,7 +78,7 @@ export default class TelegramSink extends GroupSink{
 
             if(alert.group.responseConfiguration.allowResponses){
                 const userResponses = alert.getLocalisedResponses(this.timeZone, this.locale);
-                const interfaceResult = telegramConnector.sendResponseInterface(this.chatId, userResponses, alert.group.responseConfiguration);
+                const interfaceResult = telegramConnector.sendResponseInterface(alert.id, this.chatId, userResponses, alert.group.responseConfiguration);
                 interfaceAbortController = interfaceResult.cancellationToken;
                 interfaceMessageId = (await interfaceResult.awaitableResult).messageId;
                 interfaceMessageText = interfaceResult.messageText;
@@ -78,7 +98,7 @@ export default class TelegramSink extends GroupSink{
                     interfaceAbortController.abort();
 
                     const userResponses = update.getLocalisedResponses(this.timeZone, this.locale);
-                    const interfaceResult = telegramConnector.sendResponseInterface(this.chatId, userResponses, update.group.responseConfiguration, interfaceMessageId, interfaceMessageText);
+                    const interfaceResult = telegramConnector.sendResponseInterface(update.id, this.chatId, userResponses, update.group.responseConfiguration, interfaceMessageId, interfaceMessageText);
                     interfaceAbortController = interfaceResult.cancellationToken;
                     interfaceMessageText = interfaceResult.messageText;
                 }

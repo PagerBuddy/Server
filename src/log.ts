@@ -1,19 +1,21 @@
 import winston from "winston";
 import TelegramTransport from "./connectors/telegram_transport";
+import SystemConfiguration from "./model/system_configuration";
 
 export default class Log {
 
     private static instance: Log;
 
-    private logLevel = "silly";
-    private telegramTargetChatIds: number[] = []; 
+    private logLevel;
+    private telegramTargets: TelegramLogTarget[];
 
-    private constructor(){
-        //TODO: get config
+    private constructor() {
+        this.logLevel = SystemConfiguration.logLevel;
+        this.telegramTargets = SystemConfiguration.telegramLogTargetIds;
     }
 
-    public static getInstance(){
-        if(!Log.instance){
+    public static getInstance() {
+        if (!Log.instance) {
             Log.instance = new Log();
         }
         return Log.instance;
@@ -36,28 +38,38 @@ export default class Log {
         winston.format.printf((info) => `${info.timestamp} | [${info.label}] ${info.level}: ${info.message} `)
     );
 
-    public static getLogger(label: string) : winston.Logger {
+    public static getLogger(label: string): winston.Logger {
         return Log.getInstance().getLogger(label);
     }
 
-    public getLogger(label: string) : winston.Logger{
+    public getLogger(label: string): winston.Logger {
         const loggerName = `${label.toLowerCase()}Logger`;
-        
-        //TODO: get/config chat ID recipients
 
+        const transports = [];
+        transports.push(
+            new winston.transports.Console({
+                format: winston.format.combine(winston.format.label({ label: label }), Log.CONSOLE_FORMAT),
+                stderrLevels: ['error', 'warn']
+            })
+        );
+        this.telegramTargets.forEach(target => {
+            transports.push(
+                new TelegramTransport({
+                    format: winston.format.combine(winston.format.label({ label: label }), Log.TELEGRAM_FORMAT),
+                    level: target.logLevel
+                }, target.chatId)
+            );
+        });
 
         winston.loggers.add(loggerName, {
             level: this.logLevel,
-            transports: [
-                new winston.transports.Console({
-                    format: winston.format.combine(winston.format.label({ label: label }), Log.CONSOLE_FORMAT),
-                    stderrLevels: ['error', 'warn']
-                }),
-                new TelegramTransport({
-                    format: winston.format.combine(winston.format.label({ label: label }), Log.TELEGRAM_FORMAT)
-                }, this.telegramTargetChatIds)
-            ]
+            transports: transports
         });
         return winston.loggers.get(loggerName)
     }
+}
+
+export type TelegramLogTarget = {
+    logLevel: string,
+    chatId: number
 }

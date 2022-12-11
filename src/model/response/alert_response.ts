@@ -63,4 +63,9 @@ export default class AlertResponse extends BaseEntity{
         return userResponses;
     }
 
+    public static fromId(id: number) : AlertResponse | undefined {
+        //TODO: search all for id match
+        return undefined;
+    }
+
 }

@@ -3,6 +3,7 @@ import { Entity, PrimaryGeneratedColumn, Column, BaseEntity, Timestamp } from "t
 import FirebaseConnector from "../../connectors/firebase";
 import AccessToken from "../access_token";
 import AlertResponse from "../response/alert_response";
+import UserResponse from "../response/user_response";
 import { UnitSubscription } from "../unit";
 import UserSink from "./user_sink";
 
@@ -59,7 +60,8 @@ export default class AppSink extends UserSink{
         //Probably send some http request to app for update
     }
 
-    async sendAlert(alert: AlertResponse): Promise<void> {
+
+    public async sendAlert(alert: AlertResponse): Promise<void> {
         if(super.isRelevantAlert(alert.alert)){
 
             const alertPayload = alert.alert.getSerialisableAlert();

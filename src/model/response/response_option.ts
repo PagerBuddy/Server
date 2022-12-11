@@ -28,4 +28,9 @@ export default class ResponseOption extends BaseEntity{
         this.enableEstimatedArrival = enableEstimatedArrival;
         this.estimatedArrivalOffset = estimatedArrivalOffset;
     }
+
+    public static fromID(id: number) : ResponseOption | undefined {
+        //TODO: search options for Id and return
+        return undefined;
+    }
 }

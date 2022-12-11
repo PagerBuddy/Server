@@ -8,12 +8,12 @@ export default class TelegramTransport extends Transport {
 
     private telegramConnector: TelegramConnector;
 
-    private logTargetChatIds: number[];
+    private logTargetChatId: number;
 
-    public constructor(options: TransportStreamOptions, logTargets: number[]) {
+    public constructor(options: TransportStreamOptions, logTarget: number) {
         super(options);
         this.telegramConnector = TelegramConnector.getInstance();
-        this.logTargetChatIds = logTargets;
+        this.logTargetChatId = logTarget;
     }
 
     public async log(info : any, callback = () => { }) : Promise<void> {
@@ -22,10 +22,7 @@ export default class TelegramTransport extends Transport {
             this.emit('logged', info);
         });
 
-        this.logTargetChatIds.forEach(async chatId => {
-            //Do not bother about return value
-            await this.telegramConnector.sendText(chatId, info.MESSAGE);
-        });
+        await this.telegramConnector.sendText(this.logTargetChatId, info.MESSAGE);
         
         callback();
     }

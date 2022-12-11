@@ -1,5 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, Column, BaseEntity } from "typeorm";
 import AlertResponse from "../response/alert_response";
+import UserResponse from "../response/user_response";
 import { UnitSubscription } from "../unit";
 import UserSink from "./user_sink";
 
@@ -14,7 +15,7 @@ export default class WebhookSink extends UserSink{
         this.url = url;
     }
 
-    async sendAlert(alert: AlertResponse): Promise<void> {
+    public async sendAlert(alert: AlertResponse): Promise<void> {
         if(super.isRelevantAlert(alert.alert)){
             //TODO: trigger webhook
 

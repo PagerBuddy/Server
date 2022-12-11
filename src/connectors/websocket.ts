@@ -4,6 +4,7 @@ import { Server } from "socket.io";
 import Log from "../log";
 import Unit from "../model/unit";
 import { DateTime } from "luxon";
+import SystemConfiguration from "../model/system_configuration";
 
 export default class WebsocketConnector{
 
@@ -15,8 +16,6 @@ export default class WebsocketConnector{
     private io?: Server;
 
     private subscriptions : WebsocketSite[] = [];
-
-    private static port: number = 0;
 
     public static async getInstance() : Promise<WebsocketConnector>{
         if(!this.instance){
@@ -80,13 +79,13 @@ export default class WebsocketConnector{
     
         server.on('error', (e : Error & {code: string}) => {
             if (e.code == 'EADDRINUSE') {
-                this.log.error(`Address in use ${WebsocketConnector.port}. This is fatal for incoming interfaces. Probably a different instance is already active.`);
+                this.log.error(`Address in use ${SystemConfiguration.websocketPort}. This is fatal for incoming interfaces. Probably a different instance is already active.`);
             }
         });
     
         return new Promise((resolve) => {
-            server.listen(WebsocketConnector.port, () => {
-                this.log.debug(`Listening on port ${WebsocketConnector.port} for incoming websocket connections.`);
+            server.listen(SystemConfiguration.websocketPort, () => {
+                this.log.debug(`Listening on port ${SystemConfiguration.websocketPort} for incoming websocket connections.`);
 
                 this.server = server;
                 this.io = io;

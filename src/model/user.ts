@@ -21,6 +21,9 @@ export default class User extends BaseEntity{
     eMail: string;
 
     @Column()
+    telegramUserName?: string; //This is needed for alert responses in Telegram
+
+    @Column()
     passwordHash: string;
 
     @Column()
@@ -66,6 +69,11 @@ export default class User extends BaseEntity{
 
     public getPrintName() : string {
         return `${this.firstName} ${this.lastName}`;
+    }
+
+    public static fromTelegramName(userName: string) : User | undefined{
+        //TODO: Find user as a match of userName
+        return undefined;
     }
 
 
