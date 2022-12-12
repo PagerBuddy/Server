@@ -1,14 +1,14 @@
-import { Entity, PrimaryGeneratedColumn, Column, BaseEntity } from "typeorm";
+import { ChildEntity, PrimaryGeneratedColumn, Column, BaseEntity } from "typeorm";
 import alert from "../alert";
 import AlertResponse from "../response/alert_response";
 import UserResponse from "../response/user_response";
 import { UnitSubscription } from "../unit";
 import AlertSink from "./alert_sink";
 
-@Entity()
+@ChildEntity()
 export default abstract class UserSink extends AlertSink{
 
-    constructor(active: boolean, subscriptions: UnitSubscription[]){
+    constructor(active: boolean = false, subscriptions: UnitSubscription[] = []){
         super(active, subscriptions);
     }
 

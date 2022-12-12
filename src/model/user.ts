@@ -1,8 +1,8 @@
-import { Entity, PrimaryGeneratedColumn, Column, BaseEntity } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, BaseEntity, ManyToMany, JoinTable } from "typeorm";
 import AlertResponse from "./response/alert_response";
 import UserSink from "./sinks/user_sink";
 
-export enum USER_STATE {REQUEST_GROUP, INVITED, ACTIVE};
+export enum USER_STATE {NONE, REQUEST_GROUP, INVITED, ACTIVE};
 export enum USER_ROLE {STANDARD, ADMINISTRATOR, SUPER_ADMINISTRATOR};
 
 @Entity()
@@ -36,15 +36,17 @@ export default class User extends BaseEntity{
     role: USER_ROLE;
 
     @Column()
+    @ManyToMany(() => UserSink)
+    @JoinTable()
     sinks: UserSink[];
 
     constructor(
-        firstName: string, 
-        lastName: string, 
-        eMail: string, 
+        firstName: string = "", 
+        lastName: string = "", 
+        eMail: string = "", 
         passwordHash: string = "", 
         passwordSalt: string = "", 
-        status: USER_STATE, 
+        status: USER_STATE = USER_STATE.NONE, 
         role: USER_ROLE = USER_ROLE.STANDARD,
         sinks: UserSink[] = []){
 

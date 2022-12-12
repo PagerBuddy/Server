@@ -22,13 +22,13 @@ export default class AlertSourceKatSys extends AlertSource{
     private katSysConnector?: KatSysConnector;
 
     constructor(
-        description: string, 
+        description: string = "", 
         lastAlertTimestamp: DateTime = DateTime.fromMillis(0), 
         lastStatusTimestamp: DateTime = DateTime.fromMillis(0),
-        masterToken: string,
-        subToken: string,
-        certificate: string,
-        decodeChannels: string[]){
+        masterToken: string = "",
+        subToken: string = "",
+        certificate: string = "",
+        decodeChannels: string[] = []){
             super(description, lastAlertTimestamp, lastStatusTimestamp);
 
             this.masterToken = masterToken;

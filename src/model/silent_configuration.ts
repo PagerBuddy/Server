@@ -17,7 +17,7 @@ export default abstract class SilentConfiguration extends BaseEntity{
     @Column()
     description: string;
 
-    constructor(description:string){
+    constructor(description:string = ""){
         super();
         this.description = description;
     }
@@ -66,11 +66,15 @@ export class SilentTime extends SilentConfiguration{
     @Column()
     endTime: DateTime;
 
-    constructor(description: string = "", startTime: DateTime, endTime: DateTime){
+    constructor(description: string = "", startTime: DateTime = DateTime.fromMillis(0), endTime: DateTime = DateTime.fromMillis(0)){
         super(description);
 
         this.startTime = startTime;
         this.endTime = endTime;
+    }
+
+    public static get default() : SilentTime{
+        return new SilentTime();
     }
 
     /**
@@ -105,7 +109,7 @@ export class SilentDayOfWeek extends SilentConfiguration{
     @Column()
     time: SilentTime;
 
-    constructor(description: string = "", day: WeekdayNumbers, time: SilentTime){
+    constructor(description: string = "", day: WeekdayNumbers = 1, time: SilentTime = SilentTime.default){
         super(description);
 
         this.day = day;
@@ -129,14 +133,14 @@ export class SilentDayOfMonth extends SilentConfiguration{
     @Column()
     time: SilentTime;
 
-    constructor(description: string = "", day: DayNumbers, time: SilentTime){
+    constructor(description: string = "", day: DayNumbers = 1, time: SilentTime = SilentTime.default){
         super(description);
 
         this.day = day;
         this.time = time;
     }
 
-    isInSilentPeriod(timestamp: DateTime): boolean {
+    isInSilentPeriod(timestamp: DateTime): boolean {  
         const dayMatch = timestamp.daysInMonth == this.day;
         const timeMatch = this.time.isInSilentPeriod(timestamp);
 

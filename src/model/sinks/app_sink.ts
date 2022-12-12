@@ -34,13 +34,13 @@ export default class AppSink extends UserSink{
     constructor(
         active: boolean = true, 
         subscriptions: UnitSubscription[] = [], 
-        deviceToken: string, 
-        alertSound: string, 
-        alertVolume: number, 
-        silentAlertVolume: number, 
+        deviceToken: string = "", 
+        alertSound: string = "", 
+        alertVolume: number = 1, 
+        silentAlertVolume: number = 0.5, 
         token: AccessToken,
-        timeZone: string,
-        locale: string){
+        timeZone: string = "utc",
+        locale: string = "en"){
             super(active, subscriptions);
             this.deviceToken = deviceToken;
             this.alertSound = alertSound;

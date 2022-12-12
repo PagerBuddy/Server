@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, BaseEntity } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, BaseEntity, OneToOne, JoinColumn, ManyToOne, OneToMany } from "typeorm";
 import Alert from "../alert";
 import Group from "../group";
 import { User } from "../user.mjs";
@@ -14,12 +14,15 @@ export default class AlertResponse extends BaseEntity{
     id!: number;
 
     @Column()
-    alert: Alert;
+    @ManyToOne(() => Alert, {eager: true})
+    public alert: Alert;
 
     @Column()
-    group: Group;
+    @ManyToOne(() => Group)
+    public group: Group;
 
     @Column()
+    @OneToMany(() => UserResponse, (response) => response.alertResponse)
     responses: UserResponse[];
 
     private updateCallbacks: ((update: AlertResponse) => void)[] = [];

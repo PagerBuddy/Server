@@ -18,7 +18,7 @@ export default abstract class AlertSource extends BaseEntity{
     @Column()
     lastStatusTimestamp: DateTime;
 
-    constructor(description: string, lastAlertTimestamp: DateTime, lastStatusTimestamp: DateTime){
+    constructor(description: string = "", lastAlertTimestamp: DateTime = DateTime.fromMillis(0), lastStatusTimestamp: DateTime = DateTime.fromMillis(0)){
         super();
 
         this.description = description;

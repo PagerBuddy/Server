@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, BaseEntity } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, BaseEntity, OneToMany, ManyToMany, JoinTable } from "typeorm";
 import Alert from "../alert";
 import AlertResponse from "../response/alert_response";
 import UserResponse from "../response/user_response";
@@ -14,9 +14,11 @@ export default abstract class AlertSink extends BaseEntity{
     active: boolean;
 
     @Column()
+    @ManyToMany(() => UnitSubscription)
+    @JoinTable()
     subscriptions: UnitSubscription[];
 
-    constructor(active: boolean, subscriptions: UnitSubscription[]){
+    constructor(active: boolean = false, subscriptions: UnitSubscription[] = []){
         super();
         this.active = active;
         this.subscriptions = subscriptions;

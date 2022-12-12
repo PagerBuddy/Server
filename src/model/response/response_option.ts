@@ -21,7 +21,11 @@ export default class ResponseOption extends BaseEntity{
     @Column()
     type: RESPONSE_TYPE;
 
-    constructor(label: string, type: RESPONSE_TYPE, enableEstimatedArrival: boolean = false, estimatedArrivalOffset: Duration = Duration.fromMillis(0)){
+    constructor(
+        label: string = "", 
+        type: RESPONSE_TYPE = RESPONSE_TYPE.DENY, 
+        enableEstimatedArrival: boolean = false, 
+        estimatedArrivalOffset: Duration = Duration.fromMillis(0)){
         super();
         this.label = label;
         this.type = type;

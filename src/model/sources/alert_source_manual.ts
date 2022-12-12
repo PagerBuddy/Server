@@ -11,7 +11,7 @@ export default class AlertSourceManual extends AlertSource{
 
 
     constructor(
-        description: string, 
+        description: string = "", 
         lastAlertTimestamp: DateTime = DateTime.fromMillis(0), 
         lastStatusTimestamp: DateTime = DateTime.fromMillis(0)){
             super(description, lastAlertTimestamp, lastStatusTimestamp);

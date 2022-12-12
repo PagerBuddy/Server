@@ -1,10 +1,10 @@
 import { DateTime } from "luxon";
-import { Entity, PrimaryGeneratedColumn, Column, BaseEntity } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, BaseEntity, ManyToOne, ManyToMany, JoinTable } from "typeorm";
 import AlertSource from "./sources/alert_source";
 import AlertSourceManual from "./sources/alert_source_manual";
 import Unit from "./unit";
 
-export enum INFORMATION_CONTENT {ID, KEYWORD, COMPLETE};
+export enum INFORMATION_CONTENT {NONE, ID, KEYWORD, COMPLETE};
 
 @Entity()
 export default class Alert extends BaseEntity{
@@ -28,21 +28,24 @@ export default class Alert extends BaseEntity{
     informationContent: INFORMATION_CONTENT;
 
     @Column()
+    @ManyToOne(() => Unit)
     readonly unit: Unit;
 
     @Column()
+    @ManyToMany(() => AlertSource)
+    @JoinTable()
     sources: AlertSource[];
 
     private updateCallbacks: ((update: Alert) => void)[] = [];
 
     constructor(
-        unit: Unit, 
-        timestamp: DateTime, 
-        informationContent: INFORMATION_CONTENT, 
+        unit: Unit = Unit.default, 
+        timestamp: DateTime = DateTime.fromMillis(0), 
+        informationContent: INFORMATION_CONTENT = INFORMATION_CONTENT.NONE,  
         keyword: string = "", 
         message: string = "", 
         location: string = "", 
-        sources: AlertSource[]){
+        sources: AlertSource[] = []){
             super();
             this.unit = unit;
             this.timestamp = timestamp;

@@ -22,13 +22,13 @@ export default class AlertSourceHardwareInterface extends AlertSource{
     private websocket?: WebsocketConnector;
 
     constructor(
-        description: string, 
+        description: string = "", 
         lastAlertTimestamp: DateTime = DateTime.fromMillis(0), 
         lastStatusTimestamp: DateTime = DateTime.fromMillis(0),
-        masterToken: string,
-        subToken: string,
-        certificate: string,
-        siteId: string){
+        masterToken: string = "",
+        subToken: string = "",
+        certificate: string = "",
+        siteId: string = ""){
             super(description, lastAlertTimestamp, lastStatusTimestamp);
 
             this.masterToken = masterToken;

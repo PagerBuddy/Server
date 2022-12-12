@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, BaseEntity } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, BaseEntity, ManyToMany, JoinTable, ManyToOne, OneToMany } from "typeorm";
 import Alert from "./alert";
 import AlertResponse from "./response/alert_response";
 import ResponseConfiguration from "./response/response_configuration";
@@ -15,22 +15,34 @@ export default class Group extends BaseEntity {
     name: string;
 
     @Column()
+    @ManyToMany(() => Unit)
+    @JoinTable()
     units: Unit[];
 
     @Column()
+    @ManyToMany(() => User)
+    @JoinTable()
     leaders: User[];
 
     @Column()
+    @ManyToMany(() => User)
+    @JoinTable()
     members: User[];
 
     @Column()
+    @ManyToOne(() => ResponseConfiguration)
     responseConfiguration: ResponseConfiguration;
 
     @Column()
     alertSinks: GroupSink[];
 
     @Column()
+    @OneToMany(() => Group, (group) => group.parentGroup)
     subGroups: Group[];
+
+    @Column()
+    @ManyToOne(() => Group, (group) => group.subGroups)
+    parentGroup!: Group;
 
     constructor(); //This seems to be needed as an (optional) constructor signature for TypeORM
     constructor(

@@ -1,16 +1,16 @@
-import { Entity, PrimaryGeneratedColumn, Column, BaseEntity } from "typeorm";
+import { ChildEntity, PrimaryGeneratedColumn, Column, BaseEntity } from "typeorm";
 import AlertResponse from "../response/alert_response";
 import UserResponse from "../response/user_response";
 import { UnitSubscription } from "../unit";
 import UserSink from "./user_sink";
 
-@Entity()
+@ChildEntity()
 export default class WebhookSink extends UserSink{
 
     @Column()
     url: string;
 
-    constructor(active: boolean = true, subscriptions: UnitSubscription[] = [], url: string){
+    constructor(active: boolean = false, subscriptions: UnitSubscription[] = [], url: string = ""){
         super(active, subscriptions);
         this.url = url;
     }

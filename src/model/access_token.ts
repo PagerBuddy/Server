@@ -1,5 +1,5 @@
 import { DateTime, Duration } from "luxon";
-import { Entity, PrimaryGeneratedColumn, Column, BaseEntity } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, BaseEntity, ManyToOne } from "typeorm";
 import { User } from "./user.mjs";
 
 export enum PERMISSIONS {ALL, EDIT_ROUTING, EDIT_USER, EDIT_ALL_OUTPUTS, EDIT_ALL_SUBSCRIPTIONS, EDIT_LINKED_OUTPUT, SEND_USER_RESPONSE};
@@ -20,6 +20,7 @@ export default class AccessToken extends BaseEntity{
     timeToLive: Duration;
 
     @Column()
+    @ManyToOne(() => User)
     user: User;
 
     @Column()

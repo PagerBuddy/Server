@@ -1,5 +1,5 @@
 import { DateTime } from "luxon";
-import { Entity, PrimaryGeneratedColumn, Column, BaseEntity } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, BaseEntity, ManyToOne } from "typeorm";
 import { isEntityName } from "typescript";
 import Alert from "./alert";
 import SilentConfiguration, { SilentNever } from "./silent_configuration";
@@ -25,14 +25,23 @@ export default class Unit extends BaseEntity{
     unitCode: number;
 
     @Column()
+    @ManyToOne(() => SilentConfiguration)
     silentTime: SilentConfiguration;
 
-    constructor(name: string, shortName: string, unitCode: number, silentTime: SilentConfiguration = new SilentNever()){
+    constructor(
+        name: string = "", 
+        shortName: string = "", 
+        unitCode: number = 0, 
+        silentTime: SilentConfiguration = new SilentNever()){
         super();
         this.name = name;
         this.shortName = shortName;
         this.unitCode = unitCode;
         this.silentTime = silentTime;
+    }
+
+    public static get default() : Unit{
+        return new Unit();
     }
 
     public isSilentTime(timestamp: DateTime) : boolean {
@@ -60,12 +69,13 @@ export class UnitSubscription extends BaseEntity{
     id!: number;
 
     @Column()
+    @ManyToOne(() => Unit)
     unit: Unit;
 
     @Column()
     active: boolean;
 
-    constructor(unit: Unit, active: boolean = true){
+    constructor(unit: Unit = Unit.default, active: boolean = true){
         super();
         this.unit = unit;
         this.active = active;

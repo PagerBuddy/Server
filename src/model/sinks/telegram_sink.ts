@@ -1,5 +1,5 @@
 import { DateTime } from "luxon";
-import { Entity, PrimaryGeneratedColumn, Column, BaseEntity } from "typeorm";
+import { ChildEntity, PrimaryGeneratedColumn, Column, BaseEntity } from "typeorm";
 import TelegramConnector from "../../connectors/telegram";
 import Alert from "../alert";
 import AlertResponse from "../response/alert_response";
@@ -9,7 +9,7 @@ import { UnitSubscription } from "../unit";
 import User from "../user";
 import GroupSink from "./group_sink";
 
-@Entity()
+@ChildEntity()
 export default class TelegramSink extends GroupSink{
 
     @Column()
@@ -24,7 +24,13 @@ export default class TelegramSink extends GroupSink{
     @Column()
     private locale: string;
 
-    public constructor(active: boolean = true, subscriptions: UnitSubscription[] = [], chatId: number, enableForSilentAlert: true, timeZone: string, locale: string){
+    public constructor(
+        active: boolean = false, 
+        subscriptions: UnitSubscription[] = [], 
+        chatId: number = 0, 
+        enableForSilentAlert: boolean = true, 
+        timeZone: string = "utc", 
+        locale: string = "en"){
         super(active, subscriptions);
         this.chatId = chatId;
         this.enableForSilentAlert = enableForSilentAlert;
