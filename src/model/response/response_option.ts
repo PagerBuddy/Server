@@ -1,5 +1,5 @@
 import { Duration } from "luxon";
-import { Entity, PrimaryGeneratedColumn, Column, BaseEntity } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, BaseEntity, Equal } from "typeorm";
 
 export enum RESPONSE_TYPE {CONFIRM, DELAY, DENY};
 
@@ -7,21 +7,21 @@ export enum RESPONSE_TYPE {CONFIRM, DELAY, DENY};
 export default class ResponseOption extends BaseEntity{
 
     @PrimaryGeneratedColumn()
-    id!: number;
+    public id!: number;
 
     @Column()
-    label: string;
+    public label: string;
 
     @Column()
-    enableEstimatedArrival: boolean;
+    public enableEstimatedArrival: boolean;
 
     @Column()
-    estimatedArrivalOffset: Duration;
+    public estimatedArrivalOffset: Duration;
 
     @Column()
-    type: RESPONSE_TYPE;
+    public type: RESPONSE_TYPE;
 
-    constructor(
+    public constructor(
         label: string = "", 
         type: RESPONSE_TYPE = RESPONSE_TYPE.DENY, 
         enableEstimatedArrival: boolean = false, 
@@ -32,9 +32,22 @@ export default class ResponseOption extends BaseEntity{
         this.enableEstimatedArrival = enableEstimatedArrival;
         this.estimatedArrivalOffset = estimatedArrivalOffset;
     }
+    
+    public static get default() : ResponseOption {
+        return new ResponseOption();
+    }
 
-    public static fromID(id: number) : ResponseOption | undefined {
-        //TODO: search options for Id and return
-        return undefined;
+    public equals(responseOption: ResponseOption): boolean {
+        return responseOption.id == this.id;
+    }
+
+    public static async fromID(id: number) : Promise<ResponseOption | null> {
+        const responseoption = await ResponseOption.findOne({
+            where: {
+                id: Equal(id)
+            }
+        });
+
+        return responseoption;
     }
 }

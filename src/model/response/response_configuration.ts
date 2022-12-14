@@ -14,16 +14,20 @@ export default class ResponseConfiguration extends BaseEntity{
     allowResponses: boolean;
 
     @Column()
-    @ManyToMany(() => ResponseOption)
+    @ManyToMany(() => ResponseOption, {eager: true, onDelete: "RESTRICT"})
     @JoinTable()
     options: ResponseOption[];
 
 
-    constructor(description: string = "", allowResponses: boolean = false, options: ResponseOption[] = []){
+    public constructor(description: string = "", allowResponses: boolean = false, options: ResponseOption[] = []){
         super();
         this.description = description;
         this.allowResponses = allowResponses;
         this.options = options;
+    }
+    
+    public static get default(){
+        return new ResponseConfiguration();
     }
 
     public addResponseOption(option: ResponseOption) : boolean {

@@ -10,7 +10,7 @@ export default class WebhookSink extends UserSink{
     @Column()
     url: string;
 
-    constructor(active: boolean = false, subscriptions: UnitSubscription[] = [], url: string = ""){
+    public constructor(active: boolean = false, subscriptions: UnitSubscription[] = [], url: string = ""){
         super(active, subscriptions);
         this.url = url;
     }

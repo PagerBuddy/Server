@@ -36,7 +36,7 @@ export default class User extends BaseEntity{
     role: USER_ROLE;
 
     @Column()
-    @ManyToMany(() => UserSink)
+    @ManyToMany(() => UserSink, {eager: true})
     @JoinTable()
     sinks: UserSink[];
 
@@ -59,6 +59,14 @@ export default class User extends BaseEntity{
         this.status = status;
         this.role = role;
         this.sinks = sinks;
+    }
+
+    public static get default() : User {
+        return new User();
+    }
+
+    public equals(user: User): boolean{
+        return user.id == this.id;
     }
 
     public handleAlert(alert: AlertResponse) : void {

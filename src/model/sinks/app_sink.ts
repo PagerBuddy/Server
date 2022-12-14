@@ -31,7 +31,7 @@ export default class AppSink extends UserSink{
     @Column()
     locale: string;
 
-    constructor(
+    public constructor(
         active: boolean = true, 
         subscriptions: UnitSubscription[] = [], 
         deviceToken: string = "", 

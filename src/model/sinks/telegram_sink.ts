@@ -44,9 +44,9 @@ export default class TelegramSink extends GroupSink{
         this.locale = locale;
     }
 
-    public static responseCallback(alertId: number, responseId: number, userName: string, chatId: number, timestamp: DateTime) : void {
-        const responseOption = ResponseOption.fromID(responseId);
-        const alert = AlertResponse.fromId(alertId);
+    public static async responseCallback(alertId: number, responseId: number, userName: string, chatId: number, timestamp: DateTime) : Promise<void> {
+        const responseOption = await ResponseOption.fromID(responseId);
+        const alert = await AlertResponse.fromId(alertId);
 
         const sink = alert?.group.alertSinks.find((sink) => {
             return sink instanceof TelegramSink && sink.chatId == chatId;

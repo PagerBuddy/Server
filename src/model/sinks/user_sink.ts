@@ -8,7 +8,7 @@ import AlertSink from "./alert_sink";
 @ChildEntity()
 export default abstract class UserSink extends AlertSink{
 
-    constructor(active: boolean = false, subscriptions: UnitSubscription[] = []){
+    public constructor(active: boolean = false, subscriptions: UnitSubscription[] = []){
         super(active, subscriptions);
     }
 

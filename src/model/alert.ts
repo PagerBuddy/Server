@@ -28,17 +28,17 @@ export default class Alert extends BaseEntity{
     informationContent: INFORMATION_CONTENT;
 
     @Column()
-    @ManyToOne(() => Unit)
+    @ManyToOne(() => Unit, {eager: true, onDelete: "CASCADE"})
     readonly unit: Unit;
 
     @Column()
-    @ManyToMany(() => AlertSource)
+    @ManyToMany(() => AlertSource, {eager: true})
     @JoinTable()
     sources: AlertSource[];
 
     private updateCallbacks: ((update: Alert) => void)[] = [];
 
-    constructor(
+    public constructor(
         unit: Unit = Unit.default, 
         timestamp: DateTime = DateTime.fromMillis(0), 
         informationContent: INFORMATION_CONTENT = INFORMATION_CONTENT.NONE,  
@@ -54,6 +54,10 @@ export default class Alert extends BaseEntity{
             this.message = message;
             this.location = location;
             this.sources = sources;
+    }
+
+    public static get default(){
+        return new Alert();
     }
 
     get isSilentAlert(): boolean {

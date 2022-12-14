@@ -25,7 +25,7 @@ export default class Unit extends BaseEntity{
     unitCode: number;
 
     @Column()
-    @ManyToOne(() => SilentConfiguration)
+    @ManyToOne(() => SilentConfiguration, {eager: true, onDelete: "RESTRICT"})
     silentTime: SilentConfiguration;
 
     constructor(
@@ -69,7 +69,7 @@ export class UnitSubscription extends BaseEntity{
     id!: number;
 
     @Column()
-    @ManyToOne(() => Unit)
+    @ManyToOne(() => Unit, {eager: true, onDelete: "CASCADE"})
     unit: Unit;
 
     @Column()

@@ -1,5 +1,7 @@
+import { Equal, MoreThan } from "typeorm";
 import Alert from "./model/alert";
 import Group from "./model/group";
+import SystemConfiguration from "./model/system_configuration";
 
 
 export default class AlertRouter{
@@ -12,15 +14,31 @@ export default class AlertRouter{
         return AlertRouter.instance;
     }
 
+    private constructor(){}
+
     //Alerts are received from alert sources and emitted
     //They then have to be passed to all groups - the rest is handled there
 
     public async handleAlert(alert: Alert){
-        //TODO: Detect and filter double alerts here (forward  if information update only)
 
-        const groupList = await Group.find();
-        groupList.forEach((group) => {
-            group.handleAlert(alert);
-        })
+        const oldAlert = await Alert.findOne({
+            where: {
+                unit: Equal(alert.unit),
+                timestamp: MoreThan(alert.timestamp.minus(SystemConfiguration.doubleAlertTimeout))
+            }
+        });
+
+        if(oldAlert){
+            //Alerts belong together
+            oldAlert.alertUpdate(alert);
+        }else{
+            //new Alert
+            const groupList = await Group.find();
+            groupList.forEach((group) => {
+                group.handleAlert(alert);
+            });
+        }
+
+        //TODO: Persist alert here?
     }
 }

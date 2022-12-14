@@ -9,37 +9,41 @@ import ResponseOption, { RESPONSE_TYPE } from "./response_option";
 export default class UserResponse extends BaseEntity{
 
     @PrimaryGeneratedColumn()
-    id!: string;
+    private id!: string;
 
     @Column()
-    timestamp: DateTime;
+    public timestamp: DateTime;
     
     @Column()
-    @ManyToOne(() => AlertSink)
-    responseSource: AlertSink;
+    @ManyToOne(() => AlertSink, {eager: true, onDelete: "RESTRICT"})
+    public responseSource: AlertSink;
 
     @Column()
-    @ManyToOne(() => User)
-    user: User;
+    @ManyToOne(() => User, {eager: true, onDelete: "CASCADE"})
+    public user: User;
 
     @Column()
-    @ManyToOne(() => ResponseOption)
-    response: ResponseOption;
+    @ManyToOne(() => ResponseOption, {eager: true, onDelete: "RESTRICT"})
+    public response: ResponseOption;
 
     @Column()
-    @OneToMany(() => AlertResponse, (alertResponse) => alertResponse.responses)
-    alertResponse!: AlertResponse;
+    @OneToMany(() => AlertResponse, (alertResponse) => alertResponse.responses, {eager: true, onDelete: "CASCADE"})
+    public alertResponse!: AlertResponse;
 
-    constructor(
-        timestamp: DateTime, 
-        responseSource: AlertSink, 
-        user: User, 
-        response: ResponseOption){
+    public constructor(
+        timestamp: DateTime = DateTime.fromMillis(0), 
+        responseSource: AlertSink = AlertSink.default, 
+        user: User = User.default, 
+        response: ResponseOption = ResponseOption.default){
         super();
         this.timestamp = timestamp;
         this.responseSource = responseSource;
         this.user = user;
         this.response = response;
+    }
+
+    public equals(userResponse: UserResponse): boolean{
+        return userResponse.id == this.id;
     }
 
     public static countResponsesForOption(userResponses: UserResponse[], option: ResponseOption) : number {

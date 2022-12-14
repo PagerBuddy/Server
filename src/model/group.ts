@@ -15,52 +15,61 @@ export default class Group extends BaseEntity {
     name: string;
 
     @Column()
-    @ManyToMany(() => Unit)
+    @ManyToMany(() => Unit, {eager: true})
     @JoinTable()
     units: Unit[];
 
     @Column()
-    @ManyToMany(() => User)
+    @ManyToMany(() => User, {eager: true})
     @JoinTable()
     leaders: User[];
 
     @Column()
-    @ManyToMany(() => User)
+    @ManyToMany(() => User, {eager: true})
     @JoinTable()
     members: User[];
 
     @Column()
-    @ManyToOne(() => ResponseConfiguration)
+    @ManyToOne(() => ResponseConfiguration, {eager: true, onDelete: "RESTRICT"})
     responseConfiguration: ResponseConfiguration;
 
     @Column()
+    @OneToMany(() => GroupSink, (groupSink) => groupSink.group, {eager: true})
     alertSinks: GroupSink[];
 
     @Column()
-    @OneToMany(() => Group, (group) => group.parentGroup)
+    @OneToMany(() => Group, (group) => group.parentGroup, {eager: true})
     subGroups: Group[];
 
     @Column()
-    @ManyToOne(() => Group, (group) => group.subGroups)
+    @ManyToOne(() => Group, (group) => group.subGroups, {eager: true, onDelete: "CASCADE"})
     parentGroup!: Group;
 
     constructor(); //This seems to be needed as an (optional) constructor signature for TypeORM
     constructor(
-        name?: string,
+        name: string = "",
         alertSinks: GroupSink[] = [],
         units: Unit[] = [],
         leaders: User[] = [],
         members: User[] = [],
-        responseConfiguration?: ResponseConfiguration,
+        responseConfiguration: ResponseConfiguration = ResponseConfiguration.default,
         subGroups: Group[] = []) {
         super();
-        this.name = name ?? "";
+        this.name = name;
         this.alertSinks = alertSinks;
         this.units = units;
         this.leaders = leaders;
         this.members = members;
-        this.responseConfiguration = responseConfiguration ?? new ResponseConfiguration("");
+        this.responseConfiguration = responseConfiguration;
         this.subGroups = subGroups;
+    }
+
+    public equals(group: Group): boolean{
+        return group.id == this.id;
+    }
+
+    public static get default(){
+        return new Group();
     }
 
     private isRelevantAlert(alert: Alert): boolean {

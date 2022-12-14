@@ -21,7 +21,7 @@ export default class AlertSourceHardwareInterface extends AlertSource{
 
     private websocket?: WebsocketConnector;
 
-    constructor(
+    public constructor(
         description: string = "", 
         lastAlertTimestamp: DateTime = DateTime.fromMillis(0), 
         lastStatusTimestamp: DateTime = DateTime.fromMillis(0),

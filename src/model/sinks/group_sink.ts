@@ -1,5 +1,6 @@
-import { ChildEntity, PrimaryGeneratedColumn, Column, BaseEntity } from "typeorm";
+import { ChildEntity, PrimaryGeneratedColumn, Column, BaseEntity, ManyToOne, JoinColumn } from "typeorm";
 import alert from "../alert";
+import { Group } from "../group.mjs";
 import AlertResponse from "../response/alert_response";
 import UserResponse from "../response/user_response";
 import { UnitSubscription } from "../unit";
@@ -8,7 +9,11 @@ import AlertSink from "./alert_sink";
 @ChildEntity()
 export default abstract class GroupSink extends AlertSink{
 
-    constructor(active: boolean = false, subscriptions: UnitSubscription[] = []){
+    @Column()
+    @ManyToOne(() => Group)
+    public group!: Group; 
+
+    public constructor(active: boolean = false, subscriptions: UnitSubscription[] = []){
         super(active, subscriptions);
     }
 

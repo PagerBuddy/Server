@@ -1,7 +1,6 @@
-import { Entity, PrimaryGeneratedColumn, Column, BaseEntity, OneToOne, JoinColumn, ManyToOne, OneToMany } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, BaseEntity, OneToOne, JoinColumn, ManyToOne, OneToMany, Equal } from "typeorm";
 import Alert from "../alert";
 import Group from "../group";
-import { User } from "../user.mjs";
 import UserResponse from "./user_response";
 
 /**
@@ -11,23 +10,23 @@ import UserResponse from "./user_response";
 export default class AlertResponse extends BaseEntity{
 
     @PrimaryGeneratedColumn()
-    id!: number;
+    public id!: number;
 
     @Column()
-    @ManyToOne(() => Alert, {eager: true})
+    @ManyToOne(() => Alert, {eager: true, onDelete: "CASCADE"})
     public alert: Alert;
 
     @Column()
-    @ManyToOne(() => Group)
+    @ManyToOne(() => Group, {eager: true, onDelete: "CASCADE"})
     public group: Group;
 
     @Column()
-    @OneToMany(() => UserResponse, (response) => response.alertResponse)
-    responses: UserResponse[];
+    @OneToMany(() => UserResponse, (response) => response.alertResponse, {eager: true, onDelete: "RESTRICT"})
+    public responses: UserResponse[];
 
     private updateCallbacks: ((update: AlertResponse) => void)[] = [];
 
-    public constructor(alert: Alert, group: Group, responses: UserResponse[] = []){
+    public constructor(alert: Alert = Alert.default, group: Group = Group.default, responses: UserResponse[] = []){
         super();
         this.alert = alert;
         this.group = group;
@@ -46,8 +45,20 @@ export default class AlertResponse extends BaseEntity{
     }
 
     public userResponded(newResponse: UserResponse): void {
-        //TODO: Update responses - check for change
-        //Notify sinks on info update
+        const oldResponse = this.responses.find((response) => response.user.equals(newResponse.user));
+
+        if(oldResponse && oldResponse.response.equals(newResponse.response)){
+            //Response is known and has not changed
+            return;
+        }else if(oldResponse){
+            //Response is known, but has changed
+            this.responses = this.responses.filter((response) => !response.equals(oldResponse));
+            oldResponse.remove();
+        }
+        
+        newResponse.alertResponse = this;
+        newResponse.save();
+        this.responses.push(newResponse);
 
         this.updateCallbacks.forEach(callback => {
             callback(this);
@@ -66,9 +77,14 @@ export default class AlertResponse extends BaseEntity{
         return userResponses;
     }
 
-    public static fromId(id: number) : AlertResponse | undefined {
-        //TODO: search all for id match
-        return undefined;
+    public static async fromId(id: number) : Promise<AlertResponse | null> {
+
+        const alertResponse = await AlertResponse.findOne({
+            where: {
+                id: Equal(id)
+            }
+        });
+        return alertResponse;
     }
 
 }

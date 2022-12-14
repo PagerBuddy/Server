@@ -1,6 +1,7 @@
 import { Duration } from "luxon";
 import AlertSource from "../sources/alert_source";
-import HealthCheckItem from "./health_check_item";
+import AlertSourceHardwareInterface from "../sources/alert_source_hardware_interface";
+import HealthCheckItem, { HealthCheckItemReport } from "./health_check_item";
 import HealthCheckItemTime from "./health_check_item_time";
 
 
@@ -44,5 +45,23 @@ export default class HealthCheckAlertSource{
         return await this.alertHealthCheck.isHealthy() && await this.statusHealthCheck.isHealthy();
     }
 
+    public async getReport() : Promise<HealthCheckAlertSourceReport>{
+        const report : HealthCheckAlertSourceReport = {
+            sourceDescription: this.sourceDescription,
+            overallStatus: await this.isHealthy(),
+            checks: [await this.alertHealthCheck.getReport(), await this.statusHealthCheck.getReport()]
+        }
 
+        if(this.alertSource instanceof AlertSourceHardwareInterface){
+            report.sourceSiteId = this.alertSource.siteId;
+        }
+        return report;
+    }
+}
+
+export type HealthCheckAlertSourceReport = {
+    sourceDescription: string,
+    sourceSiteId?: string,
+    overallStatus: boolean,
+    checks: HealthCheckItemReport[]
 }

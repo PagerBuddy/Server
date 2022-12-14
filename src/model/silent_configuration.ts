@@ -17,7 +17,7 @@ export default abstract class SilentConfiguration extends BaseEntity{
     @Column()
     description: string;
 
-    constructor(description:string = ""){
+    public constructor(description:string = ""){
         super();
         this.description = description;
     }

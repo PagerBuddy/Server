@@ -21,7 +21,7 @@ export default class AlertSourceKatSys extends AlertSource{
 
     private katSysConnector?: KatSysConnector;
 
-    constructor(
+    public constructor(
         description: string = "", 
         lastAlertTimestamp: DateTime = DateTime.fromMillis(0), 
         lastStatusTimestamp: DateTime = DateTime.fromMillis(0),

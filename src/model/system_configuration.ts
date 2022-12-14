@@ -1,3 +1,4 @@
+import { Duration } from "luxon";
 import { Entity, PrimaryGeneratedColumn, Column, BaseEntity } from "typeorm";
 import { TelegramLogTarget } from "../log";
 
@@ -36,6 +37,17 @@ export default class SystemConfiguration extends BaseEntity{
 
     public static get telegramLogTargetIds() : TelegramLogTarget[]{
         return SystemConfiguration.getInstance().sysTelegramLogTargetIds;
+    }
+
+    @Column()
+    private sysDoubleAlertTimeout : Duration = Duration.fromObject({minutes: 5});
+
+    public static get doubleAlertTimeout() : Duration{
+        return SystemConfiguration.getInstance().sysDoubleAlertTimeout;
+    }
+
+    public constructor(){
+        super();
     }
 
     public static getInstance() : SystemConfiguration{
