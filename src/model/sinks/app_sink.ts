@@ -1,6 +1,7 @@
 import { DateTime } from "luxon";
 import { Entity, PrimaryGeneratedColumn, Column, BaseEntity, Timestamp } from "typeorm";
 import FirebaseConnector from "../../connectors/firebase";
+import Log from "../../log";
 import AccessToken from "../access_token";
 import AlertResponse from "../response/alert_response";
 import UserResponse from "../response/user_response";
@@ -30,6 +31,8 @@ export default class AppSink extends UserSink{
 
     @Column()
     locale: string;
+
+    private log = Log.getLogger(AppSink.name);
 
     public constructor(
         active: boolean = true, 
@@ -73,13 +76,20 @@ export default class AppSink extends UserSink{
                 locale: this.locale
             };
 
-            await FirebaseConnector.getInstance().sendAlert(this.deviceToken, alertPayload, configuration, this.invalidTokenCallback);
+            const firebase = await FirebaseConnector.getInstance();
+            if(firebase){
+                firebase.sendAlert(this.deviceToken, alertPayload, configuration, this.invalidTokenCallback);
 
-            alert.registerUpdateCallback(async (update: AlertResponse) => {
-                const updatePayload = update.alert.getSerialisableAlert();
+                alert.registerUpdateCallback(async (update: AlertResponse) => {
+                    const updatePayload = update.alert.getSerialisableAlert();
+    
+                    firebase.sendAlert(this.deviceToken, updatePayload, configuration, this.invalidTokenCallback);
+                });
 
-                await FirebaseConnector.getInstance().sendAlert(this.deviceToken, updatePayload, configuration, this.invalidTokenCallback);
-            });
+            }else{
+                this.log.info("Firebase disabled. Cannot emit alert to FCM.");
+            }
+
         }
     }
 

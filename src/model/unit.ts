@@ -1,5 +1,5 @@
 import { DateTime } from "luxon";
-import { Entity, PrimaryGeneratedColumn, Column, BaseEntity, ManyToOne } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, BaseEntity, ManyToOne, Equal } from "typeorm";
 import { isEntityName } from "typescript";
 import Alert from "./alert";
 import SilentConfiguration, { SilentNever } from "./silent_configuration";
@@ -53,13 +53,17 @@ export default class Unit extends BaseEntity{
     }
 
     /**
-     * Search existing units for matching code. Returns a unit stub if no matchin unit is found.
+     * Search existing units for matching code. Returns a unit stub if no matching unit is found.
      * @param unitCode 
      */
-    public static fromUnitCode(unitCode: number) : Unit{
-        //TODO: search db for matching units
+    public static async fromUnitCode(unitCode: number) : Promise<Unit>{
+        const unit = await Unit.findOne({
+            where: {
+                unitCode: Equal(unitCode)
+            }
+        });
 
-        return new Unit("", "", unitCode);
+        return unit ?? new Unit("", "", unitCode, new SilentNever(""));
     }
 }
 

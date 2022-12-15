@@ -63,6 +63,7 @@ export default class AlertResponse extends BaseEntity{
         this.updateCallbacks.forEach(callback => {
             callback(this);
         });
+        this.save();
     }
 
     public registerUpdateCallback(callback: (update: AlertResponse) => void){

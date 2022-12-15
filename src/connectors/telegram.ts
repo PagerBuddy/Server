@@ -62,7 +62,10 @@ export default class TelegramConnector {
         });
     }
 
-    public static getInstance() {
+    public static getInstance(): TelegramConnector | undefined {
+        if (!SystemConfiguration.telegramBotEnabled) {
+            return undefined;
+        }
         if (!TelegramConnector.instance) {
             TelegramConnector.instance = new TelegramConnector();
         }
@@ -70,7 +73,7 @@ export default class TelegramConnector {
     }
 
     public sendAlert(
-        chatId: number, 
+        chatId: number,
         alert: Alert,
         msgId: number = 0,
         msgText: string = ""): { awaitableResult: Promise<TelegramSendResult>, cancellationToken: AbortController, messageText: string } {
@@ -88,31 +91,31 @@ export default class TelegramConnector {
         outText.push(LINE_BREAK, "<a href='", PAGERBUDDY_URL, "'>PagerBuddy</a>");
 
         const message = outText.join("");
-        if(msgText == message){
+        if (msgText == message) {
             //Do not bother with update - text has not changed
-            return {awaitableResult: Promise.resolve(new TelegramSendResult(true, false, msgId)), cancellationToken: new AbortController(), messageText: message};
+            return { awaitableResult: Promise.resolve(new TelegramSendResult(true, false, msgId)), cancellationToken: new AbortController(), messageText: message };
         }
 
         const cancellationToken = new AbortController();
         let queueResult;
-        if(msgId != 0){
+        if (msgId != 0) {
             //We have an update
             queueResult = this.outputQueue.add(async () => {
                 return await this.sendMessage(chatId, message);
-            }, { priority: TelegramConnector.PRIORITY_ALERT, signal: cancellationToken.signal});
-        }else{
+            }, { priority: TelegramConnector.PRIORITY_ALERT, signal: cancellationToken.signal });
+        } else {
             queueResult = this.outputQueue.add(async () => {
                 return await this.sendMessage(chatId, message);
-            }, { priority: TelegramConnector.PRIORITY_ALERT, signal: cancellationToken.signal});
+            }, { priority: TelegramConnector.PRIORITY_ALERT, signal: cancellationToken.signal });
         }
 
-        return {awaitableResult: queueResult, cancellationToken: cancellationToken, messageText: message};
+        return { awaitableResult: queueResult, cancellationToken: cancellationToken, messageText: message };
     }
 
-    public async sendText(chatId: number, message: string) : Promise<TelegramSendResult> {
+    public async sendText(chatId: number, message: string): Promise<TelegramSendResult> {
         return await this.outputQueue.add(async () => {
             return await this.sendMessage(chatId, message);
-        }, { priority: TelegramConnector.PRIORITY_STANDARD});
+        }, { priority: TelegramConnector.PRIORITY_STANDARD });
     }
 
     public sendResponseInterface(
@@ -126,8 +129,8 @@ export default class TelegramConnector {
         const message = this.getResponseInterfaceMessage(responses);
 
         //We have to ensure the message text has changed, as we cannot edit a message with no changes
-        if(message == msgText){
-            return {awaitableResult: Promise.resolve(new TelegramSendResult(true, false, msgId)), cancellationToken: new AbortController(), messageText: msgText};
+        if (message == msgText) {
+            return { awaitableResult: Promise.resolve(new TelegramSendResult(true, false, msgId)), cancellationToken: new AbortController(), messageText: msgText };
         }
 
         const keyboard = this.getResponseInterfaceKeyboard(alertId, responseConfiguration);
@@ -307,14 +310,14 @@ export default class TelegramConnector {
         return true;
     }
 
-    private handleCallback(query: TelegramBot.CallbackQuery){
-        if(!query.data || !query.message){
+    private handleCallback(query: TelegramBot.CallbackQuery) {
+        if (!query.data || !query.message) {
             return;
         }
 
         //Handle user replies to alert - this is unfortunately a bit of a guessing game when parsing users.
         const matchReply = query.data.match(/^reply#(?<alertId>[0-9]+)#%(?<replyId>[0-9]+)%/);
-        if(matchReply && matchReply.groups?.alertId && matchReply.groups.replyId){
+        if (matchReply && matchReply.groups?.alertId && matchReply.groups.replyId) {
             const alertId = parseInt(matchReply.groups.alertId);
             const replyId = parseInt(matchReply.groups.replyId);
 
@@ -325,13 +328,13 @@ export default class TelegramConnector {
             const timestamp = DateTime.now();
 
             TelegramSink.responseCallback(alertId, replyId, replyUser, replyChatId, timestamp);
-        }        
+        }
     }
 
-    private reportStatus(successfullRequest: boolean): void{
-        if(successfullRequest){
+    private reportStatus(successfullRequest: boolean): void {
+        if (successfullRequest) {
             this.errorStatusSince = DateTime.invalid("Placeholder");
-        }else if(!this.errorStatusSince.isValid){
+        } else if (!this.errorStatusSince.isValid) {
             this.errorStatusSince = DateTime.now();
         }
     }
@@ -343,7 +346,7 @@ export default class TelegramConnector {
         }, period * 1000);
     }
 
-    private botErrorOperation(error: Error) : void {
+    private botErrorOperation(error: Error): void {
         this.botErrorSend(error, 0);
     }
 
@@ -407,6 +410,27 @@ export default class TelegramConnector {
             this.log.error("An unkown error occurred in telegram bot: " + error);
         }
         return new TelegramSendResult(false, resend, 0);
+    }
+
+
+    /**
+    * Cleanly empty queue and stop bot.
+    */
+    public async stop() {
+        this.outputQueue.pause();
+        this.outputQueue.clear();
+
+        await this.telegramBot.stopPolling({cancel: true});
+
+        try {
+            await this.telegramBot.close();
+        } catch (error : any) {
+            if (error?.response?.statusCode == 429) {
+                //This is a standard flood error if bot is closed within 10min of opening - ignore
+            } else {
+                this.log.warn("Error stopping bot: " + error.message);
+            }
+        }
     }
 }
 

@@ -40,7 +40,7 @@ export default class AlertSourceHardwareInterface extends AlertSource{
     public async start(): Promise<void> {
         if(!this.websocket){
             this.websocket = await WebsocketConnector.getInstance();
-            this.websocket.addSite(new WebsocketSite(this.siteId, this.emitAlert, this.reportStatus));
+            this.websocket?.addSite(new WebsocketSite(this.siteId, this.emitAlert, this.reportStatus));
         }
     }
 

@@ -31,14 +31,14 @@ export default class AlertRouter{
         if(oldAlert){
             //Alerts belong together
             oldAlert.alertUpdate(alert);
+            await oldAlert.save();
         }else{
             //new Alert
+            await alert.save();
             const groupList = await Group.find();
             groupList.forEach((group) => {
                 group.handleAlert(alert);
             });
         }
-
-        //TODO: Persist alert here?
     }
 }

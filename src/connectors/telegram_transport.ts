@@ -6,7 +6,7 @@ import TelegramConnector from './telegram.js';
 
 export default class TelegramTransport extends Transport {
 
-    private telegramConnector: TelegramConnector;
+    private telegramConnector?: TelegramConnector;
 
     private logTargetChatId: number;
 
@@ -22,7 +22,7 @@ export default class TelegramTransport extends Transport {
             this.emit('logged', info);
         });
 
-        await this.telegramConnector.sendText(this.logTargetChatId, info.MESSAGE);
+        await this.telegramConnector?.sendText(this.logTargetChatId, info.MESSAGE);
         
         callback();
     }

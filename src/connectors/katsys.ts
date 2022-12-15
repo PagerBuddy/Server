@@ -69,7 +69,7 @@ export default class KatSysConnector{
         socket.on("ping", () => {
             this.statusCallback(DateTime.now());
         });
-        socket.on("message", (data: string) => {
+        socket.on("message", async (data: string) => {
             const jsonData = JSON.parse(data) as KatSysJsonUpdate;
         
             if (jsonData.statusClass == "success") {
@@ -81,7 +81,7 @@ export default class KatSysConnector{
     
             if (jsonData.statusCode == "alarm_data" && jsonData.data) {
                 const alert = new KatSysAlert(jsonData.data.textElements, KatSysConnector.TIMEZONE);
-                this.handle_alert(alert);
+                await this.handle_alert(alert);
             }
     
         });
@@ -100,11 +100,11 @@ export default class KatSysConnector{
      * @param {KatSysAlert} alert_data 
      * @returns {void}
      */
-    private handle_alert(katSysAlert: KatSysAlert) : void {
+    private async handle_alert(katSysAlert: KatSysAlert) : Promise<void> {
 
-        katSysAlert.getRelevantSchleifen(this.decodeChannels).forEach(schleife => {
+        katSysAlert.getRelevantSchleifen(this.decodeChannels).forEach(async schleife => {
             const sAlert = new Alert(
-                Unit.fromUnitCode(schleife.unitId),
+                await Unit.fromUnitCode(schleife.unitId),
                 schleife.alertTimestamp,
                 INFORMATION_CONTENT.COMPLETE,
                 katSysAlert.keyword,

@@ -10,7 +10,7 @@ import AlertSource from "./alert_source";
 export default class AlertSourceManual extends AlertSource{
 
 
-    protected constructor(
+    public constructor(
         description: string = "", 
         lastAlertTimestamp: DateTime = DateTime.fromMillis(0), 
         lastStatusTimestamp: DateTime = DateTime.fromMillis(0)){

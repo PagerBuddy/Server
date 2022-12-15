@@ -17,7 +17,10 @@ export default class WebsocketConnector{
 
     private subscriptions : WebsocketSite[] = [];
 
-    public static async getInstance() : Promise<WebsocketConnector>{
+    public static async getInstance() : Promise<WebsocketConnector | undefined>{
+        if(!SystemConfiguration.websocketEnabled){
+            return undefined
+        }
         if(!this.instance){
             this.instance = new WebsocketConnector();
             await this.instance.connect();
@@ -62,12 +65,12 @@ export default class WebsocketConnector{
             socket.on('zvei', async (data : WebsocketZveiData) => {
                 this.log.debug(`Received ZVEI alert ${data.zvei} from ${data.siteId}`);
                 
-                this.handleAlert(data);
+                await this.handleAlert(data);
             });
             socket.on('aprt', async (data : WebsocketAprtData) => {
                 this.log.debug(`Received APRT alert ${data.subZvei} from ${data.siteId}`);
 
-                this.handleAlert(data);
+                await this.handleAlert(data);
             });
             socket.on('status', (data : WebSocketStatusData) => {
                 //TODO: Eventually do something with this info
@@ -94,7 +97,7 @@ export default class WebsocketConnector{
         });
     }
 
-    private handleAlert(websocketAlert: WebsocketZveiData | WebsocketAprtData){
+    private async handleAlert(websocketAlert: WebsocketZveiData | WebsocketAprtData): Promise<void>{
 
         const timestamp = DateTime.fromMillis(websocketAlert.timestamp, {zone: "utc"});
 
@@ -114,7 +117,7 @@ export default class WebsocketConnector{
         }
 
         const sAlert = new Alert(
-            Unit.fromUnitCode(unitId), 
+            await Unit.fromUnitCode(unitId), 
             timestamp, 
             informationContent,
             keyword,

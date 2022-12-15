@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, BaseEntity, ManyToMany, JoinTable } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, BaseEntity, ManyToMany, JoinTable, Equal } from "typeorm";
 import AlertResponse from "./response/alert_response";
 import UserSink from "./sinks/user_sink";
 
@@ -81,9 +81,17 @@ export default class User extends BaseEntity{
         return `${this.firstName} ${this.lastName}`;
     }
 
-    public static fromTelegramName(userName: string) : User | undefined{
-        //TODO: Find user as a match of userName
-        return undefined;
+    public static async fromTelegramName(userName: string) : Promise<User | null>{
+        if(!userName || userName.length < 2){
+            return null;
+        }
+        const user = await User.findOne({
+            where: {
+                telegramUserName: Equal(userName)
+            }
+        });
+
+        return user;
     }
 
 

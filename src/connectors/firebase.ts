@@ -5,6 +5,7 @@ import { SerialisableAlert } from "../model/alert";
 import { request } from 'https';
 import { IncomingMessage } from "http";
 import { DateTime } from "luxon";
+import SystemConfiguration from "../model/system_configuration";
 
 export default class FirebaseConnector {
 
@@ -13,7 +14,12 @@ export default class FirebaseConnector {
 
     private accessToken?: Credentials;
 
-    public static getInstance() {
+    private constructor(){}
+
+    public static getInstance() : FirebaseConnector | undefined{
+        if(!SystemConfiguration.firebaseEnabled){
+            return undefined;
+        }
         if (!FirebaseConnector.instance) {
             FirebaseConnector.instance = new FirebaseConnector();
         }
@@ -31,7 +37,7 @@ export default class FirebaseConnector {
     }
 
     private async sendFirebaseMessage(message: string, invalidTokenCallback: () => void): Promise<boolean> {
-        const key = FCM_CREDENTIALS;
+        const key = SystemConfiguration.firebaseCredentials;
 
         const options = {
             hostname: 'fcm.googleapis.com',
@@ -107,7 +113,7 @@ export default class FirebaseConnector {
         const MESSAGING_SCOPE = 'https://www.googleapis.com/auth/firebase.messaging';
         const SCOPES = [MESSAGING_SCOPE];
 
-        const key = FCM_CREDENTIALS;
+        const key = SystemConfiguration.firebaseCredentials;
         const jwtClient = new google.auth.JWT(
             key.client_email,
             "",
@@ -208,4 +214,17 @@ export type FirebaseAlertConfiguration = {
 
 function isCredentials(a: any): a is Credentials {
     return a?.access_token ? true : false;
+}
+
+export type FirebaseCredentials = {
+    type: string,
+    project_id: string,
+    private_key_id: string,
+    private_key: string,
+    client_email: string,
+    client_id: string,
+    auth_uri: string,
+    token_uri: string,
+    auth_provider_x509_cert_url: string,
+    client_x509_cert_url: string
 }

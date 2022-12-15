@@ -1,6 +1,7 @@
 import { DateTime } from "luxon";
 import { ChildEntity, PrimaryGeneratedColumn, Column, BaseEntity } from "typeorm";
 import TelegramConnector from "../../connectors/telegram";
+import Log from "../../log";
 import Alert from "../alert";
 import AlertResponse from "../response/alert_response";
 import ResponseOption from "../response/response_option";
@@ -23,6 +24,8 @@ export default class TelegramSink extends GroupSink{
 
     @Column()
     private locale: string;
+
+    private log = Log.getLogger(TelegramSink.name);
 
     public constructor(
         active: boolean = false, 
@@ -52,7 +55,7 @@ export default class TelegramSink extends GroupSink{
             return sink instanceof TelegramSink && sink.chatId == chatId;
         });
 
-        const user = User.fromTelegramName(userName);
+        const user = await User.fromTelegramName(userName);
         const userInGroup = alert?.group.members.some((member) => member.id == user?.id);
 
         if(responseOption && sink && user && userInGroup){
@@ -68,6 +71,12 @@ export default class TelegramSink extends GroupSink{
             const localisedAlert = alert.alert.getLocalisedCopy(this.timeZone, this.locale);
 
             const telegramConnector = TelegramConnector.getInstance();
+
+            if(!telegramConnector){
+                this.log.info("Telegram bot disabled. Cannot emit alert to Telegram.");
+                return;
+            }
+
             const alertResult = telegramConnector.sendAlert(this.chatId, localisedAlert);
 
             const messageResult = await alertResult.awaitableResult;
@@ -127,7 +136,17 @@ export default class TelegramSink extends GroupSink{
      * @param oldChatId 
      * @param newChatId 
      */
-    public static migrateChatId(oldChatId: number, newChatId: number): void{
-        //TODO: Iterate instances and search for all occurances of oldId
+    public static async migrateChatId(oldChatId: number, newChatId: number): Promise<void>{
+
+        const relevantSinks = await TelegramSink.find({
+            where: {
+                chatId: oldChatId
+            }
+        });
+
+        relevantSinks.forEach(sink => {
+            sink.chatId = newChatId;
+            sink.save();
+        });
     }
 }
