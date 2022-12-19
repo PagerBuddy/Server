@@ -9,9 +9,9 @@ export default class HealthCheckAlertSource{
 
     private alertSource: AlertSource;
  
-    private alertHealthCheck: HealthCheckItemTime;
+    public alertHealthCheck: HealthCheckItemTime;
 
-    private statusHealthCheck: HealthCheckItemTime;
+    public statusHealthCheck: HealthCheckItemTime;
 
     public get sourceDescription() : string {
         return this.alertSource.description;

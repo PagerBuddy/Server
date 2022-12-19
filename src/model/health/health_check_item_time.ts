@@ -30,8 +30,8 @@ export default class HealthCheckItemTime extends HealthCheckItem{
             "Requests to Telegram are successfull.",
             Duration.fromObject({seconds: 30}),
             async () => {
-                const failMoment = TelegramConnector.getInstance().errorStatusSince;
-                if(!failMoment.isValid){
+                const failMoment = TelegramConnector.getInstance()?.errorStatusSince;
+                if(!failMoment?.isValid){
                     return DateTime.now();
                 }else{
                     return failMoment;

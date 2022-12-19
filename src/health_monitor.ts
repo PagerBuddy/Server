@@ -44,10 +44,53 @@ export default class HealthMonitor{
 
     /**
      * Check if the health status has changed and report any substantial updates.
-     * Intended for periodic helath checks.
+     * Intended for periodic health checks.
      */
-    private checkHealth(){
+    private async checkHealth(){
         //TODO: Implement this
+        this.sourceHealthChecks.forEach(async sourceCheck => {
+            const alertStat = await sourceCheck.alertHealthCheck.isHealthy();
+            if(sourceCheck.alertHealthCheck.notifiedAsUnhealthyStatus != alertStat){
+                sourceCheck.alertHealthCheck.notifiedAsUnhealthyStatus = alertStat;
+                this.reportSourceStatusChange(sourceCheck, sourceCheck.alertHealthCheck, alertStat);
+            }
+            const statusStat = await sourceCheck.statusHealthCheck.isHealthy();
+            if(sourceCheck.statusHealthCheck.notifiedAsUnhealthyStatus != statusStat){
+                this.reportSourceStatusChange(sourceCheck, sourceCheck.statusHealthCheck, statusStat);
+            }
+        });
+        this.specialHealthChecks.forEach(async specialCheck => {
+            const specialStat = await specialCheck.isHealthy();
+            if(specialCheck.notifiedAsUnhealthyStatus != specialStat){
+                this.reportStatusChange(specialCheck, specialStat);
+            }
+        });
+
+    }
+
+    private static toTextDescription(state: boolean) : string{
+        if(state){
+            return "Status: OK";
+        }else{
+            return "Status: NOT OK";
+        }
+    }
+
+    private reportSourceStatusChange(sourceCheck: HealthCheckAlertSource, healthCheck: HealthCheckItem, newState: boolean) : void{
+        const text = [];
+        text.push(sourceCheck.sourceDescription, "\n", healthCheck.description, "\n", HealthMonitor.toTextDescription(newState), "\n");
+        this.outputHealth(text.join(""));
+    }
+
+    private reportStatusChange(healthCheck: HealthCheckItem, newState: boolean) : void{
+        const text = [];
+        text.push(healthCheck.description, "\n", HealthMonitor.toTextDescription(newState), "\n");
+        this.outputHealth(text.join(""));
+    }
+
+    private outputHealth(message: string): void{
+        const outText = "New status change:\n" + message;
+        //TODO: Output this to email/Telegram/...
     }
 
     private async fillSourceChecks() : Promise<void> {

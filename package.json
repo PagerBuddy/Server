@@ -33,7 +33,7 @@
         "npm": ">=6.13.5"
     },
     "scripts": {
-        "start": "node scripts/start.mjs",
+        "start": "node scripts/start",
         "debug": "node scripts/start.mjs",
         "postinstall": "node scripts/postinstall.mjs",
         "cleanup": "node scripts/cleanup.mjs",

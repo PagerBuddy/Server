@@ -41,7 +41,6 @@ export default class TelegramConnector {
     private log = Log.getLogger(TelegramConnector.name);
 
     private constructor() {
-        //TODO: setup stuff here
         this.outputQueue = new PQueue({ concurrency: 1, interval: 1000, intervalCap: TelegramConnector.OUPUT_PER_SECOND });
 
         this.telegramBot = new TelegramBot(SystemConfiguration.telegramBotToken, {

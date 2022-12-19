@@ -8,7 +8,7 @@ export default class Database{
     //TODO: Fill with sensible values and decide on db technology
     private static appDataSource = new DataSource({
         type: "sqlite",
-        database: ""
+        database: "data/test.db"
     });
 
     public static async connect() : Promise<void>{
