@@ -1,4 +1,4 @@
-import { ChildEntity, PrimaryGeneratedColumn, Column, BaseEntity, ManyToOne, JoinColumn } from "typeorm";
+import { ChildEntity, PrimaryGeneratedColumn, Column, BaseEntity, ManyToOne, JoinColumn, Relation } from "typeorm";
 import alert from "../alert.js";
 import Group from "../group.js";
 import AlertResponse from "../response/alert_response.js";
@@ -11,7 +11,7 @@ export default abstract class GroupSink extends AlertSink{
 
     @Column()
     @ManyToOne(() => Group)
-    public group!: Group; 
+    public group!: Relation<Group>; 
 
     public constructor(active: boolean = false, subscriptions: UnitSubscription[] = []){
         super(active, subscriptions);

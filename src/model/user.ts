@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, BaseEntity, ManyToMany, JoinTable, Equal } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, BaseEntity, ManyToMany, JoinTable, Equal, Relation } from "typeorm";
 import AlertResponse from "./response/alert_response.js";
 import UserSink from "./sinks/user_sink.js";
 
@@ -38,7 +38,7 @@ export default class User extends BaseEntity{
     @Column()
     @ManyToMany(() => UserSink, {eager: true})
     @JoinTable()
-    sinks: UserSink[];
+    sinks: Relation<UserSink>[];
 
     constructor(
         firstName: string = "", 

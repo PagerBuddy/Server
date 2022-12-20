@@ -1,5 +1,5 @@
 import { DateTime } from "luxon";
-import { Entity, PrimaryGeneratedColumn, Column, BaseEntity, ManyToOne, Equal } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, BaseEntity, ManyToOne, Equal, Relation } from "typeorm";
 import { isEntityName } from "typescript";
 import Alert from "./alert.js";
 import SilentConfiguration, { SilentNever } from "./silent_configuration.js";
@@ -26,7 +26,7 @@ export default class Unit extends BaseEntity{
 
     @Column()
     @ManyToOne(() => SilentConfiguration, {eager: true, onDelete: "RESTRICT"})
-    silentTime: SilentConfiguration;
+    silentTime: Relation<SilentConfiguration>;
 
     constructor(
         name: string = "", 
@@ -74,7 +74,7 @@ export class UnitSubscription extends BaseEntity{
 
     @Column()
     @ManyToOne(() => Unit, {eager: true, onDelete: "CASCADE"})
-    unit: Unit;
+    unit: Relation<Unit>;
 
     @Column()
     active: boolean;

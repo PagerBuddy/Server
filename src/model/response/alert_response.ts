@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, BaseEntity, OneToOne, JoinColumn, ManyToOne, OneToMany, Equal } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, BaseEntity, OneToOne, JoinColumn, ManyToOne, OneToMany, Equal, Relation } from "typeorm";
 import Alert from "../alert.js";
 import Group from "../group.js";
 import UserResponse from "./user_response.js";
@@ -14,15 +14,15 @@ export default class AlertResponse extends BaseEntity{
 
     @Column()
     @ManyToOne(() => Alert, {eager: true, onDelete: "CASCADE"})
-    public alert: Alert;
+    public alert: Relation<Alert>;
 
     @Column()
     @ManyToOne(() => Group, {eager: true, onDelete: "CASCADE"})
-    public group: Group;
+    public group: Relation<Group>;
 
     @Column()
     @OneToMany(() => UserResponse, (response) => response.alertResponse, {eager: true, onDelete: "RESTRICT"})
-    public responses: UserResponse[];
+    public responses: Relation<UserResponse>[];
 
     private updateCallbacks: ((update: AlertResponse) => void)[] = [];
 

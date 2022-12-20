@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, BaseEntity, ManyToMany, JoinColumn, JoinTable } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, BaseEntity, ManyToMany, JoinColumn, JoinTable, Relation } from "typeorm";
 import ResponseOption from "./response_option.js";
 
 @Entity()
@@ -16,7 +16,7 @@ export default class ResponseConfiguration extends BaseEntity{
     @Column()
     @ManyToMany(() => ResponseOption, {eager: true, onDelete: "RESTRICT"})
     @JoinTable()
-    options: ResponseOption[];
+    options: Relation<ResponseOption>[];
 
 
     public constructor(description: string = "", allowResponses: boolean = false, options: ResponseOption[] = []){

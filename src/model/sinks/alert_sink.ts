@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, BaseEntity, OneToMany, ManyToMany, JoinTable, ChildEntity } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, BaseEntity, OneToMany, ManyToMany, JoinTable, ChildEntity, Relation } from "typeorm";
 import Alert from "../alert.js";
 import AlertResponse from "../response/alert_response.js";
 import UserResponse from "../response/user_response.js";
@@ -16,7 +16,7 @@ export default abstract class AlertSink extends BaseEntity{
     @Column()
     @ManyToMany(() => UnitSubscription, {eager: true})
     @JoinTable()
-    subscriptions: UnitSubscription[];
+    subscriptions: Relation<UnitSubscription>[];
 
     public constructor(active: boolean = false, subscriptions: UnitSubscription[] = []){
         super();

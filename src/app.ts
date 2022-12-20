@@ -13,6 +13,7 @@ const log = Log.getLogger("App");
 
 export async function start() {
     //Connect to data
+
     await Database.connect();
 
     //Start up sources

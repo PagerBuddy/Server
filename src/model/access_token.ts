@@ -1,5 +1,5 @@
 import { DateTime, Duration } from "luxon";
-import { Entity, PrimaryGeneratedColumn, Column, BaseEntity, ManyToOne } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, BaseEntity, ManyToOne, Relation } from "typeorm";
 import User from "./user.js";
 
 export enum PERMISSIONS {ALL, EDIT_ROUTING, EDIT_USER, EDIT_ALL_OUTPUTS, EDIT_ALL_SUBSCRIPTIONS, EDIT_LINKED_OUTPUT, SEND_USER_RESPONSE};
@@ -21,7 +21,7 @@ export default class AccessToken extends BaseEntity{
 
     @Column()
     @ManyToOne(() => User, {eager: true, onDelete: "CASCADE"})
-    user: User;
+    user: Relation<User>;
 
     @Column()
     permissions: PERMISSIONS[];

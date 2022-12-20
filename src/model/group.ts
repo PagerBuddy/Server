@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, BaseEntity, ManyToMany, JoinTable, ManyToOne, OneToMany } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, BaseEntity, ManyToMany, JoinTable, ManyToOne, OneToMany, Relation } from "typeorm";
 import Alert from "./alert.js";
 import AlertResponse from "./response/alert_response.js";
 import ResponseConfiguration from "./response/response_configuration.js";
@@ -17,33 +17,33 @@ export default class Group extends BaseEntity {
     @Column()
     @ManyToMany(() => Unit, {eager: true})
     @JoinTable()
-    units: Unit[];
+    units: Relation<Unit>[];
 
     @Column()
     @ManyToMany(() => User, {eager: true})
     @JoinTable()
-    leaders: User[];
+    leaders: Relation<User>[];
 
     @Column()
     @ManyToMany(() => User, {eager: true})
     @JoinTable()
-    members: User[];
+    members: Relation<User>[];
 
     @Column()
     @ManyToOne(() => ResponseConfiguration, {eager: true, onDelete: "RESTRICT"})
-    responseConfiguration: ResponseConfiguration;
+    responseConfiguration: Relation<ResponseConfiguration>;
 
     @Column()
     @OneToMany(() => GroupSink, (groupSink) => groupSink.group, {eager: true})
-    alertSinks: GroupSink[];
+    alertSinks: Relation<GroupSink>[];
 
     @Column()
     @OneToMany(() => Group, (group) => group.parentGroup, {eager: true})
-    subGroups: Group[];
+    subGroups: Relation<Group>[];
 
     @Column()
     @ManyToOne(() => Group, (group) => group.subGroups, {eager: true, onDelete: "CASCADE"})
-    parentGroup!: Group;
+    parentGroup!: Relation<Group>;
 
     constructor(); //This seems to be needed as an (optional) constructor signature for TypeORM
     constructor(

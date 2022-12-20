@@ -1,5 +1,5 @@
 import { DateTime } from "luxon";
-import { Entity, PrimaryGeneratedColumn, Column, BaseEntity, ManyToOne, OneToMany } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, BaseEntity, ManyToOne, OneToMany, Relation } from "typeorm";
 import AlertSink from "../sinks/alert_sink.js";
 import User from "../user.js";
 import AlertResponse from "./alert_response.js";
@@ -16,19 +16,19 @@ export default class UserResponse extends BaseEntity{
     
     @Column()
     @ManyToOne(() => AlertSink, {eager: true, onDelete: "RESTRICT"})
-    public responseSource: AlertSink;
+    public responseSource: Relation<AlertSink>;
 
     @Column()
     @ManyToOne(() => User, {eager: true, onDelete: "CASCADE"})
-    public user: User;
+    public user: Relation<User>;
 
     @Column()
     @ManyToOne(() => ResponseOption, {eager: true, onDelete: "RESTRICT"})
-    public response: ResponseOption;
+    public response: Relation<ResponseOption>;
 
     @Column()
     @OneToMany(() => AlertResponse, (alertResponse) => alertResponse.responses, {eager: true, onDelete: "CASCADE"})
-    public alertResponse!: AlertResponse;
+    public alertResponse!: Relation<AlertResponse>;
 
     public constructor(
         timestamp: DateTime = DateTime.fromMillis(0), 

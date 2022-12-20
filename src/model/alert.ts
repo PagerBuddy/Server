@@ -1,5 +1,5 @@
 import { DateTime } from "luxon";
-import { Entity, PrimaryGeneratedColumn, Column, BaseEntity, ManyToOne, ManyToMany, JoinTable } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, BaseEntity, ManyToOne, ManyToMany, JoinTable, Relation } from "typeorm";
 import AlertSource from "./sources/alert_source.js";
 import AlertSourceManual from "./sources/alert_source_manual.js";
 import Unit from "./unit.js";
@@ -29,12 +29,12 @@ export default class Alert extends BaseEntity{
 
     @Column()
     @ManyToOne(() => Unit, {eager: true, onDelete: "CASCADE"})
-    readonly unit: Unit;
+    readonly unit: Relation<Unit>;
 
     @Column()
     @ManyToMany(() => AlertSource, {eager: true})
     @JoinTable()
-    sources: AlertSource[];
+    sources: Relation<AlertSource>[];
 
     private updateCallbacks: ((update: Alert) => void)[] = [];
 
