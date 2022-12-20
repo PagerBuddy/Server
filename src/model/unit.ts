@@ -1,8 +1,8 @@
 import { DateTime } from "luxon";
 import { Entity, PrimaryGeneratedColumn, Column, BaseEntity, ManyToOne, Equal } from "typeorm";
 import { isEntityName } from "typescript";
-import Alert from "./alert";
-import SilentConfiguration, { SilentNever } from "./silent_configuration";
+import Alert from "./alert.js";
+import SilentConfiguration, { SilentNever } from "./silent_configuration.js";
 
 /**
  * A unit is the "ground" truth of an alertable "competence" - so a well defined someone/something which is 

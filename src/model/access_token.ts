@@ -1,6 +1,6 @@
 import { DateTime, Duration } from "luxon";
 import { Entity, PrimaryGeneratedColumn, Column, BaseEntity, ManyToOne } from "typeorm";
-import User from "./user";
+import User from "./user.js";
 
 export enum PERMISSIONS {ALL, EDIT_ROUTING, EDIT_USER, EDIT_ALL_OUTPUTS, EDIT_ALL_SUBSCRIPTIONS, EDIT_LINKED_OUTPUT, SEND_USER_RESPONSE};
 

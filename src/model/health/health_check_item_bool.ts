@@ -1,5 +1,5 @@
 import { DateTime, Duration } from "luxon";
-import HealthCheckItem from "./health_check_item";
+import HealthCheckItem from "./health_check_item.js";
 import { resolve as dnsResolve } from 'dns'
 
 

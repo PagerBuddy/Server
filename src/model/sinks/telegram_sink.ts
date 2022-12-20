@@ -1,14 +1,14 @@
 import { DateTime } from "luxon";
 import { ChildEntity, PrimaryGeneratedColumn, Column, BaseEntity } from "typeorm";
-import TelegramConnector from "../../connectors/telegram";
-import Log from "../../log";
-import Alert from "../alert";
-import AlertResponse from "../response/alert_response";
-import ResponseOption from "../response/response_option";
-import UserResponse from "../response/user_response";
-import { UnitSubscription } from "../unit";
-import User from "../user";
-import GroupSink from "./group_sink";
+import TelegramConnector from "../../connectors/telegram.js";
+import Log from "../../log.js";
+import Alert from "../alert.js";
+import AlertResponse from "../response/alert_response.js";
+import ResponseOption from "../response/response_option.js";
+import UserResponse from "../response/user_response.js";
+import { UnitSubscription } from "../unit.js";
+import User from "../user.js";
+import GroupSink from "./group_sink.js";
 
 @ChildEntity()
 export default class TelegramSink extends GroupSink{

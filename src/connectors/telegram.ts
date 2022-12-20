@@ -1,14 +1,14 @@
 import TelegramBot from "node-telegram-bot-api";
 import PQueue, { AbortError } from "p-queue";
 import http from "node:http";
-import Alert from "../model/alert"
+import Alert from "../model/alert.js"
 import { DateTime } from "luxon";
-import UserResponse from "../model/response/user_response";
-import ResponseOption, { RESPONSE_TYPE } from "../model/response/response_option";
-import ResponseConfiguration from "../model/response/response_configuration";
-import TelegramSink from "../model/sinks/telegram_sink";
-import Log from "../log";
-import SystemConfiguration from "../model/system_configuration";
+import UserResponse from "../model/response/user_response.js";
+import ResponseOption, { RESPONSE_TYPE } from "../model/response/response_option.js";
+import ResponseConfiguration from "../model/response/response_configuration.js";
+import TelegramSink from "../model/sinks/telegram_sink.js";
+import Log from "../log.js";
+import SystemConfiguration from "../model/system_configuration.js";
 
 //Telegram markup constants
 const LINE_BREAK = "\n";

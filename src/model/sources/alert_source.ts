@@ -1,7 +1,7 @@
 import { DateTime} from "luxon";
 import { Entity, PrimaryGeneratedColumn, Column, BaseEntity } from "typeorm";
-import AlertRouter from "../../alert_router";
-import Alert from "../alert";
+import AlertRouter from "../../alert_router.js";
+import Alert from "../alert.js";
 
 @Entity()
 export default abstract class AlertSource extends BaseEntity{

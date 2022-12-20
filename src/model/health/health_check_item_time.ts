@@ -1,6 +1,6 @@
 import { DateTime, Duration } from "luxon";
-import TelegramConnector from "../../connectors/telegram";
-import HealthCheckItem from "./health_check_item";
+import TelegramConnector from "../../connectors/telegram.js";
+import HealthCheckItem from "./health_check_item.js";
 
 
 export default class HealthCheckItemTime extends HealthCheckItem{

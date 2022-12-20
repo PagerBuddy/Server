@@ -1,12 +1,12 @@
 import { DateTime } from "luxon";
-import HealthCheckAlertSource, { HealthCheckAlertSourceReport } from "./model/health/health_check_alert_source";
-import HealthCheckItem, { HealthCheckItemReport } from "./model/health/health_check_item";
-import HealthCheckItemBool from "./model/health/health_check_item_bool";
-import HealthCheckItemTime from "./model/health/health_check_item_time";
-import AlertSource from "./model/sources/alert_source";
-import AlertSourceHardwareInterface from "./model/sources/alert_source_hardware_interface";
-import AlertSourceKatSys from "./model/sources/alert_source_katsys";
-import AlertSourceManual from "./model/sources/alert_source_manual";
+import HealthCheckAlertSource, { HealthCheckAlertSourceReport } from "./model/health/health_check_alert_source.js";
+import HealthCheckItem, { HealthCheckItemReport } from "./model/health/health_check_item.js";
+import HealthCheckItemBool from "./model/health/health_check_item_bool.js";
+import HealthCheckItemTime from "./model/health/health_check_item_time.js";
+import AlertSource from "./model/sources/alert_source.js";
+import AlertSourceHardwareInterface from "./model/sources/alert_source_hardware_interface.js";
+import AlertSourceKatSys from "./model/sources/alert_source_katsys.js";
+import AlertSourceManual from "./model/sources/alert_source_manual.js";
 
 export default class HealthMonitor{
 

@@ -1,10 +1,10 @@
 import { ChildEntity, PrimaryGeneratedColumn, Column, BaseEntity } from "typeorm";
-import AlertResponse from "../response/alert_response";
-import UserResponse from "../response/user_response";
-import { UnitSubscription } from "../unit";
-import UserSink from "./user_sink";
+import AlertResponse from "../response/alert_response.js";
+import UserResponse from "../response/user_response.js";
+import { UnitSubscription } from "../unit.js";
+import UserSink from "./user_sink.js";
 import https from "https"
-import Log from "../../log";
+import Log from "../../log.js";
 
 @ChildEntity()
 export default class WebhookSink extends UserSink{

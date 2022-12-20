@@ -1,5 +1,5 @@
 import { DateTime, Duration } from "luxon";
-import Unit from "../unit";
+import Unit from "../unit.js";
 
 const KATSYS_SCHLEIFEN_TIME_FORMAT = "HH:mm";
 

@@ -1,9 +1,9 @@
 import { DateTime } from "luxon";
 import { Entity, PrimaryGeneratedColumn, Column, BaseEntity, ManyToOne, OneToMany } from "typeorm";
-import AlertSink from "../sinks/alert_sink";
-import User from "../user";
-import AlertResponse from "./alert_response";
-import ResponseOption, { RESPONSE_TYPE } from "./response_option";
+import AlertSink from "../sinks/alert_sink.js";
+import User from "../user.js";
+import AlertResponse from "./alert_response.js";
+import ResponseOption, { RESPONSE_TYPE } from "./response_option.js";
 
 @Entity()
 export default class UserResponse extends BaseEntity{

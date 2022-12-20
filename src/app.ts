@@ -1,12 +1,12 @@
-import FirebaseConnector from "./connectors/firebase";
-import TelegramConnector from "./connectors/telegram";
-import Database from "./database";
-import HealthMonitor from "./health_monitor";
-import Log from "./log";
-import AlertSourceHardwareInterface from "./model/sources/alert_source_hardware_interface";
-import AlertSourceKatSys from "./model/sources/alert_source_katsys";
-import AlertSourceManual from "./model/sources/alert_source_manual";
-import SystemConfiguration from "./model/system_configuration";
+import FirebaseConnector from "./connectors/firebase.js";
+import TelegramConnector from "./connectors/telegram.js";
+import Database from "./database.js";
+import HealthMonitor from "./health_monitor.js";
+import Log from "./log.js";
+import AlertSourceHardwareInterface from "./model/sources/alert_source_hardware_interface.js";
+import AlertSourceKatSys from "./model/sources/alert_source_katsys.js";
+import AlertSourceManual from "./model/sources/alert_source_manual.js";
+import SystemConfiguration from "./model/system_configuration.js";
 
 
 const log = Log.getLogger("App");

@@ -1,5 +1,5 @@
 import { DataSource } from "typeorm";
-import Log from "./log";
+import Log from "./log.js";
 
 export default class Database{
 

@@ -1,8 +1,8 @@
-import Log from "../log";
+import Log from "../log.js";
 import WebSocket from "ws";
-import Alert, {INFORMATION_CONTENT} from "../model/alert";
-import KatSysAlert from "../model/katsys/katsys_alert";
-import Unit from "../model/unit";
+import Alert, {INFORMATION_CONTENT} from "../model/alert.js";
+import KatSysAlert from "../model/katsys/katsys_alert.js";
+import Unit from "../model/unit.js";
 import { DateTime } from "luxon";
 
 //Ref: https://developer.mozilla.org/en-US/docs/Web/API/CloseEvent/code

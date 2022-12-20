@@ -1,10 +1,10 @@
 import { Entity, PrimaryGeneratedColumn, Column, BaseEntity, ManyToMany, JoinTable, ManyToOne, OneToMany } from "typeorm";
-import Alert from "./alert";
-import AlertResponse from "./response/alert_response";
-import ResponseConfiguration from "./response/response_configuration";
-import GroupSink from "./sinks/group_sink";
-import Unit from "./unit";
-import User from "./user";
+import Alert from "./alert.js";
+import AlertResponse from "./response/alert_response.js";
+import ResponseConfiguration from "./response/response_configuration.js";
+import GroupSink from "./sinks/group_sink.js";
+import Unit from "./unit.js";
+import User from "./user.js";
 
 export default class Group extends BaseEntity {
 

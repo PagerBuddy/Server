@@ -1,6 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, Column, BaseEntity, ManyToMany, JoinTable, Equal } from "typeorm";
-import AlertResponse from "./response/alert_response";
-import UserSink from "./sinks/user_sink";
+import AlertResponse from "./response/alert_response.js";
+import UserSink from "./sinks/user_sink.js";
 
 export enum USER_STATE {NONE, REQUEST_GROUP, INVITED, ACTIVE};
 export enum USER_ROLE {STANDARD, ADMINISTRATOR, SUPER_ADMINISTRATOR};

@@ -1,7 +1,7 @@
 import { DateTime, Duration } from "luxon";
-import { KatSysJsonAlert } from "../../connectors/katsys";
-import Log from "../../log";
-import KatSysSchleife from "./katsys_schleife";
+import { KatSysJsonAlert } from "../../connectors/katsys.js";
+import Log from "../../log.js";
+import KatSysSchleife from "./katsys_schleife.js";
 
 const KATSYS_DATE_FORMAT = "dd.MM.yyyy";
 const KATSYS_TIME_FORMAT = "HH:mm:ss"

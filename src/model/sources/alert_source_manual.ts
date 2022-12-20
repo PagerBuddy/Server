@@ -1,7 +1,7 @@
 import { DateTime } from "luxon";
 import { ChildEntity, PrimaryGeneratedColumn, Column, BaseEntity } from "typeorm";
-import Alert from "../alert";
-import AlertSource from "./alert_source";
+import Alert from "../alert.js";
+import AlertSource from "./alert_source.js";
 
 /**
  * Dummy to identify manually triggered alerts.

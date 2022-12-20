@@ -1,8 +1,8 @@
 import { Duration } from "luxon";
-import AlertSource from "../sources/alert_source";
-import AlertSourceHardwareInterface from "../sources/alert_source_hardware_interface";
-import HealthCheckItem, { HealthCheckItemReport } from "./health_check_item";
-import HealthCheckItemTime from "./health_check_item_time";
+import AlertSource from "../sources/alert_source.js";
+import AlertSourceHardwareInterface from "../sources/alert_source_hardware_interface.js";
+import HealthCheckItem, { HealthCheckItemReport } from "./health_check_item.js";
+import HealthCheckItemTime from "./health_check_item_time.js";
 
 
 export default class HealthCheckAlertSource{

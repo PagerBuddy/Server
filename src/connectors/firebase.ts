@@ -1,11 +1,11 @@
 import { Credentials } from "google-auth-library";
 import { google } from "googleapis";
-import Log from "../log";
-import { SerialisableAlert } from "../model/alert";
+import Log from "../log.js";
+import { SerialisableAlert } from "../model/alert.js";
 import { request } from 'https';
 import { IncomingMessage } from "http";
 import { DateTime } from "luxon";
-import SystemConfiguration from "../model/system_configuration";
+import SystemConfiguration from "../model/system_configuration.js";
 
 export default class FirebaseConnector {
 

@@ -1,8 +1,8 @@
 import { DateTime } from "luxon";
 import { Entity, PrimaryGeneratedColumn, Column, BaseEntity, ManyToOne, ManyToMany, JoinTable } from "typeorm";
-import AlertSource from "./sources/alert_source";
-import AlertSourceManual from "./sources/alert_source_manual";
-import Unit from "./unit";
+import AlertSource from "./sources/alert_source.js";
+import AlertSourceManual from "./sources/alert_source_manual.js";
+import Unit from "./unit.js";
 
 export enum INFORMATION_CONTENT {NONE, ID, KEYWORD, COMPLETE};
 

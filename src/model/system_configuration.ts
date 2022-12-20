@@ -1,7 +1,7 @@
 import { Duration } from "luxon";
 import { Entity, PrimaryGeneratedColumn, Column, BaseEntity } from "typeorm";
-import { FirebaseCredentials } from "../connectors/firebase";
-import { TelegramLogTarget } from "../log";
+import { FirebaseCredentials } from "../connectors/firebase.js";
+import { TelegramLogTarget } from "../log.js";
 
 /**
  * Accessor for global setting parameters. These apply system-wide and will only be set by a super administrator.

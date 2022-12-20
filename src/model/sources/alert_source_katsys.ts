@@ -1,8 +1,8 @@
 import { DateTime } from "luxon";
 import { ChildEntity, PrimaryGeneratedColumn, Column, BaseEntity } from "typeorm";
-import KatSysConnector from "../../connectors/katsys";
-import Alert from "../alert";
-import AlertSource from "./alert_source";
+import KatSysConnector from "../../connectors/katsys.js";
+import Alert from "../alert.js";
+import AlertSource from "./alert_source.js";
 
 @ChildEntity()
 export default class AlertSourceKatSys extends AlertSource{

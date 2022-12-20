@@ -1,12 +1,12 @@
 import { DateTime } from "luxon";
 import { Entity, PrimaryGeneratedColumn, Column, BaseEntity, Timestamp } from "typeorm";
-import FirebaseConnector from "../../connectors/firebase";
-import Log from "../../log";
-import AccessToken from "../access_token";
-import AlertResponse from "../response/alert_response";
-import UserResponse from "../response/user_response";
-import { UnitSubscription } from "../unit";
-import UserSink from "./user_sink";
+import FirebaseConnector from "../../connectors/firebase.js";
+import Log from "../../log.js";
+import AccessToken from "../access_token.js";
+import AlertResponse from "../response/alert_response.js";
+import UserResponse from "../response/user_response.js";
+import { UnitSubscription } from "../unit.js";
+import UserSink from "./user_sink.js";
 
 @Entity()
 export default class AppSink extends UserSink{

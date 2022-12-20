@@ -1,6 +1,6 @@
 import winston from "winston";
-import TelegramTransport from "./connectors/telegram_transport";
-import SystemConfiguration from "./model/system_configuration";
+import TelegramTransport from "./connectors/telegram_transport.js";
+import SystemConfiguration from "./model/system_configuration.js";
 
 export default class Log {
 

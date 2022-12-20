@@ -1,5 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, BaseEntity, ManyToMany, JoinColumn, JoinTable } from "typeorm";
-import ResponseOption from "./response_option";
+import ResponseOption from "./response_option.js";
 
 @Entity()
 export default class ResponseConfiguration extends BaseEntity{

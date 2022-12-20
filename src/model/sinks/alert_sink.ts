@@ -1,8 +1,8 @@
 import { Entity, PrimaryGeneratedColumn, Column, BaseEntity, OneToMany, ManyToMany, JoinTable, ChildEntity } from "typeorm";
-import Alert from "../alert";
-import AlertResponse from "../response/alert_response";
-import UserResponse from "../response/user_response";
-import { UnitSubscription } from "../unit";
+import Alert from "../alert.js";
+import AlertResponse from "../response/alert_response.js";
+import UserResponse from "../response/user_response.js";
+import { UnitSubscription } from "../unit.js";
 
 @Entity()
 export default abstract class AlertSink extends BaseEntity{

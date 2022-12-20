@@ -1,10 +1,10 @@
-import Alert, { INFORMATION_CONTENT } from "../model/alert";
+import Alert, { INFORMATION_CONTENT } from "../model/alert.js";
 import * as  http from 'http';
 import { Server } from "socket.io";
-import Log from "../log";
-import Unit from "../model/unit";
+import Log from "../log.js";
+import Unit from "../model/unit.js";
 import { DateTime } from "luxon";
-import SystemConfiguration from "../model/system_configuration";
+import SystemConfiguration from "../model/system_configuration.js";
 
 export default class WebsocketConnector{
 

@@ -1,7 +1,7 @@
 import { Entity, PrimaryGeneratedColumn, Column, BaseEntity, OneToOne, JoinColumn, ManyToOne, OneToMany, Equal } from "typeorm";
-import Alert from "../alert";
-import Group from "../group";
-import UserResponse from "./user_response";
+import Alert from "../alert.js";
+import Group from "../group.js";
+import UserResponse from "./user_response.js";
 
 /**
  * An AlertResponse contains information regarding a group-specific response to an individual alert.

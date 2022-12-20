@@ -1,7 +1,7 @@
 import { Equal, MoreThan } from "typeorm";
-import Alert from "./model/alert";
-import Group from "./model/group";
-import SystemConfiguration from "./model/system_configuration";
+import Alert from "./model/alert.js";
+import Group from "./model/group.js";
+import SystemConfiguration from "./model/system_configuration.js";
 
 
 export default class AlertRouter{

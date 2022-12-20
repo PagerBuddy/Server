@@ -1,8 +1,8 @@
 import { DateTime } from "luxon";
 import { ChildEntity, PrimaryGeneratedColumn, Column, BaseEntity } from "typeorm";
-import WebsocketConnector, { WebsocketSite } from "../../connectors/websocket";
-import Alert from "../alert";
-import AlertSource from "./alert_source";
+import WebsocketConnector, { WebsocketSite } from "../../connectors/websocket.js";
+import Alert from "../alert.js";
+import AlertSource from "./alert_source.js";
 
 @ChildEntity()
 export default class AlertSourceHardwareInterface extends AlertSource{
