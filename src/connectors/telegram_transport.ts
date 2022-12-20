@@ -1,7 +1,7 @@
 'use strict'
 
 import Transport, { TransportStreamOptions } from 'winston-transport';
-import TelegramConnector from './telegram.js.js';
+import TelegramConnector from './telegram.js';
 
 
 export default class TelegramTransport extends Transport {
