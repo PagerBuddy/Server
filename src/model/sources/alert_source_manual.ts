@@ -9,14 +9,6 @@ import AlertSource from "./alert_source.js";
 @ChildEntity()
 export default class AlertSourceManual extends AlertSource{
 
-
-    public constructor(
-        description: string = "", 
-        lastAlertTimestamp: DateTime = DateTime.fromMillis(0), 
-        lastStatusTimestamp: DateTime = DateTime.fromMillis(0)){
-            super(description, lastAlertTimestamp, lastStatusTimestamp);
-    }
-
     public start(): void {
     }
     public stop(): void {

@@ -12,12 +12,7 @@ export default class WebhookSink extends UserSink{
     private log = Log.getLogger(WebhookSink.name);
 
     @Column()
-    url: string;
-
-    public constructor(active: boolean = false, subscriptions: UnitSubscription[] = [], url: string = ""){
-        super(active, subscriptions);
-        this.url = url;
-    }
+    url: string = "";
 
     public async sendAlert(alert: AlertResponse): Promise<void> {
         if(super.isRelevantAlert(alert.alert)){

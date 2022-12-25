@@ -8,34 +8,18 @@ import AlertSource from "./alert_source.js";
 export default class AlertSourceKatSys extends AlertSource{
 
     @Column()
-    private masterToken: string;
+    private masterToken: string = "";
 
     @Column()
-    private subToken: string;
+    private subToken: string = "";
 
     @Column()
-    private certificate: string;
+    private certificate: string = "";
 
-    @Column()
-    private decodeChannels: string[];
+    @Column("text", {array: true})
+    private decodeChannels: string[] = [];
 
     private katSysConnector?: KatSysConnector;
-
-    public constructor(
-        description: string = "", 
-        lastAlertTimestamp: DateTime = DateTime.fromMillis(0), 
-        lastStatusTimestamp: DateTime = DateTime.fromMillis(0),
-        masterToken: string = "",
-        subToken: string = "",
-        certificate: string = "",
-        decodeChannels: string[] = []){
-            super(description, lastAlertTimestamp, lastStatusTimestamp);
-
-            this.masterToken = masterToken;
-            this.subToken = subToken;
-            this.certificate = certificate;
-            this.decodeChannels = decodeChannels; 
-    }
 
     public start() : void {
         this.katSysConnector = new KatSysConnector(

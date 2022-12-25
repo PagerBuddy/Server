@@ -12,52 +12,44 @@ export default class Alert extends BaseEntity{
     @PrimaryGeneratedColumn()
     id!: number;
 
-    @Column()
-    readonly timestamp: DateTime;
+    @Column({
+        type: "bigint",
+        transformer: {
+            from(value : number) {
+                return DateTime.fromMillis(value);
+            },
+            to(value : DateTime) {
+                return value.toMillis();
+            },
+        }
+    })
+    timestamp: DateTime = DateTime.fromMillis(0);
 
     @Column()
-    keyword: string; 
+    keyword: string = ""; 
 
     @Column()
-    message: string;
+    message: string = "";
 
     @Column()
-    location: string;
+    location: string = "";
 
     @Column()
-    informationContent: INFORMATION_CONTENT;
+    informationContent: INFORMATION_CONTENT = INFORMATION_CONTENT.NONE;
 
-    @Column()
     @ManyToOne(() => Unit, {eager: true, onDelete: "CASCADE"})
-    readonly unit: Relation<Unit>;
+    unit: Relation<Unit> = Unit.default;
 
-    @Column()
     @ManyToMany(() => AlertSource, {eager: true})
     @JoinTable()
-    sources: Relation<AlertSource>[];
+    sources?: Relation<AlertSource>[];
 
     private updateCallbacks: ((update: Alert) => void)[] = [];
 
-    public constructor(
-        unit: Unit = Unit.default, 
-        timestamp: DateTime = DateTime.fromMillis(0), 
-        informationContent: INFORMATION_CONTENT = INFORMATION_CONTENT.NONE,  
-        keyword: string = "", 
-        message: string = "", 
-        location: string = "", 
-        sources: AlertSource[] = []){
-            super();
-            this.unit = unit;
-            this.timestamp = timestamp;
-            this.informationContent = informationContent;
-            this.keyword = keyword;
-            this.message = message;
-            this.location = location;
-            this.sources = sources;
-    }
-
     public static get default(){
-        return new Alert();
+        return Alert.create({
+            sources: []
+        });
     }
 
     get isSilentAlert(): boolean {
@@ -65,7 +57,7 @@ export default class Alert extends BaseEntity{
     }
 
     get isManualAlert(): boolean {
-        return this.sources.length == 1 && this.sources.some((src) => src instanceof AlertSourceManual);
+        return this.sources?.length == 1 && this.sources.some((src) => src instanceof AlertSourceManual);
     }
 
     /**
@@ -75,7 +67,11 @@ export default class Alert extends BaseEntity{
      */
     public alertUpdate(update: Alert) : void{
         //Update list of sources that emitted this alert
-        update.sources.forEach(newSource => {
+        update.sources?.forEach(newSource => {
+            if(!this.sources){
+                //intialise if empty
+                this.sources = [];
+            }
             if(!this.sources.some((source) => source.id == newSource.id)){
                 this.sources.push(newSource);
             }
@@ -98,14 +94,15 @@ export default class Alert extends BaseEntity{
     }
 
     public getLocalisedCopy(timeZone: string, locale: string) : Alert {
-        const localisedAlert = new Alert(
-            this.unit, 
-            this.timestamp.setZone(timeZone).setLocale(locale),
-            this.informationContent,
-            this.keyword,
-            this.message,
-            this.location,
-            this.sources);
+        const localisedAlert = Alert.create({
+            unit: this.unit,
+            timestamp: this.timestamp.setZone(timeZone).setLocale(locale),
+            informationContent: this.informationContent,
+            keyword: this.keyword,
+            message: this.message,
+            location: this.location,
+            sources: this.sources ?? []
+        });
         
         return localisedAlert;
     }

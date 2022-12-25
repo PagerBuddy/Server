@@ -11,35 +11,44 @@ export default class AccessToken extends BaseEntity{
     id!: number;
 
     @Column()
-    token: string;
+    token: string = "";
 
-    @Column()
-    createdTimeStamp: DateTime;
+    @Column({
+        type: "bigint",
+        transformer: {
+            from(value : number) {
+                return DateTime.fromMillis(value);
+            },
+            to(value : DateTime) {
+                return value.toMillis();
+            },
+        }
+    })
+    createdTimeStamp: DateTime = DateTime.fromMillis(0);
 
-    @Column()
-    timeToLive: Duration;
+    @Column({
+        type: "bigint",
+        transformer: {
+            from(value : number) {
+                return Duration.fromMillis(value);
+            },
+            to(value : Duration) {
+                return value.toMillis();
+            },
+        }
+    })
+    timeToLive: Duration = Duration.fromMillis(0);
 
-    @Column()
     @ManyToOne(() => User, {eager: true, onDelete: "CASCADE"})
-    user: Relation<User>;
+    user: Relation<User> = User.default;
 
-    @Column()
-    permissions: PERMISSIONS[];
+    @Column({type: "enum", enum: PERMISSIONS, array: true})
+    permissions: PERMISSIONS[] = [];
 
-    constructor(
-        createdTimeStamp: DateTime = DateTime.fromMillis(0), 
-        timeToLive: Duration = Duration.fromMillis(0), 
-        user: User = User.default, 
-        permissions: PERMISSIONS[] = []){
-        super();
+    //TODO: Generate actual token
 
-        //TODO: Generate token here
-        this.token = "";
-
-        this.createdTimeStamp = createdTimeStamp;
-        this.timeToLive = timeToLive;
-        this.user = user;
-        this.permissions = permissions;
+    public static get default() : AccessToken{
+        return AccessToken.create();
     }
 
     /**

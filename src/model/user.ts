@@ -12,57 +12,35 @@ export default class User extends BaseEntity{
     id!: number;
 
     @Column()
-    firstName: string;
+    firstName: string = "";
 
     @Column()
-    lastName: string;
+    lastName: string = "";
 
     @Column()
-    eMail: string;
+    eMail: string = "";
 
     @Column()
     telegramUserName?: string; //This is needed for alert responses in Telegram
 
     @Column()
-    passwordHash: string;
+    passwordHash: string = "";
 
     @Column()
-    passwordSalt: string;
+    passwordSalt: string = "";
 
     @Column()
-    status: USER_STATE;
+    status: USER_STATE = USER_STATE.NONE;
 
     @Column()
-    role: USER_ROLE;
+    role: USER_ROLE = USER_ROLE.STANDARD;
 
-    @Column()
     @ManyToMany(() => UserSink, {eager: true})
     @JoinTable()
-    sinks: Relation<UserSink>[];
-
-    constructor(
-        firstName: string = "", 
-        lastName: string = "", 
-        eMail: string = "", 
-        passwordHash: string = "", 
-        passwordSalt: string = "", 
-        status: USER_STATE = USER_STATE.NONE, 
-        role: USER_ROLE = USER_ROLE.STANDARD,
-        sinks: UserSink[] = []){
-
-        super();
-        this.firstName = firstName;
-        this.lastName = lastName;
-        this.eMail = eMail;
-        this.passwordHash = passwordHash;
-        this.passwordSalt = passwordSalt;
-        this.status = status;
-        this.role = role;
-        this.sinks = sinks;
-    }
+    sinks?: Relation<UserSink>[];
 
     public static get default() : User {
-        return new User();
+        return User.create({sinks: []});
     }
 
     public equals(user: User): boolean{
@@ -71,7 +49,7 @@ export default class User extends BaseEntity{
 
     public handleAlert(alert: AlertResponse) : void {
         if(this.status == USER_STATE.ACTIVE){
-            this.sinks.forEach(sink => {
+            this.sinks?.forEach(sink => {
                 sink.sendAlert(alert);
             });
         }

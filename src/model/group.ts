@@ -6,74 +6,55 @@ import GroupSink from "./sinks/group_sink.js";
 import Unit from "./unit.js";
 import User from "./user.js";
 
+@Entity()
 export default class Group extends BaseEntity {
 
     @PrimaryGeneratedColumn()
     id!: number;
 
     @Column()
-    name: string;
+    name: string = "";
 
-    @Column()
     @ManyToMany(() => Unit, {eager: true})
     @JoinTable()
-    units: Relation<Unit>[];
+    units?: Relation<Unit>[];
 
-    @Column()
     @ManyToMany(() => User, {eager: true})
     @JoinTable()
-    leaders: Relation<User>[];
+    leaders?: Relation<User>[];
 
-    @Column()
     @ManyToMany(() => User, {eager: true})
     @JoinTable()
-    members: Relation<User>[];
+    members?: Relation<User>[];
 
-    @Column()
     @ManyToOne(() => ResponseConfiguration, {eager: true, onDelete: "RESTRICT"})
-    responseConfiguration: Relation<ResponseConfiguration>;
+    responseConfiguration: Relation<ResponseConfiguration> = ResponseConfiguration.default;
 
-    @Column()
     @OneToMany(() => GroupSink, (groupSink) => groupSink.group, {eager: true})
-    alertSinks: Relation<GroupSink>[];
+    alertSinks?: Relation<GroupSink>[];
 
-    @Column()
     @OneToMany(() => Group, (group) => group.parentGroup, {eager: true})
-    subGroups: Relation<Group>[];
+    subGroups?: Relation<Group>[];
 
-    @Column()
-    @ManyToOne(() => Group, (group) => group.subGroups, {eager: true, onDelete: "CASCADE"})
-    parentGroup!: Relation<Group>;
-
-    constructor(); //This seems to be needed as an (optional) constructor signature for TypeORM
-    constructor(
-        name: string = "",
-        alertSinks: GroupSink[] = [],
-        units: Unit[] = [],
-        leaders: User[] = [],
-        members: User[] = [],
-        responseConfiguration: ResponseConfiguration = ResponseConfiguration.default,
-        subGroups: Group[] = []) {
-        super();
-        this.name = name;
-        this.alertSinks = alertSinks;
-        this.units = units;
-        this.leaders = leaders;
-        this.members = members;
-        this.responseConfiguration = responseConfiguration;
-        this.subGroups = subGroups;
-    }
+    @ManyToOne(() => Group, (group) => group.subGroups, {onDelete: "CASCADE"})
+    private parentGroup?: Relation<Group>;
 
     public equals(group: Group): boolean{
         return group.id == this.id;
     }
 
     public static get default(){
-        return new Group();
+        return Group.create({
+            units: [],
+            leaders: [],
+            members: [],
+            alertSinks: [],
+            subGroups: []
+        });
     }
 
     private isRelevantAlert(alert: Alert): boolean {
-        return this.units.some((unit) => unit.isMatchingAlert(alert));
+        return this.units ? this.units.some((unit) => unit.isMatchingAlert(alert)) : false;
     }
 
     public handleAlert(alert: Alert) {
@@ -81,11 +62,11 @@ export default class Group extends BaseEntity {
 
             const response = new AlertResponse(alert, this);
 
-            this.alertSinks.forEach(sink => {
+            this.alertSinks?.forEach(sink => {
                 sink.sendAlert(response);
             });
 
-            this.members.forEach(member => {
+            this.members?.forEach(member => {
                 member.handleAlert(response);
             })
         }

@@ -9,13 +9,8 @@ import AlertSink from "./alert_sink.js";
 @ChildEntity()
 export default abstract class GroupSink extends AlertSink{
 
-    @Column()
     @ManyToOne(() => Group)
-    public group!: Relation<Group>; 
-
-    public constructor(active: boolean = false, subscriptions: UnitSubscription[] = []){
-        super(active, subscriptions);
-    }
+    public group: Relation<Group> = Group.default; 
 
     public abstract sendAlert(alert: AlertResponse): Promise<void>;
 

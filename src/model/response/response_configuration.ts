@@ -8,29 +8,27 @@ export default class ResponseConfiguration extends BaseEntity{
     id!: number;
 
     @Column()
-    description: string;
+    description: string = "";
 
     @Column()
-    allowResponses: boolean;
+    allowResponses: boolean = false;
 
-    @Column()
     @ManyToMany(() => ResponseOption, {eager: true, onDelete: "RESTRICT"})
     @JoinTable()
-    options: Relation<ResponseOption>[];
+    options?: Relation<ResponseOption>[];
 
-
-    public constructor(description: string = "", allowResponses: boolean = false, options: ResponseOption[] = []){
-        super();
-        this.description = description;
-        this.allowResponses = allowResponses;
-        this.options = options;
-    }
     
     public static get default(){
-        return new ResponseConfiguration();
+        const def = ResponseConfiguration.create({
+            description: "",
+            allowResponses: false,
+            options: []
+        });
+        return def;
     }
 
     public addResponseOption(option: ResponseOption) : boolean {
+        this.options = this.options ?? [];
         if(this.options.some((op) => op.id == option.id)){
             //Option is already in collection - do not add again
             return false;
@@ -41,6 +39,7 @@ export default class ResponseConfiguration extends BaseEntity{
     }
 
     public removeResponseOption(option: ResponseOption) : boolean {
+        this.options = this.options ?? [];
         if(this.options.some((op) => op.id == option.id)){
             //Option is in collection at least once - remove it
             this.options = this.options.filter((op) => op.id != option.id);
@@ -52,7 +51,7 @@ export default class ResponseConfiguration extends BaseEntity{
     }
 
     public getSortedResponseOptions() : ResponseOption[] {
-        const responseOptions = this.options;
+        const responseOptions = this.options ?? [];
         responseOptions.sort((a, b) => {
             if(a.type != b.type){
                 return a.type - b.type;

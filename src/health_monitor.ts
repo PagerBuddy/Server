@@ -1,4 +1,4 @@
-import { DateTime } from "luxon";
+import { DateTime, Duration } from "luxon";
 import HealthCheckAlertSource, { HealthCheckAlertSourceReport } from "./model/health/health_check_alert_source.js";
 import HealthCheckItem, { HealthCheckItemReport } from "./model/health/health_check_item.js";
 import HealthCheckItemBool from "./model/health/health_check_item_bool.js";
@@ -31,8 +31,8 @@ export default class HealthMonitor{
 
     private constructor(){}
 
-    public startMonitoring(checkIntervalSeconds: number){
-        this.checkTimer = setInterval(this.checkHealth, checkIntervalSeconds*1000);
+    public startMonitoring(checkInterval: Duration){
+        this.checkTimer = setInterval(this.checkHealth.bind(this), checkInterval.toMillis());
     }
 
     public stopMonitoring(){

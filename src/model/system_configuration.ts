@@ -12,6 +12,9 @@ export default class SystemConfiguration extends BaseEntity{
 
     private static instance : SystemConfiguration;
 
+    @PrimaryGeneratedColumn()
+    private id!: number;
+
     @Column()
     private sysTelegramBotToken?: string;
 
@@ -49,21 +52,31 @@ export default class SystemConfiguration extends BaseEntity{
         return SystemConfiguration.getInstance().sysLogLevel ?? "debug";
     }
 
-    @Column()
+    @Column("simple-json", {array: true})
     private sysTelegramLogTargetIds : TelegramLogTarget[] = [];
 
     public static get telegramLogTargetIds() : TelegramLogTarget[]{
         return SystemConfiguration.getInstance().sysTelegramLogTargetIds;
     }
 
-    @Column()
+    @Column({
+        type: "bigint",
+        transformer: {
+            from(value : number) {
+                return Duration.fromMillis(value);
+            },
+            to(value : Duration) {
+                return value.toMillis();
+            },
+        }
+    })
     private sysDoubleAlertTimeout : Duration = Duration.fromObject({minutes: 5});
 
     public static get doubleAlertTimeout() : Duration{
         return SystemConfiguration.getInstance().sysDoubleAlertTimeout;
     }
 
-    @Column()
+    @Column("simple-json")
     private sysFirebaseCredentials? : FirebaseCredentials;
 
     public static get firebaseCredentials() : FirebaseCredentials{
@@ -90,10 +103,20 @@ export default class SystemConfiguration extends BaseEntity{
         return instance.sysFirebaseEnable && SystemConfiguration.firebaseCredentials.private_key != "";
     }
 
-    @Column()
-    private sysHealthCheckInterval: number = 10;
+    @Column({
+        type: "bigint",
+        transformer: {
+            from(value : number) {
+                return Duration.fromMillis(value);
+            },
+            to(value : Duration) {
+                return value.toMillis();
+            },
+        }
+    })
+    private sysHealthCheckInterval: Duration = Duration.fromObject({seconds: 10});
 
-    public static get healthCheckInterval() : number{
+    public static get healthCheckInterval() : Duration{
         return SystemConfiguration.getInstance().sysHealthCheckInterval;
     }
 

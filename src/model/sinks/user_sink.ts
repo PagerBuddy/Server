@@ -8,10 +8,6 @@ import AlertSink from "./alert_sink.js";
 @ChildEntity()
 export default abstract class UserSink extends AlertSink{
 
-    public constructor(active: boolean = false, subscriptions: UnitSubscription[] = []){
-        super(active, subscriptions);
-    }
-
     public abstract sendAlert(alert: AlertResponse): Promise<void>;
 
 
