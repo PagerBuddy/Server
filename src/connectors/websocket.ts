@@ -116,14 +116,15 @@ export default class WebsocketConnector{
             informationContent = INFORMATION_CONTENT.ID;
         }
 
-        const sAlert = new Alert(
-            await Unit.fromUnitCode(unitId), 
-            timestamp, 
-            informationContent,
-            keyword,
-            "",
-            location,
-            []);
+        const sAlert = Alert.create({
+            unit: await Unit.fromUnitCode(unitId), 
+            timestamp: timestamp, 
+            informationContent: informationContent,
+            keyword: keyword,
+            message: "",
+            location: location,
+            sources: []
+        });
         
         this.subscriptions.forEach(subscription => {
             if(subscription.siteId == websocketAlert.siteId){

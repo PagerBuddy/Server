@@ -12,25 +12,19 @@ export default class AlertResponse extends BaseEntity{
     @PrimaryGeneratedColumn()
     public id!: number;
 
-    @Column()
     @ManyToOne(() => Alert, {eager: true, onDelete: "CASCADE"})
-    public alert: Relation<Alert>;
+    public alert: Relation<Alert> = Alert.default;
 
-    @Column()
     @ManyToOne(() => Group, {eager: true, onDelete: "CASCADE"})
-    public group: Relation<Group>;
+    public group: Relation<Group> = Group.default;
 
-    @Column()
     @OneToMany(() => UserResponse, (response) => response.alertResponse, {eager: true, onDelete: "RESTRICT"})
-    public responses: Relation<UserResponse>[];
+    public responses?: Relation<UserResponse>[];
 
     private updateCallbacks: ((update: AlertResponse) => void)[] = [];
 
-    public constructor(alert: Alert = Alert.default, group: Group = Group.default, responses: UserResponse[] = []){
+    public constructor(alert?: Alert, group?: Group, responses?: UserResponse[]){
         super();
-        this.alert = alert;
-        this.group = group;
-        this.responses = responses;
 
         //Propagate alert updates through to responses
         this.alert.registerUpdateCallback((update: Alert) => {
@@ -45,6 +39,7 @@ export default class AlertResponse extends BaseEntity{
     }
 
     public userResponded(newResponse: UserResponse): void {
+        this.responses = this.responses ?? []; //init as necessary
         const oldResponse = this.responses.find((response) => response.user.equals(newResponse.user));
 
         if(oldResponse && oldResponse.response.equals(newResponse.response)){
@@ -71,7 +66,7 @@ export default class AlertResponse extends BaseEntity{
     }
 
     public getLocalisedResponses(timeZone: string, locale: string) : UserResponse[] {
-        const userResponses = this.responses;
+        const userResponses = this.responses ?? [];
         userResponses.forEach(response => {
             response.timestamp = response.timestamp.setZone(timeZone).setLocale(locale);
         });

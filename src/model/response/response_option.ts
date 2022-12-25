@@ -10,31 +10,30 @@ export default class ResponseOption extends BaseEntity{
     public id!: number;
 
     @Column()
-    public label: string;
+    public label: string = "";
 
     @Column()
-    public enableEstimatedArrival: boolean;
+    public enableEstimatedArrival: boolean = false;
+
+    @Column({
+        type: "bigint",
+        transformer: {
+            from(value : number) {
+                return Duration.fromMillis(value);
+            },
+            to(value : Duration) {
+                return value.toMillis();
+            },
+        }
+    })
+    public estimatedArrivalOffset: Duration = Duration.fromMillis(0);
+
 
     @Column()
-    public estimatedArrivalOffset: Duration;
-
-    @Column()
-    public type: RESPONSE_TYPE;
-
-    public constructor(
-        label: string = "", 
-        type: RESPONSE_TYPE = RESPONSE_TYPE.DENY, 
-        enableEstimatedArrival: boolean = false, 
-        estimatedArrivalOffset: Duration = Duration.fromMillis(0)){
-        super();
-        this.label = label;
-        this.type = type;
-        this.enableEstimatedArrival = enableEstimatedArrival;
-        this.estimatedArrivalOffset = estimatedArrivalOffset;
-    }
+    public type: RESPONSE_TYPE = RESPONSE_TYPE.DENY;
     
     public static get default() : ResponseOption {
-        return new ResponseOption();
+        return ResponseOption.create();
     }
 
     public equals(responseOption: ResponseOption): boolean {

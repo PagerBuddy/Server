@@ -14,52 +14,37 @@ import GroupSink from "./group_sink.js";
 export default class TelegramSink extends GroupSink{
 
     @Column()
-    chatId: number;
+    chatId: number = NaN;
 
     @Column()
-    enableForSilentAlert: boolean;
+    enableForSilentAlert: boolean = false;
 
     @Column()
-    private timeZone: string; //As we are sending out parsed messages we must know the timezone of the intended recipients
+    private timeZone: string = "utc"; //As we are sending out parsed messages we must know the timezone of the intended recipients
 
     @Column()
-    private locale: string;
+    private locale: string = "en";
 
     private log = Log.getLogger(TelegramSink.name);
-
-    public constructor(
-        active: boolean = false, 
-        subscriptions: UnitSubscription[] = [], 
-        chatId: number = 0, 
-        enableForSilentAlert: boolean = true, 
-        timeZone: string = "utc", 
-        locale: string = "en"){
-        super(active, subscriptions);
-        this.chatId = chatId;
-        this.enableForSilentAlert = enableForSilentAlert;
-
-        const tempTime = DateTime.now().setZone(timeZone).setLocale(locale);
-        if(!tempTime.isValid){
-            throw Error("The specified time zone or locale string is not valid.");
-        }
-
-        this.timeZone = timeZone;
-        this.locale = locale;
-    }
 
     public static async responseCallback(alertId: number, responseId: number, userName: string, chatId: number, timestamp: DateTime) : Promise<void> {
         const responseOption = await ResponseOption.fromID(responseId);
         const alert = await AlertResponse.fromId(alertId);
 
-        const sink = alert?.group.alertSinks.find((sink) => {
+        const sink = alert?.group.alertSinks?.find((sink) => {
             return sink instanceof TelegramSink && sink.chatId == chatId;
         });
 
         const user = await User.fromTelegramName(userName);
-        const userInGroup = alert?.group.members.some((member) => member.id == user?.id);
+        const userInGroup = alert?.group.members?.some((member) => member.id == user?.id);
 
         if(responseOption && sink && user && userInGroup){
-            const userResponse = new UserResponse(timestamp, sink, user, responseOption);
+            const userResponse = UserResponse.create({
+                timestamp: timestamp,
+                responseSource: sink,
+                user: user,
+                response: responseOption
+            });
             alert?.userResponded(userResponse);
         }
     }

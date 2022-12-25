@@ -1,38 +1,35 @@
-import { Entity, PrimaryGeneratedColumn, Column, BaseEntity, OneToMany, ManyToMany, JoinTable, ChildEntity, Relation } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, BaseEntity, OneToMany, ManyToMany, JoinTable, ChildEntity, Relation, TableInheritance } from "typeorm";
 import Alert from "../alert.js";
 import AlertResponse from "../response/alert_response.js";
 import UserResponse from "../response/user_response.js";
 import { UnitSubscription } from "../unit.js";
 
 @Entity()
+@TableInheritance({ column: { type: "varchar", name: "type" } })
 export default abstract class AlertSink extends BaseEntity{
     
     @PrimaryGeneratedColumn()
     id!: string;
 
     @Column()
-    active: boolean;
+    active: boolean = false;
 
-    @Column()
     @ManyToMany(() => UnitSubscription, {eager: true})
     @JoinTable()
-    subscriptions: Relation<UnitSubscription>[];
-
-    public constructor(active: boolean = false, subscriptions: UnitSubscription[] = []){
-        super();
-        this.active = active;
-        this.subscriptions = subscriptions;
-    }
+    subscriptions?: Relation<UnitSubscription>[];
 
     public static get default() : AlertSink{
-        return new DefaultSink();
+        return DefaultSink.create({
+            subscriptions: []
+        });
     }
 
     public abstract sendAlert(alert: AlertResponse): Promise<void>;
 
 
     protected isRelevantAlert(alert: Alert) : boolean{
-        return this.active && this.subscriptions.some((sub) => sub.isMatchingAlert(alert));
+        const subs = this.subscriptions ?? [];
+        return this.active && subs.some((sub) => sub.isMatchingAlert(alert));
     }
 }
 

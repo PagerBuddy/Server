@@ -1,5 +1,5 @@
 import { DateTime } from "luxon";
-import { Entity, PrimaryGeneratedColumn, Column, BaseEntity, Timestamp } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, BaseEntity, Timestamp, ChildEntity, OneToOne, JoinColumn, Relation } from "typeorm";
 import FirebaseConnector from "../../connectors/firebase.js";
 import Log from "../../log.js";
 import AccessToken from "../access_token.js";
@@ -8,55 +8,32 @@ import UserResponse from "../response/user_response.js";
 import { UnitSubscription } from "../unit.js";
 import UserSink from "./user_sink.js";
 
-@Entity()
+@ChildEntity()
 export default class AppSink extends UserSink{
 
     @Column()
-    deviceToken: string;
+    deviceToken: string = "";
 
     @Column()
-    alertSound: string;
+    alertSound: string = "";
 
     @Column()
-    alertVolume: number;
+    alertVolume: number = 1;
 
     @Column()
-    silentAlertVolume: number;
+    silentAlertVolume: number = 0.5;
+
+    @OneToOne(() => AccessToken, {eager: true, onDelete: "RESTRICT"})
+    @JoinColumn()
+    token: Relation<AccessToken> = AccessToken.default;
 
     @Column()
-    token: AccessToken;
+    timeZone: string = "utc";
 
     @Column()
-    timeZone: string;
-
-    @Column()
-    locale: string;
+    locale: string = "en";
 
     private log = Log.getLogger(AppSink.name);
-
-    public constructor(
-        active: boolean = true, 
-        subscriptions: UnitSubscription[] = [], 
-        deviceToken: string = "", 
-        alertSound: string = "", 
-        alertVolume: number = 1, 
-        silentAlertVolume: number = 0.5, 
-        token: AccessToken,
-        timeZone: string = "utc",
-        locale: string = "en"){
-            super(active, subscriptions);
-            this.deviceToken = deviceToken;
-            this.alertSound = alertSound;
-            this.alertVolume = alertVolume;
-            this.silentAlertVolume = silentAlertVolume;
-            this.token = token;
-
-            if(!DateTime.now().setLocale(locale).setZone(timeZone).isValid){
-                throw new Error("Invalid time zone or locale.");
-            }
-            this.timeZone = timeZone;
-            this.locale = locale;
-    }
 
     private invalidTokenCallback() : void {
         //TODO: Remove invalid token?

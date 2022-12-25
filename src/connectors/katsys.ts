@@ -103,14 +103,15 @@ export default class KatSysConnector{
     private async handle_alert(katSysAlert: KatSysAlert) : Promise<void> {
 
         katSysAlert.getRelevantSchleifen(this.decodeChannels).forEach(async schleife => {
-            const sAlert = new Alert(
-                await Unit.fromUnitCode(schleife.unitId),
-                schleife.alertTimestamp,
-                INFORMATION_CONTENT.COMPLETE,
-                katSysAlert.keyword,
-                "",
-                katSysAlert.location,
-                []);
+            const sAlert = Alert.create({
+                unit: await Unit.fromUnitCode(schleife.unitId),
+                timestamp: schleife.alertTimestamp,
+                informationContent: INFORMATION_CONTENT.COMPLETE,
+                keyword: katSysAlert.keyword,
+                message: "",
+                location: katSysAlert.location,
+                sources: []
+            });
             
             this.alertCallback(sAlert);
         });

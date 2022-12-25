@@ -16,32 +16,19 @@ export default class Unit extends BaseEntity{
     id!: number;
     
     @Column()
-    name: string;
+    name: string = "";
 
     @Column()
-    shortName: string;
+    shortName: string = "";
 
     @Column()
-    unitCode: number;
+    unitCode: number = NaN;
 
-    @Column()
     @ManyToOne(() => SilentConfiguration, {eager: true, onDelete: "RESTRICT"})
-    silentTime: Relation<SilentConfiguration>;
-
-    constructor(
-        name: string = "", 
-        shortName: string = "", 
-        unitCode: number = 0, 
-        silentTime: SilentConfiguration = new SilentNever()){
-        super();
-        this.name = name;
-        this.shortName = shortName;
-        this.unitCode = unitCode;
-        this.silentTime = silentTime;
-    }
+    silentTime: Relation<SilentConfiguration> = SilentNever.create();
 
     public static get default() : Unit{
-        return new Unit();
+        return Unit.create();
     }
 
     public isSilentTime(timestamp: DateTime) : boolean {
@@ -63,7 +50,7 @@ export default class Unit extends BaseEntity{
             }
         });
 
-        return unit ?? new Unit("", "", unitCode, new SilentNever(""));
+        return unit ?? Unit.create({unitCode: unitCode});
     }
 }
 
@@ -72,18 +59,11 @@ export class UnitSubscription extends BaseEntity{
     @PrimaryGeneratedColumn()
     id!: number;
 
-    @Column()
     @ManyToOne(() => Unit, {eager: true, onDelete: "CASCADE"})
-    unit: Relation<Unit>;
+    unit: Relation<Unit> = Unit.default;
 
     @Column()
-    active: boolean;
-
-    constructor(unit: Unit = Unit.default, active: boolean = true){
-        super();
-        this.unit = unit;
-        this.active = active;
-    }
+    active: boolean = true;
 
     public isMatchingAlert(alert: Alert): boolean{
         return this.unit.isMatchingAlert(alert);

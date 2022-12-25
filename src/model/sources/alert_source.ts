@@ -1,30 +1,43 @@
 import { DateTime} from "luxon";
-import { Entity, PrimaryGeneratedColumn, Column, BaseEntity } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, BaseEntity, TableInheritance } from "typeorm";
 import AlertRouter from "../../alert_router.js";
 import Alert from "../alert.js";
 
 @Entity()
+@TableInheritance({ column: { type: "varchar", name: "type" } })
 export default abstract class AlertSource extends BaseEntity{
 
     @PrimaryGeneratedColumn()
     id!: number;
 
     @Column()
-    description: string;
+    description: string = "";
 
-    @Column()
-    lastAlertTimestamp: DateTime;
+    @Column({
+        type: "bigint",
+        transformer: {
+            from(value : number) {
+                return DateTime.fromMillis(value);
+            },
+            to(value : DateTime) {
+                return value.toMillis();
+            },
+        }
+    })
+    public lastAlertTimestamp: DateTime = DateTime.fromMillis(0);
 
-    @Column()
-    lastStatusTimestamp: DateTime;
-
-    protected constructor(description: string = "", lastAlertTimestamp: DateTime = DateTime.fromMillis(0), lastStatusTimestamp: DateTime = DateTime.fromMillis(0)){
-        super();
-
-        this.description = description;
-        this.lastAlertTimestamp = lastAlertTimestamp;
-        this.lastStatusTimestamp = lastStatusTimestamp;
-    }
+    @Column({
+        type: "bigint",
+        transformer: {
+            from(value : number) {
+                return DateTime.fromMillis(value);
+            },
+            to(value : DateTime) {
+                return value.toMillis();
+            },
+        }
+    })
+    public lastStatusTimestamp : DateTime = DateTime.fromMillis(0);
 
     public abstract start() : void;
     public abstract stop() : void;

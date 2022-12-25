@@ -8,34 +8,18 @@ import AlertSource from "./alert_source.js";
 export default class AlertSourceHardwareInterface extends AlertSource{
 
     @Column()
-    masterToken: string;
+    masterToken: string = "";
 
     @Column()
-    subToken: string;
+    subToken: string = "";
 
     @Column()
-    certificate: string;
+    certificate: string = "";
 
     @Column()
-    siteId: string;
+    siteId: string = "";
 
     private websocket?: WebsocketConnector;
-
-    public constructor(
-        description: string = "", 
-        lastAlertTimestamp: DateTime = DateTime.fromMillis(0), 
-        lastStatusTimestamp: DateTime = DateTime.fromMillis(0),
-        masterToken: string = "",
-        subToken: string = "",
-        certificate: string = "",
-        siteId: string = ""){
-            super(description, lastAlertTimestamp, lastStatusTimestamp);
-
-            this.masterToken = masterToken;
-            this.subToken = subToken;
-            this.certificate = certificate;
-            this.siteId = siteId;
-    }
 
     public async start(): Promise<void> {
         if(!this.websocket){

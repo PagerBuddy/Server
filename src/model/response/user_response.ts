@@ -11,36 +11,31 @@ export default class UserResponse extends BaseEntity{
     @PrimaryGeneratedColumn()
     private id!: string;
 
-    @Column()
-    public timestamp: DateTime;
+    @Column({
+        type: "bigint",
+        transformer: {
+            from(value : number) {
+                return DateTime.fromMillis(value);
+            },
+            to(value : DateTime) {
+                return value.toMillis();
+            },
+        }
+    })
+    public timestamp: DateTime = DateTime.fromMillis(0);
     
-    @Column()
     @ManyToOne(() => AlertSink, {eager: true, onDelete: "RESTRICT"})
-    public responseSource: Relation<AlertSink>;
+    public responseSource: Relation<AlertSink> = AlertSink.default;
 
-    @Column()
     @ManyToOne(() => User, {eager: true, onDelete: "CASCADE"})
-    public user: Relation<User>;
+    public user: Relation<User> = User.default;
 
-    @Column()
     @ManyToOne(() => ResponseOption, {eager: true, onDelete: "RESTRICT"})
-    public response: Relation<ResponseOption>;
+    public response: Relation<ResponseOption> = ResponseOption.default;
 
-    @Column()
-    @OneToMany(() => AlertResponse, (alertResponse) => alertResponse.responses, {eager: true, onDelete: "CASCADE"})
-    public alertResponse!: Relation<AlertResponse>;
+    @OneToMany(() => AlertResponse, (alertResponse) => alertResponse.responses, {onDelete: "CASCADE"})
+    public alertResponse?: Relation<AlertResponse>;
 
-    public constructor(
-        timestamp: DateTime = DateTime.fromMillis(0), 
-        responseSource: AlertSink = AlertSink.default, 
-        user: User = User.default, 
-        response: ResponseOption = ResponseOption.default){
-        super();
-        this.timestamp = timestamp;
-        this.responseSource = responseSource;
-        this.user = user;
-        this.response = response;
-    }
 
     public equals(userResponse: UserResponse): boolean{
         return userResponse.id == this.id;

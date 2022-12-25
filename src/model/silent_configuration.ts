@@ -1,4 +1,4 @@
-import { Entity, ChildEntity, PrimaryGeneratedColumn, Column, BaseEntity, TableInheritance } from "typeorm";
+import { Entity, ChildEntity, PrimaryGeneratedColumn, Column, BaseEntity, TableInheritance, ManyToOne, Relation } from "typeorm";
 import {DateTime, DayNumbers, Interval, WeekdayNumbers} from "luxon";
 
 /**
@@ -15,12 +15,7 @@ export default abstract class SilentConfiguration extends BaseEntity{
     id!: number;
 
     @Column()
-    description: string;
-
-    public constructor(description:string = ""){
-        super();
-        this.description = description;
-    }
+    description: string = "";
 
     /**
      * Check if a timestamp fulfills the conditions of the silent configuration.
@@ -34,9 +29,6 @@ export default abstract class SilentConfiguration extends BaseEntity{
 
 @ChildEntity()
 export class SilentNever extends SilentConfiguration{
-    constructor(description: string = ""){
-        super(description);
-    }
 
     isInSilentPeriod(timestamp: DateTime): boolean {
         return false;
@@ -46,9 +38,6 @@ export class SilentNever extends SilentConfiguration{
 
 @ChildEntity()
 export class SilentAlways extends SilentConfiguration{
-    constructor(description: string = ""){
-        super(description);
-    }
 
     isInSilentPeriod(timestamp: DateTime): boolean {
         return true;
@@ -60,21 +49,34 @@ export class SilentTime extends SilentConfiguration{
 
     //Both start and end times are to be interpreted as time of day without a relevance to date
     //If end time is before start time, interpret as silent time through the night.
-    @Column()
-    startTime: DateTime;
+    @Column({
+        type: "bigint",
+        transformer: {
+            from(value : number) {
+                return DateTime.fromMillis(value);
+            },
+            to(value : DateTime) {
+                return value.toMillis();
+            },
+        }
+    })
+    public startTime: DateTime = DateTime.fromMillis(0);
 
-    @Column()
-    endTime: DateTime;
-
-    constructor(description: string = "", startTime: DateTime = DateTime.fromMillis(0), endTime: DateTime = DateTime.fromMillis(0)){
-        super(description);
-
-        this.startTime = startTime;
-        this.endTime = endTime;
-    }
+    @Column({
+        type: "bigint",
+        transformer: {
+            from(value : number) {
+                return DateTime.fromMillis(value);
+            },
+            to(value : DateTime) {
+                return value.toMillis();
+            },
+        }
+    })
+    public endTime: DateTime = DateTime.fromMillis(0);
 
     public static get default() : SilentTime{
-        return new SilentTime();
+        return SilentTime.create();
     }
 
     /**
@@ -82,11 +84,11 @@ export class SilentTime extends SilentConfiguration{
      * helper removes anything but the time of day from a Date.
      * @param timestamp 
      */
-    static stripDateToTime(timestamp: DateTime): DateTime {
+    public static stripDateToTime(timestamp: DateTime): DateTime {
         return DateTime.fromObject({hour: timestamp.hour, minute: timestamp.minute, second: timestamp.second});
     }
 
-    isInSilentPeriod(timestamp: DateTime): boolean {
+    public isInSilentPeriod(timestamp: DateTime): boolean {
 
         const startTimeOfDay = SilentTime.stripDateToTime(this.startTime);
         const endTimeofDay = SilentTime.stripDateToTime(this.endTime);
@@ -104,19 +106,13 @@ export class SilentTime extends SilentConfiguration{
 export class SilentDayOfWeek extends SilentConfiguration{
 
     @Column()
-    day: WeekdayNumbers;
+    day: WeekdayNumbers = 1;
 
-    @Column()
-    time: SilentTime;
+    
+    @ManyToOne(() => SilentTime, {eager: true, onDelete: "RESTRICT"})
+    time: Relation<SilentTime> = SilentTime.default;
 
-    constructor(description: string = "", day: WeekdayNumbers = 1, time: SilentTime = SilentTime.default){
-        super(description);
-
-        this.day = day;
-        this.time = time;
-    }
-
-    isInSilentPeriod(timestamp: DateTime): boolean {
+    public isInSilentPeriod(timestamp: DateTime): boolean {
         const dayMatch = timestamp.weekday == this.day;
         const timeMatch = this.time.isInSilentPeriod(timestamp);
 
@@ -128,17 +124,10 @@ export class SilentDayOfWeek extends SilentConfiguration{
 export class SilentDayOfMonth extends SilentConfiguration{
 
     @Column()
-    day: DayNumbers;
+    day: DayNumbers = 1;
 
-    @Column()
-    time: SilentTime;
-
-    constructor(description: string = "", day: DayNumbers = 1, time: SilentTime = SilentTime.default){
-        super(description);
-
-        this.day = day;
-        this.time = time;
-    }
+    @ManyToOne(() => SilentTime, {eager: true, onDelete: "RESTRICT"})
+    time: Relation<SilentTime> = SilentTime.default;
 
     isInSilentPeriod(timestamp: DateTime): boolean {  
         const dayMatch = timestamp.daysInMonth == this.day;
