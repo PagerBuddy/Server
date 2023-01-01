@@ -25,6 +25,13 @@ export default abstract class SilentConfiguration extends BaseEntity{
      */
     abstract isInSilentPeriod(timestamp: DateTime): boolean;
 
+    public getSerialisableSilentConfiguration() : SerialisableSilentConfiguration{
+        return {
+            description: this.description,
+            type: SilentConfiguration.name
+        };
+    }
+
 }
 
 @ChildEntity()
@@ -34,6 +41,12 @@ export class SilentNever extends SilentConfiguration{
         return false;
     }
 
+    public getSerialisableSilentConfiguration() : SerialisableSilentConfiguration{
+        const base = super.getSerialisableSilentConfiguration();
+        base.type = SilentNever.name;
+        return base;
+    }
+
 }
 
 @ChildEntity()
@@ -41,6 +54,12 @@ export class SilentAlways extends SilentConfiguration{
 
     isInSilentPeriod(timestamp: DateTime): boolean {
         return true;
+    }
+
+    public getSerialisableSilentConfiguration() : SerialisableSilentConfiguration{
+        const base = super.getSerialisableSilentConfiguration();
+        base.type = SilentAlways.name;
+        return base;
     }
 }
 
@@ -100,6 +119,14 @@ export class SilentTime extends SilentConfiguration{
 
         return inInterval == flipTime;
     }
+
+    public getSerialisableSilentConfiguration() : SerialisableSilentConfiguration{
+        const base = super.getSerialisableSilentConfiguration();
+        base.type = SilentTime.name;
+        base.startTimeMillis = this.startTime.toMillis();
+        base.endTimeMillis = this.endTime.toMillis();
+        return base;
+    }
 }
 
 @ChildEntity()
@@ -108,7 +135,6 @@ export class SilentDayOfWeek extends SilentConfiguration{
     @Column()
     day: WeekdayNumbers = 1;
 
-    
     @ManyToOne(() => SilentTime, {eager: true, onDelete: "RESTRICT"})
     time: Relation<SilentTime> = SilentTime.default;
 
@@ -117,6 +143,15 @@ export class SilentDayOfWeek extends SilentConfiguration{
         const timeMatch = this.time.isInSilentPeriod(timestamp);
 
         return dayMatch && timeMatch;
+    }
+
+    public getSerialisableSilentConfiguration() : SerialisableSilentConfiguration{
+        const base = super.getSerialisableSilentConfiguration();
+        base.type = SilentDayOfWeek.name;
+        base.dayOfWeek = this.day;
+        base.startTimeMillis = this.time.startTime.toMillis();
+        base.endTimeMillis = this.time.endTime.toMillis();
+        return base;
     }
 }
 
@@ -135,4 +170,22 @@ export class SilentDayOfMonth extends SilentConfiguration{
 
         return dayMatch && timeMatch;
     }
+
+    public getSerialisableSilentConfiguration() : SerialisableSilentConfiguration{
+        const base = super.getSerialisableSilentConfiguration();
+        base.type = SilentDayOfMonth.name;
+        base.dayOfMonth = this.day;
+        base.startTimeMillis = this.time.startTime.toMillis();
+        base.endTimeMillis = this.time.endTime.toMillis();
+        return base;
+    }
+}
+
+export type SerialisableSilentConfiguration = {
+    description: string,
+    type: string,
+    dayOfMonth?: number,
+    dayOfWeek?: number,
+    startTimeMillis?: number,
+    endTimeMillis?: number
 }

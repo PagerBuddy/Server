@@ -1,8 +1,7 @@
 import { DateTime } from "luxon";
-import { Entity, PrimaryGeneratedColumn, Column, BaseEntity, Timestamp, ChildEntity, OneToOne, JoinColumn, Relation } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, BaseEntity, Timestamp, ChildEntity, OneToOne, JoinColumn, Relation, Equal } from "typeorm";
 import FirebaseConnector from "../../connectors/firebase.js";
 import Log from "../../log.js";
-import AccessToken from "../access_token.js";
 import AlertResponse from "../response/alert_response.js";
 import UserResponse from "../response/user_response.js";
 import { UnitSubscription } from "../unit.js";
@@ -15,6 +14,9 @@ export default class AppSink extends UserSink{
     deviceToken: string = "";
 
     @Column()
+    deviceID: string = ""; //This is a unique hardware ID of the user device - used to ensure we can detect token changes
+
+    @Column()
     alertSound: string = "";
 
     @Column()
@@ -22,10 +24,6 @@ export default class AppSink extends UserSink{
 
     @Column()
     silentAlertVolume: number = 0.5;
-
-    @OneToOne(() => AccessToken, {eager: true, onDelete: "RESTRICT"})
-    @JoinColumn()
-    token: Relation<AccessToken> = AccessToken.default;
 
     @Column()
     timeZone: string = "utc";
@@ -69,6 +67,5 @@ export default class AppSink extends UserSink{
 
         }
     }
-
 
 }

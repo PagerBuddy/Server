@@ -2,7 +2,7 @@ import { DateTime } from "luxon";
 import { Entity, PrimaryGeneratedColumn, Column, BaseEntity, ManyToOne, Equal, Relation } from "typeorm";
 import { isEntityName } from "typescript";
 import Alert from "./alert.js";
-import SilentConfiguration, { SilentNever } from "./silent_configuration.js";
+import SilentConfiguration, { SerialisableSilentConfiguration, SilentNever } from "./silent_configuration.js";
 
 /**
  * A unit is the "ground" truth of an alertable "competence" - so a well defined someone/something which is 
@@ -52,6 +52,15 @@ export default class Unit extends BaseEntity{
 
         return unit ?? Unit.create({unitCode: unitCode});
     }
+
+    public getSerialisableUnit() : SerialisableUnit{
+        return {
+            name: this.name,
+            shortName: this.shortName,
+            unitCode: this.unitCode,
+            silentTime: this.silentTime.getSerialisableSilentConfiguration()
+        }
+    }
 }
 
 @Entity()
@@ -68,4 +77,11 @@ export class UnitSubscription extends BaseEntity{
     public isMatchingAlert(alert: Alert): boolean{
         return this.unit.isMatchingAlert(alert);
     }
+}
+
+export type SerialisableUnit = {
+    name: string,
+    shortName: string,
+    unitCode: number,
+    silentTime: SerialisableSilentConfiguration
 }

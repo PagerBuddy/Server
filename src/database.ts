@@ -1,6 +1,5 @@
 import { DataSource } from "typeorm";
 import Log from "./log.js";
-import AccessToken from "./model/access_token.js";
 import Alert from "./model/alert.js";
 import Group from "./model/group.js";
 import AlertResponse from "./model/response/alert_response.js";
@@ -37,7 +36,6 @@ export default class Database{
             AlertResponse, ResponseConfiguration, ResponseOption, UserResponse, 
             AlertSink, AppSink, GroupSink, TelegramSink, UserSink, WebhookSink,
             AlertSource, AlertSourceHardwareInterface, AlertSourceKatSys, AlertSourceManual,
-            AccessToken,
             Alert,
             Group,
             SilentConfiguration, SilentAlways, SilentDayOfMonth, SilentDayOfWeek, SilentNever, SilentTime,
