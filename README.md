@@ -18,17 +18,15 @@ Currently supported:
    git clone https://github.com/PagerBuddy/Server.git
    ```
    or [download release](https://github.com/PagerBuddy/Server/releases/latest) and unpack to a location of your choice
+   
+3. Setup a [PostgreSQL](https://www.postgresql.org/) database
 
-3. Create a config.json with your settings (or edit [config-template.json](https://github.com/PagerBuddy/Server/blob/main/config-template.json) and save as config.json)
+   A quick setup solution is to use [ElephantSQL](https://www.elephantsql.com/). It is free for a small database instance and will be sufficient for a restricted instance of PagerBuddy.
+
+3. Create a config.json with your database connection parameters
 
    Required parameters (have a look in the [wiki](https://github.com/PagerBuddy/Server/wiki/Configuration) for detailed descriptions and advice):
-   * DATABASE_LOCATION
-   * TELEGRAM
-      * BOT_TOKEN and BOT_NAME
-      * ADMIN_GROUPS
-   * ALERT_TIME_ZONE
-   
-   All other parameters are optional and only have to be set if you want to use that functionality.
+   * DATABASE_URL (e.g. retrieved from ElephantSQL)
 
 4. Install dependencies
    ```
