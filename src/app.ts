@@ -1,5 +1,6 @@
 import FirebaseConnector from "./connectors/firebase.js";
 import TelegramConnector from "./connectors/telegram.js";
+import WebAPI from "./connectors/webAPI.js";
 import Database from "./database.js";
 import HealthMonitor from "./health_monitor.js";
 import Log from "./log.js";
@@ -33,6 +34,9 @@ export async function start() {
     if (SystemConfiguration.telegramBotEnabled && !TelegramConnector.getInstance()) {
         log.error("Telegram bot activated but connector could not be started.");
     }
+    if(!WebAPI.getInstance()){
+        log.error("Could not start web API. This will be fatal for any UI interaction.");
+    }
 
     //Start health monitoring
     const healthMonitor = await HealthMonitor.getInstance();
@@ -61,6 +65,7 @@ export async function stop() {
 
     //Stop active connectors
     await TelegramConnector.getInstance()?.stop();
+    WebAPI.getInstance().stop();
 
     //Unload database
     await Database.disconnect();
