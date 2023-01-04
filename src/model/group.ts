@@ -28,7 +28,7 @@ export default class Group extends BaseEntity {
     members?: Relation<User>[];
 
     @ManyToOne(() => ResponseConfiguration, {eager: true, onDelete: "RESTRICT"})
-    responseConfiguration: Relation<ResponseConfiguration> = ResponseConfiguration.default;
+    responseConfiguration?: Relation<ResponseConfiguration>;
 
     @OneToMany(() => GroupSink, (groupSink) => groupSink.group, {eager: true})
     alertSinks?: Relation<GroupSink>[];
@@ -43,16 +43,6 @@ export default class Group extends BaseEntity {
         return group.id == this.id;
     }
 
-    public static get default(){
-        return Group.create({
-            units: [],
-            leaders: [],
-            members: [],
-            alertSinks: [],
-            subGroups: []
-        });
-    }
-
     private isRelevantAlert(alert: Alert): boolean {
         return this.units ? this.units.some((unit) => unit.isMatchingAlert(alert)) : false;
     }
@@ -60,7 +50,12 @@ export default class Group extends BaseEntity {
     public handleAlert(alert: Alert) {
         if (this.isRelevantAlert(alert)) {
 
-            const response = new AlertResponse(alert, this);
+            const response = AlertResponse.create({
+                alert: alert,
+                group: this,
+                responses: []
+            });
+            response.linkAlertCallback();
 
             this.alertSinks?.forEach(sink => {
                 sink.sendAlert(response);

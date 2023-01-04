@@ -10,7 +10,7 @@ import AlertSink from "./alert_sink.js";
 export default abstract class GroupSink extends AlertSink{
 
     @ManyToOne(() => Group)
-    public group: Relation<Group> = Group.default; 
+    public group?: Relation<Group>; 
 
     public abstract sendAlert(alert: AlertResponse): Promise<void>;
 

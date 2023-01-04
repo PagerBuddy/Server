@@ -1,6 +1,7 @@
 import { Entity, PrimaryGeneratedColumn, Column, BaseEntity, OneToOne, JoinColumn, ManyToOne, OneToMany, Equal, Relation } from "typeorm";
 import Alert from "../alert.js";
 import Group from "../group.js";
+import User from "../user.js";
 import UserResponse from "./user_response.js";
 
 /**
@@ -13,21 +14,18 @@ export default class AlertResponse extends BaseEntity{
     public id!: number;
 
     @ManyToOne(() => Alert, {eager: true, onDelete: "CASCADE"})
-    public alert: Relation<Alert> = Alert.default;
+    public alert?: Relation<Alert>;
 
     @ManyToOne(() => Group, {eager: true, onDelete: "CASCADE"})
-    public group: Relation<Group> = Group.default;
+    public group?: Relation<Group>;
 
     @OneToMany(() => UserResponse, (response) => response.alertResponse, {eager: true, onDelete: "RESTRICT"})
     public responses?: Relation<UserResponse>[];
 
     private updateCallbacks: ((update: AlertResponse) => void)[] = [];
 
-    public constructor(alert?: Alert, group?: Group, responses?: UserResponse[]){
-        super();
-
-        //Propagate alert updates through to responses
-        this.alert.registerUpdateCallback((update: Alert) => {
+    public linkAlertCallback() : void{
+        this.alert?.registerUpdateCallback((update: Alert) => {
             //We can safetly assume the updated alert contains more information than the previous item
             this.alert = update;
             //We do not have to reregister, as the alert is fundamentally the same object
@@ -39,10 +37,15 @@ export default class AlertResponse extends BaseEntity{
     }
 
     public userResponded(newResponse: UserResponse): void {
+        //Do nothing with empty users and responses
+        const newUser = newResponse.user;
+        if(!newUser || !newResponse.response){
+            return;
+        }
         this.responses = this.responses ?? []; //init as necessary
-        const oldResponse = this.responses.find((response) => response.user.equals(newResponse.user));
+        const oldResponse = this.responses.find((response) => response.user?.equals(newUser));
 
-        if(oldResponse && oldResponse.response.equals(newResponse.response)){
+        if(oldResponse && oldResponse.response?.equals(newResponse.response)){
             //Response is known and has not changed
             return;
         }else if(oldResponse){

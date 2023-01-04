@@ -25,13 +25,13 @@ export default class UserResponse extends BaseEntity{
     public timestamp: DateTime = DateTime.fromMillis(0);
     
     @ManyToOne(() => AlertSink, {eager: true, onDelete: "RESTRICT"})
-    public responseSource: Relation<AlertSink> = AlertSink.default;
+    public responseSource?: Relation<AlertSink>;
 
     @ManyToOne(() => User, {eager: true, onDelete: "CASCADE"})
-    public user: Relation<User> = User.default;
+    public user?: Relation<User>;
 
     @ManyToOne(() => ResponseOption, {eager: true, onDelete: "RESTRICT"})
-    public response: Relation<ResponseOption> = ResponseOption.default;
+    public response?: Relation<ResponseOption>;
 
     @OneToMany(() => AlertResponse, (alertResponse) => alertResponse.responses, {onDelete: "CASCADE"})
     public alertResponse?: Relation<AlertResponse>;
@@ -46,7 +46,7 @@ export default class UserResponse extends BaseEntity{
     }
 
     public static countResponsesForType(userResponses: UserResponse[], type: RESPONSE_TYPE) : number {
-        return userResponses.filter((response) => response.response.type == type).length;
+        return userResponses.filter((response) => response.response?.type == type).length;
     }
 
     public static getResponsesForOption(userResponses: UserResponse[], option: ResponseOption) : UserResponse[] {
@@ -54,7 +54,7 @@ export default class UserResponse extends BaseEntity{
     }
 
     public static getResponsesForType(userResponses: UserResponse[], type: RESPONSE_TYPE) : UserResponse[] {
-        return userResponses.filter((response) => response.response.type == type);
+        return userResponses.filter((response) => response.response?.type == type);
     }
 
     public static sortByEstimatedArrival(userResponses: UserResponse[]): UserResponse[] {
@@ -79,7 +79,7 @@ export default class UserResponse extends BaseEntity{
     } 
 
     public getEstimatedArrival() : DateTime {
-        if(this.response.enableEstimatedArrival){
+        if(this.response?.enableEstimatedArrival){
             return this.timestamp.plus(this.response.estimatedArrivalOffset);
         }else{
             return DateTime.invalid("No ETA", "The selected reply option does not contain an estimated arrival.");

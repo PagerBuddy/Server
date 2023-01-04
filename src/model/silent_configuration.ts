@@ -94,10 +94,6 @@ export class SilentTime extends SilentConfiguration{
     })
     public endTime: DateTime = DateTime.fromMillis(0);
 
-    public static get default() : SilentTime{
-        return SilentTime.create();
-    }
-
     /**
      * We frequently have to compare times. To enable the use of date libraries, this
      * helper removes anything but the time of day from a Date.
@@ -136,11 +132,11 @@ export class SilentDayOfWeek extends SilentConfiguration{
     day: WeekdayNumbers = 1;
 
     @ManyToOne(() => SilentTime, {eager: true, onDelete: "RESTRICT"})
-    time: Relation<SilentTime> = SilentTime.default;
+    time?: Relation<SilentTime>;
 
     public isInSilentPeriod(timestamp: DateTime): boolean {
         const dayMatch = timestamp.weekday == this.day;
-        const timeMatch = this.time.isInSilentPeriod(timestamp);
+        const timeMatch = this.time?.isInSilentPeriod(timestamp) ?? true;
 
         return dayMatch && timeMatch;
     }
@@ -149,8 +145,8 @@ export class SilentDayOfWeek extends SilentConfiguration{
         const base = super.getSerialisableSilentConfiguration();
         base.type = SilentDayOfWeek.name;
         base.dayOfWeek = this.day;
-        base.startTimeMillis = this.time.startTime.toMillis();
-        base.endTimeMillis = this.time.endTime.toMillis();
+        base.startTimeMillis = this.time?.startTime.toMillis() ?? 0;
+        base.endTimeMillis = this.time?.endTime.toMillis() ?? 0;
         return base;
     }
 }
@@ -162,11 +158,11 @@ export class SilentDayOfMonth extends SilentConfiguration{
     day: DayNumbers = 1;
 
     @ManyToOne(() => SilentTime, {eager: true, onDelete: "RESTRICT"})
-    time: Relation<SilentTime> = SilentTime.default;
+    time?: Relation<SilentTime>;
 
     isInSilentPeriod(timestamp: DateTime): boolean {  
         const dayMatch = timestamp.daysInMonth == this.day;
-        const timeMatch = this.time.isInSilentPeriod(timestamp);
+        const timeMatch = this.time?.isInSilentPeriod(timestamp) ?? true;
 
         return dayMatch && timeMatch;
     }
@@ -175,8 +171,8 @@ export class SilentDayOfMonth extends SilentConfiguration{
         const base = super.getSerialisableSilentConfiguration();
         base.type = SilentDayOfMonth.name;
         base.dayOfMonth = this.day;
-        base.startTimeMillis = this.time.startTime.toMillis();
-        base.endTimeMillis = this.time.endTime.toMillis();
+        base.startTimeMillis = this.time?.startTime.toMillis() ?? 0;
+        base.endTimeMillis = this.time?.endTime.toMillis() ?? 0;
         return base;
     }
 }

@@ -17,16 +17,6 @@ export default class ResponseConfiguration extends BaseEntity{
     @JoinTable()
     options?: Relation<ResponseOption>[];
 
-    
-    public static get default(){
-        const def = ResponseConfiguration.create({
-            description: "",
-            allowResponses: false,
-            options: []
-        });
-        return def;
-    }
-
     public addResponseOption(option: ResponseOption) : boolean {
         this.options = this.options ?? [];
         if(this.options.some((op) => op.id == option.id)){

@@ -31,10 +31,6 @@ export default class ResponseOption extends BaseEntity{
 
     @Column()
     public type: RESPONSE_TYPE = RESPONSE_TYPE.DENY;
-    
-    public static get default() : ResponseOption {
-        return ResponseOption.create();
-    }
 
     public equals(responseOption: ResponseOption): boolean {
         return responseOption.id == this.id;

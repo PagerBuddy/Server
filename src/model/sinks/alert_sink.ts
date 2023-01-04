@@ -18,12 +18,6 @@ export default abstract class AlertSink extends BaseEntity{
     @JoinTable()
     subscriptions?: Relation<UnitSubscription>[];
 
-    public static get default() : AlertSink{
-        return DefaultSink.create({
-            subscriptions: []
-        });
-    }
-
     public abstract sendAlert(alert: AlertResponse): Promise<void>;
 
 

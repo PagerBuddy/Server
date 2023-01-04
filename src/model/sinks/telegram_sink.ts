@@ -4,6 +4,7 @@ import TelegramConnector from "../../connectors/telegram.js";
 import Log from "../../log.js";
 import Alert from "../alert.js";
 import AlertResponse from "../response/alert_response.js";
+import ResponseConfiguration from "../response/response_configuration.js";
 import ResponseOption from "../response/response_option.js";
 import UserResponse from "../response/user_response.js";
 import { UnitSubscription } from "../unit.js";
@@ -31,12 +32,12 @@ export default class TelegramSink extends GroupSink{
         const responseOption = await ResponseOption.fromID(responseId);
         const alert = await AlertResponse.fromId(alertId);
 
-        const sink = alert?.group.alertSinks?.find((sink) => {
+        const sink = alert?.group?.alertSinks?.find((sink) => {
             return sink instanceof TelegramSink && sink.chatId == chatId;
         });
 
         const user = await User.fromTelegramName(userName);
-        const userInGroup = alert?.group.members?.some((member) => member.id == user?.id);
+        const userInGroup = alert?.group?.members?.some((member) => member.id == user?.id);
 
         if(responseOption && sink && user && userInGroup){
             const userResponse = UserResponse.create({
@@ -50,7 +51,7 @@ export default class TelegramSink extends GroupSink{
     }
 
     public async sendAlert(alert: AlertResponse): Promise<void>{
-        if(super.isRelevantAlert(alert.alert)){
+        if(alert.alert && super.isRelevantAlert(alert.alert)){
 
             //Convert timestamp to destination timezone
             const localisedAlert = alert.alert.getLocalisedCopy(this.timeZone, this.locale);
@@ -76,7 +77,7 @@ export default class TelegramSink extends GroupSink{
             let interfaceMessageId = 0;
             let interfaceMessageText = "";
 
-            if(alert.group.responseConfiguration.allowResponses){
+            if(alert.group?.responseConfiguration?.allowResponses){
                 const userResponses = alert.getLocalisedResponses(this.timeZone, this.locale);
                 const interfaceResult = telegramConnector.sendResponseInterface(alert.id, this.chatId, userResponses, alert.group.responseConfiguration);
                 interfaceAbortController = interfaceResult.cancellationToken;
@@ -86,7 +87,7 @@ export default class TelegramSink extends GroupSink{
         
 
             alert.registerUpdateCallback((update: AlertResponse) => {
-                if(messageResult.messageId != 0){
+                if(update.alert && messageResult.messageId != 0){
                     alertAbortController.abort();
 
                     const localisedUpdate = update.alert.getLocalisedCopy(this.timeZone, this.locale);
@@ -94,11 +95,17 @@ export default class TelegramSink extends GroupSink{
                     alertAbortController = updateResult.cancellationToken;
                     alertMessageText = updateResult.messageText;
                 }
-                if(interfaceMessageId != 0){
+                if(update.group?.responseConfiguration && interfaceMessageId != 0){
                     interfaceAbortController.abort();
 
                     const userResponses = update.getLocalisedResponses(this.timeZone, this.locale);
-                    const interfaceResult = telegramConnector.sendResponseInterface(update.id, this.chatId, userResponses, update.group.responseConfiguration, interfaceMessageId, interfaceMessageText);
+                    const interfaceResult = telegramConnector.sendResponseInterface(
+                        update.id, 
+                        this.chatId, 
+                        userResponses, 
+                        update.group.responseConfiguration, 
+                        interfaceMessageId, 
+                        interfaceMessageText);
                     interfaceAbortController = interfaceResult.cancellationToken;
                     interfaceMessageText = interfaceResult.messageText;
                 }

@@ -38,10 +38,6 @@ export default class User extends BaseEntity{
     @JoinTable()
     sinks?: Relation<UserSink>[];
 
-    public static get default() : User {
-        return User.create({sinks: []});
-    }
-
     public equals(user: User): boolean{
         return user.id == this.id;
     }

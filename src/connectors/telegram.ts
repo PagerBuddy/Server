@@ -84,7 +84,7 @@ export default class TelegramConnector {
             outText.push(BOLD_START, "Probealarmzeit", BOLD_END, LINE_BREAK);
         }
         outText.push(alert.keyword, LINE_BREAK, alert.location, LINE_BREAK);
-        outText.push(alert.unit.name, LINE_BREAK, alert.unit.unitCode.toString(), LINE_BREAK);
+        outText.push(alert.unit?.name ?? "", LINE_BREAK, alert.unit?.unitCode.toString() ?? "", LINE_BREAK);
         outText.push(alert.timestamp.toLocaleString(DateTime.DATETIME_SHORT), LINE_BREAK);
 
         outText.push(LINE_BREAK, "<a href='", PAGERBUDDY_URL, "'>PagerBuddy</a>");
@@ -167,15 +167,15 @@ export default class TelegramConnector {
         outText.push(BOLD_START, "Rückmeldungen", BOLD_END, LINE_BREAK, LINE_BREAK);
         outText.push(BOLD_START, `Zusagen (${confirmResponses.length} + ${delayResponses.length})`, BOLD_END, LINE_BREAK);
         confirmResponses.forEach(response => {
-            outText.push(`${response.user.getPrintName()} [ETA: ${response.getEstimatedArrival().toLocaleString(DateTime.TIME_SIMPLE)}]`, LINE_BREAK);
+            outText.push(`${response.user?.getPrintName() ?? ""} [ETA: ${response.getEstimatedArrival().toLocaleString(DateTime.TIME_SIMPLE)}]`, LINE_BREAK);
         });
         delayResponses.forEach(response => {
-            outText.push(`${response.user.getPrintName()}`, LINE_BREAK);
+            outText.push(`${response.user?.getPrintName() ?? ""}`, LINE_BREAK);
         })
 
         outText.push(BOLD_START, `Absagen (${denyResponses.length})`, BOLD_END, LINE_BREAK);
         denyResponses.forEach(response => {
-            outText.push(`${response.user.getPrintName()}`, LINE_BREAK);
+            outText.push(`${response.user?.getPrintName() ?? ""}`, LINE_BREAK);
         });
 
         return outText.join("");

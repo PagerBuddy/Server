@@ -34,13 +34,16 @@ export default class AppSink extends UserSink{
     private log = Log.getLogger(AppSink.name);
 
     private invalidTokenCallback() : void {
-        //TODO: Remove invalid token?
-        //Probably send some http request to app for update
+        //We cannot retireve a new token, as we have no way of communicating to app without a valid token.
+        //We can therefore assume the app instance is dead and will re-register if needed
+
+        this.deviceToken = "";
+        this.active = false;
     }
 
 
     public async sendAlert(alert: AlertResponse): Promise<void> {
-        if(super.isRelevantAlert(alert.alert)){
+        if(alert.alert && super.isRelevantAlert(alert.alert)){
 
             const alertPayload = alert.alert.getSerialisableAlert();
             const configuration = {
@@ -56,6 +59,9 @@ export default class AppSink extends UserSink{
                 firebase.sendAlert(this.deviceToken, alertPayload, configuration, this.invalidTokenCallback);
 
                 alert.registerUpdateCallback(async (update: AlertResponse) => {
+                    if(!update.alert){
+                        return;
+                    }
                     const updatePayload = update.alert.getSerialisableAlert();
     
                     firebase.sendAlert(this.deviceToken, updatePayload, configuration, this.invalidTokenCallback);

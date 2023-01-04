@@ -15,7 +15,7 @@ export default class WebhookSink extends UserSink{
     url: string = "";
 
     public async sendAlert(alert: AlertResponse): Promise<void> {
-        if(super.isRelevantAlert(alert.alert)){
+        if(alert.alert && super.isRelevantAlert(alert.alert)){
 
             https.get(this.url, (result) => {
                 //TODO: Handle/check result?

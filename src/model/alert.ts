@@ -38,7 +38,7 @@ export default class Alert extends BaseEntity{
     informationContent: INFORMATION_CONTENT = INFORMATION_CONTENT.NONE;
 
     @ManyToOne(() => Unit, {eager: true, onDelete: "CASCADE"})
-    unit: Relation<Unit> = Unit.default;
+    unit?: Relation<Unit>;
 
     @ManyToMany(() => AlertSource, {eager: true})
     @JoinTable()
@@ -46,14 +46,8 @@ export default class Alert extends BaseEntity{
 
     private updateCallbacks: ((update: Alert) => void)[] = [];
 
-    public static get default(){
-        return Alert.create({
-            sources: []
-        });
-    }
-
     get isSilentAlert(): boolean {
-        return this.unit.isSilentTime(this.timestamp);
+        return this.unit?.isSilentTime(this.timestamp) ?? false;
     }
 
     get isManualAlert(): boolean {
@@ -122,9 +116,9 @@ export default class Alert extends BaseEntity{
             manualAlert: this.isManualAlert,
             id: this.id,
             unit: {
-                name: this.unit.name,
-                shortName: this.unit.shortName,
-                code: this.unit.unitCode
+                name: this.unit?.name ?? "",
+                shortName: this.unit?.shortName ?? "",
+                code: this.unit?.unitCode ?? 0
             }
         };
 

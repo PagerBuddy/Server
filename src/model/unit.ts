@@ -25,18 +25,17 @@ export default class Unit extends BaseEntity{
     unitCode: number = NaN;
 
     @ManyToOne(() => SilentConfiguration, {eager: true, onDelete: "RESTRICT"})
-    silentTime: Relation<SilentConfiguration> = SilentNever.create();
-
-    public static get default() : Unit{
-        return Unit.create();
-    }
+    silentTime?: Relation<SilentConfiguration>;
 
     public isSilentTime(timestamp: DateTime) : boolean {
-        return this.silentTime.isInSilentPeriod(timestamp);
+        return this.silentTime?.isInSilentPeriod(timestamp) ?? false;
     }
 
     public isMatchingAlert(alert: Alert) : boolean {
-        return alert.unit.unitCode == this.unitCode;
+        if(alert.unit){
+            return alert.unit.unitCode == this.unitCode;
+        }
+        return false;
     }
 
     /**
@@ -58,7 +57,7 @@ export default class Unit extends BaseEntity{
             name: this.name,
             shortName: this.shortName,
             unitCode: this.unitCode,
-            silentTime: this.silentTime.getSerialisableSilentConfiguration()
+            silentTime: this.silentTime?.getSerialisableSilentConfiguration() ?? SilentNever.create().getSerialisableSilentConfiguration()
         }
     }
 }
@@ -69,13 +68,13 @@ export class UnitSubscription extends BaseEntity{
     id!: number;
 
     @ManyToOne(() => Unit, {eager: true, onDelete: "CASCADE"})
-    unit: Relation<Unit> = Unit.default;
+    unit?: Relation<Unit>;
 
     @Column()
     active: boolean = true;
 
     public isMatchingAlert(alert: Alert): boolean{
-        return this.unit.isMatchingAlert(alert);
+        return this.unit?.isMatchingAlert(alert) ?? false;
     }
 }
 

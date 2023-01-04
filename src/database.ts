@@ -1,8 +1,8 @@
 import { DataSource } from "typeorm";
 import Log from "./log.js";
 import Alert from "./model/alert.js";
-import Group from "./model/group.js";
 import AlertResponse from "./model/response/alert_response.js";
+import Group from "./model/group.js";
 import ResponseConfiguration from "./model/response/response_configuration.js";
 import ResponseOption from "./model/response/response_option.js";
 import UserResponse from "./model/response/user_response.js";
@@ -20,7 +20,7 @@ import AlertSourceManual from "./model/sources/alert_source_manual.js";
 import SystemConfiguration from "./model/system_configuration.js";
 import Unit, { UnitSubscription } from "./model/unit.js";
 import User from "./model/user.js";
-import config from "../config.json";
+import config from "../config.json" assert {type: "json"};
 
 export default class Database{
 
@@ -32,13 +32,13 @@ export default class Database{
         type: "postgres",
         url: config.DATABASE_URL,
         synchronize: true,
-        entities: [
-            AlertResponse, ResponseConfiguration, ResponseOption, UserResponse, 
+        entities: [ 
             AlertSink, AppSink, GroupSink, TelegramSink, UserSink, WebhookSink,
             AlertSource, AlertSourceHardwareInterface, AlertSourceKatSys, AlertSourceManual,
             Alert,
             Group,
-            SilentConfiguration, SilentAlways, SilentDayOfMonth, SilentDayOfWeek, SilentNever, SilentTime,
+            AlertResponse, ResponseConfiguration, ResponseOption, UserResponse,
+            SilentConfiguration, SilentAlways, SilentTime, SilentDayOfMonth, SilentDayOfWeek, SilentNever,
             SystemConfiguration,
             Unit, UnitSubscription,
             User
