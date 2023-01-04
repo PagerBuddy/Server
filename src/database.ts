@@ -20,7 +20,6 @@ import AlertSourceManual from "./model/sources/alert_source_manual.js";
 import SystemConfiguration from "./model/system_configuration.js";
 import Unit, { UnitSubscription } from "./model/unit.js";
 import User from "./model/user.js";
-import config from "../config.json" assert {type: "json"};
 
 export default class Database{
 
@@ -30,7 +29,7 @@ export default class Database{
     //Currently using ElephantSQL (free) for development
     private static appDataSource = new DataSource({
         type: "postgres",
-        url: config.DATABASE_URL,
+        url: SystemConfiguration.databaseLocation,
         synchronize: true,
         entities: [ 
             AlertSink, AppSink, GroupSink, TelegramSink, UserSink, WebhookSink,

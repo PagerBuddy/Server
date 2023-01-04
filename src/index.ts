@@ -9,7 +9,6 @@ import AlertSourceKatSys from "./model/sources/alert_source_katsys.js";
 import AlertSourceManual from "./model/sources/alert_source_manual.js";
 import SystemConfiguration from "./model/system_configuration.js";
 
-
 const log = Log.getLogger("App");
 
 export async function start() {
@@ -28,8 +27,8 @@ export async function start() {
     });
 
     //Initialise active output connectors as a test
-    if (SystemConfiguration.firebaseEnabled && !FirebaseConnector.getInstance()) {
-        log.error("Firebase activated but connector could not be started.");
+    if (!FirebaseConnector.getInstance()) {
+        log.error("Firebase connector could not be started. This is typically fatal.");
     }
     if (SystemConfiguration.telegramBotEnabled && !TelegramConnector.getInstance()) {
         log.error("Telegram bot activated but connector could not be started.");
@@ -69,4 +68,17 @@ export async function stop() {
 
     //Unload database
     await Database.disconnect();
+}
+
+if (process.argv.length == 3) {
+    const what = process.argv[2];
+    switch (what) {
+        case "stop":
+            stop();
+            break;
+        case "start":
+            start();
+            break;
+        default:
+    }
 }

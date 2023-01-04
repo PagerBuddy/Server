@@ -1,7 +1,11 @@
 import { Duration } from "luxon";
+import { resolve } from "path";
 import { Entity, PrimaryGeneratedColumn, Column, BaseEntity } from "typeorm";
 import { FirebaseCredentials } from "../connectors/firebase.js";
-import { TelegramLogTarget } from "../log.js";
+import Log, { TelegramLogTarget } from "../log.js";
+import {readFileSync} from "fs";
+
+export const CONFIG_FILE_LOCATION = resolve("config.json");
 
 /**
  * Accessor for global setting parameters. These apply system-wide and will only be set by a super administrator.
@@ -11,6 +15,8 @@ import { TelegramLogTarget } from "../log.js";
 export default class SystemConfiguration extends BaseEntity{
 
     private static instance : SystemConfiguration;
+
+    //We cannot use log here as we will create circular dependencies!
 
     @PrimaryGeneratedColumn()
     private id!: number;
@@ -76,33 +82,6 @@ export default class SystemConfiguration extends BaseEntity{
         return SystemConfiguration.getInstance().sysDoubleAlertTimeout;
     }
 
-    @Column("simple-json")
-    private sysFirebaseCredentials? : FirebaseCredentials;
-
-    public static get firebaseCredentials() : FirebaseCredentials{
-        const std = {
-            type: "",
-            project_id: "",
-            private_key_id: "",
-            private_key: "",
-            client_email: "",
-            client_id: "",
-            auth_uri: "",
-            token_uri: "",
-            auth_provider_x509_cert_url: "",
-            client_x509_cert_url: ""
-        }
-        return SystemConfiguration.getInstance().sysFirebaseCredentials ?? std;
-    }
-
-    @Column()
-    private sysFirebaseEnable: boolean = false;
-
-    public static get firebaseEnabled() : boolean{
-        const instance = SystemConfiguration.getInstance();
-        return instance.sysFirebaseEnable && SystemConfiguration.firebaseCredentials.private_key != "";
-    }
-
     @Column({
         type: "bigint",
         transformer: {
@@ -120,6 +99,42 @@ export default class SystemConfiguration extends BaseEntity{
         return SystemConfiguration.getInstance().sysHealthCheckInterval;
     }
 
+    private readConfig() : PagerBuddyConfig{
+        let config : PagerBuddyConfig;
+        try{
+            const rawConfig = readFileSync(CONFIG_FILE_LOCATION, {encoding: "utf-8"});
+            config = JSON.parse(rawConfig);
+        }catch(error: any){
+            console.error("Could not parse config. This is fatal.");
+            throw error;
+        }
+        return config;
+    }
+
+    public static get databaseLocation() : string {
+        const config = SystemConfiguration.getInstance().readConfig();
+        if(!config.DATABASE_URL){
+            throw new Error("Databse location not specified in config file. This is fatal.");
+        }
+        return config.DATABASE_URL;
+    }
+
+    public static get firebaseCredentials() : FirebaseCredentials {
+        const config = SystemConfiguration.getInstance().readConfig();
+        if(!config.FIREBASE_CREDENTIAL_LOCATION){
+            throw new Error("Location of firebase credentials not specified in config file. This is fatal");
+        }
+        let credentials : FirebaseCredentials;
+        try{
+            const rawCreds = readFileSync(resolve(config.FIREBASE_CREDENTIAL_LOCATION), {encoding: "utf-8"});
+            credentials = JSON.parse(rawCreds);
+        }catch(error: any){
+            console.error("Could not parse firebase credentials. This is fatal.");
+            throw error;
+        }
+        return credentials;
+    }
+
     public constructor(){
         super();
     }
@@ -130,4 +145,9 @@ export default class SystemConfiguration extends BaseEntity{
         }
         return SystemConfiguration.instance;
     }
+}
+
+export type PagerBuddyConfig = {
+    DATABASE_URL?: string,
+    FIREBASE_CREDENTIAL_LOCATION?: string
 }

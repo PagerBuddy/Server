@@ -1,7 +1,7 @@
 {
     "name": "pagerbuddyserver",
     "version": "2.0.0",
-    "main": "src/server.js",
+    "main": "dist/src/index.js",
     "author": "Bartunik, Schiller, Reichert, Keszocze",
     "license": "GPL-3.0-or-later",
     "private": true,
@@ -21,8 +21,10 @@
         "p-queue": "^7.3.0",
         "path": "^0.12.7",
         "pg": "^8.8.0",
+        "prompt-sync": "^4.2.0",
         "socket.io": "^4.5.1",
         "sqlite3": "^5.0.8",
+        "ts-node": "^10.9.1",
         "typeorm": "^0.3.10",
         "websocket": "^1.0.34",
         "winston": "^3.7.2",
@@ -35,14 +37,18 @@
         "npm": ">=6.13.5"
     },
     "scripts": {
-        "start": "node dist/scripts/start",
+        "start": "ts-node-esm src/index.ts start",
+        "preuninstall": "ts-node-esm scripts/preuninstall.ts",
+        "postinstall": "ts-node-esm scripts/postinstall.ts",
         "debug": "node scripts/start.mjs",
         "cleanup": "node scripts/cleanup.mjs",
         "installservice": "sudo node scripts/service.mjs install",
         "uninstallservice": "sudo node scripts/service.mjs uninstall",
         "startservice": "sudo node scripts/service.mjs start",
         "stopservice": "sudo node scripts/service.mjs stop",
-        "test": "jest --runInBand --config=test/jest.config.mjs"
+        "test": "jest --runInBand --config=test/jest.config.mjs",
+        "build": "tsc --build",
+        "clean": "tsc --build --clean"
     },
     "devDependencies": {
         "@babel/core": "^7.18.5",
@@ -52,6 +58,7 @@
         "@types/luxon": "^3.1.0",
         "@types/node-schedule": "^2.1.0",
         "@types/node-telegram-bot-api": "^0.57.1",
+        "@types/prompt-sync": "^4.2.0",
         "@types/sequelize": "^4.28.14",
         "@types/sqlite3": "^3.1.8",
         "@types/ws": "^8.5.3",

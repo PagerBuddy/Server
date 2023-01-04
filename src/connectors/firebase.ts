@@ -9,8 +9,6 @@ import SystemConfiguration from "../model/system_configuration.js";
 import admin, { ServiceAccount } from "firebase-admin";
 import { DecodedIdToken, getAuth } from "firebase-admin/auth";
 import User from "../model/user.js";
-import { auth } from "firebase-admin";
-import credentials from "../../firebase_credentials.json" assert {type: "json"};
 
 export default class FirebaseConnector {
 
@@ -20,6 +18,8 @@ export default class FirebaseConnector {
     private accessToken?: Credentials;
 
     private constructor(){
+        const credentials = SystemConfiguration.firebaseCredentials;
+
         const service_account : ServiceAccount = {
             projectId: credentials.project_id,
             clientEmail: credentials.client_email,
@@ -32,9 +32,6 @@ export default class FirebaseConnector {
     }
 
     public static getInstance() : FirebaseConnector | undefined{
-        if(!SystemConfiguration.firebaseEnabled){
-            return undefined;
-        }
         if (!FirebaseConnector.instance) {
             FirebaseConnector.instance = new FirebaseConnector();
         }

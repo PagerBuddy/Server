@@ -2,7 +2,7 @@
 Description=PagerBuddy
 
 [Service]
-ExecStart=/usr/bin/node %pagerbuddy%/scripts/start.mjs
+ExecStart=/usr/bin/node run-func %pagerbuddy%/dist/src/index.js start
 Restart=always
 RestartPreventExitStatus=1000
 RestartSec=2
