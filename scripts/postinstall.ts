@@ -1,12 +1,14 @@
 import fs from "fs";
 import promptSync from "prompt-sync";
 import {CONFIG_FILE_LOCATION, PagerBuddyConfig} from "../src/model/system_configuration.js";
+import { checkPlatform, install } from "./service.js";
 
 const DEFAULT_FIREBASE_FILE = "./firebase_credentials.json";
 
 const prompt = promptSync();
 
 createConfig();
+promptService();
 
 function createConfig() : void{
     if(checkConfig(CONFIG_FILE_LOCATION)){
@@ -18,11 +20,23 @@ function createConfig() : void{
     const firebaseLoc = promptFirebase();
 
     const newConfig : PagerBuddyConfig = {
-        DATABASE_URL: databaseLoc,
+        DATABASE_CONNECTION: {url: databaseLoc},
         FIREBASE_CREDENTIAL_LOCATION: firebaseLoc
     };
 
     fs.writeFileSync(CONFIG_FILE_LOCATION, JSON.stringify(newConfig, null, 4));
+}
+
+function promptService() : void {
+    if(checkPlatform()){
+        //We are on platform that support PagerBuddy service
+        console.info("\nDo you want to install PagerBuddy as a service? Enter Y (yes) or N (no):");
+        const reply = prompt("(Y/N)> ", "N");
+        if(reply == "Y" || reply == "N"){
+            //TODO: Will this work without sudo permissions?
+            install();
+        }
+    }
 }
 
 function promptFirebase() : string{
@@ -36,12 +50,8 @@ function promptFirebase() : string{
 }
 
 function promptDatabase() : string{
-    console.info("Enter the URL to a PostgreSQL database instance to use:");
+    console.info(`Enter the URL to a PostgreSQL database instance to use. If you want to use a local instance instead, you can manually set connection parameters in ${CONFIG_FILE_LOCATION} later:`);
     const databaseURL = prompt("> ", "");
-    if(!databaseURL || databaseURL.length == 0){
-        console.error("This is a mandatory parameter.");
-        return promptDatabase();
-    }
     return databaseURL;
 }
 
@@ -56,7 +66,7 @@ function checkConfig(file: string) : boolean {
             return false;
         }
 
-        if(itemExists(jsonConfig.DATABASE_URL) && itemExists(jsonConfig.FIREBASE_CREDENTIAL_LOCATION)){
+        if(jsonConfig.DATABASE_CONNECTION && itemExists(jsonConfig.FIREBASE_CREDENTIAL_LOCATION)){
             return true;
         }else{
             console.error(`Config file found at ${CONFIG_FILE_LOCATION} does not contain necessary elements. Ignoring it.`)

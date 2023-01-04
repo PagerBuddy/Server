@@ -4,6 +4,7 @@ import { Entity, PrimaryGeneratedColumn, Column, BaseEntity } from "typeorm";
 import { FirebaseCredentials } from "../connectors/firebase.js";
 import Log, { TelegramLogTarget } from "../log.js";
 import {readFileSync} from "fs";
+import { PostgresConnectionCredentialsOptions } from "typeorm/driver/postgres/PostgresConnectionCredentialsOptions.js";
 
 export const CONFIG_FILE_LOCATION = resolve("config.json");
 
@@ -111,12 +112,12 @@ export default class SystemConfiguration extends BaseEntity{
         return config;
     }
 
-    public static get databaseLocation() : string {
+    public static get databaseConnection() : PostgresConnectionCredentialsOptions {
         const config = SystemConfiguration.getInstance().readConfig();
-        if(!config.DATABASE_URL){
-            throw new Error("Databse location not specified in config file. This is fatal.");
+        if(!config.DATABASE_CONNECTION){
+            throw new Error("Database connection not specified in config file. This is fatal.");
         }
-        return config.DATABASE_URL;
+        return config.DATABASE_CONNECTION;
     }
 
     public static get firebaseCredentials() : FirebaseCredentials {
@@ -148,6 +149,6 @@ export default class SystemConfiguration extends BaseEntity{
 }
 
 export type PagerBuddyConfig = {
-    DATABASE_URL?: string,
+    DATABASE_CONNECTION?: PostgresConnectionCredentialsOptions,
     FIREBASE_CREDENTIAL_LOCATION?: string
 }

@@ -1,4 +1,4 @@
-import { DataSource } from "typeorm";
+import { DataSource, DataSourceOptions } from "typeorm";
 import Log from "./log.js";
 import Alert from "./model/alert.js";
 import AlertResponse from "./model/response/alert_response.js";
@@ -20,31 +20,35 @@ import AlertSourceManual from "./model/sources/alert_source_manual.js";
 import SystemConfiguration from "./model/system_configuration.js";
 import Unit, { UnitSubscription } from "./model/unit.js";
 import User from "./model/user.js";
+import { PostgresConnectionCredentialsOptions } from "typeorm/driver/postgres/PostgresConnectionCredentialsOptions.js";
 
 export default class Database{
 
     private static log = Log.getLogger(Database.name);
 
-    //TODO: Fill with sensible values
-    //Currently using ElephantSQL (free) for development
-    private static appDataSource = new DataSource({
-        type: "postgres",
-        url: SystemConfiguration.databaseLocation,
-        synchronize: true,
-        entities: [ 
-            AlertSink, AppSink, GroupSink, TelegramSink, UserSink, WebhookSink,
-            AlertSource, AlertSourceHardwareInterface, AlertSourceKatSys, AlertSourceManual,
-            Alert,
-            Group,
-            AlertResponse, ResponseConfiguration, ResponseOption, UserResponse,
-            SilentConfiguration, SilentAlways, SilentTime, SilentDayOfMonth, SilentDayOfWeek, SilentNever,
-            SystemConfiguration,
-            Unit, UnitSubscription,
-            User
-        ]
-    });
+
+    private static appDataSource : DataSource;
 
     public static async connect() : Promise<void>{
+
+        const options : DataSourceOptions = {
+            type: "postgres",
+            entities: [ 
+                AlertSink, AppSink, GroupSink, TelegramSink, UserSink, WebhookSink,
+                AlertSource, AlertSourceHardwareInterface, AlertSourceKatSys, AlertSourceManual,
+                Alert,
+                Group,
+                AlertResponse, ResponseConfiguration, ResponseOption, UserResponse,
+                SilentConfiguration, SilentAlways, SilentTime, SilentDayOfMonth, SilentDayOfWeek, SilentNever,
+                SystemConfiguration,
+                Unit, UnitSubscription,
+                User
+            ]
+        }
+        const connection = SystemConfiguration.databaseConnection;
+        
+
+        Database.appDataSource = new DataSource({...options, ...connection});
         try{
             await Database.appDataSource.initialize()
         }catch(error: any){

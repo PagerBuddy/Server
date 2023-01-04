@@ -1,5 +1,6 @@
 import {CONFIG_FILE_LOCATION} from "../src/model/system_configuration.js";
 import { unlinkSync } from "fs";
+import { uninstall } from "./service.js";
 
 function removeConfig() : void{
     /**
@@ -14,5 +15,5 @@ function removeConfig() : void{
 }
 
 
-//TODO: Remove service if necessary
 removeConfig();
+uninstall();
