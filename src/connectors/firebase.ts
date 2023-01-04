@@ -6,6 +6,11 @@ import { request } from 'https';
 import { IncomingMessage } from "http";
 import { DateTime } from "luxon";
 import SystemConfiguration from "../model/system_configuration.js";
+import admin, { ServiceAccount } from "firebase-admin";
+import { DecodedIdToken, getAuth } from "firebase-admin/auth";
+import User from "../model/user.js";
+import { auth } from "firebase-admin";
+import credentials from "../../firebase_credentials.json" assert {type: "json"};
 
 export default class FirebaseConnector {
 
@@ -14,7 +19,17 @@ export default class FirebaseConnector {
 
     private accessToken?: Credentials;
 
-    private constructor(){}
+    private constructor(){
+        const service_account : ServiceAccount = {
+            projectId: credentials.project_id,
+            clientEmail: credentials.client_email,
+            privateKey: credentials.private_key
+        }
+        
+        const app = admin.initializeApp({
+            credential: admin.credential.cert(service_account)
+        });
+    }
 
     public static getInstance() : FirebaseConnector | undefined{
         if(!SystemConfiguration.firebaseEnabled){
@@ -24,6 +39,18 @@ export default class FirebaseConnector {
             FirebaseConnector.instance = new FirebaseConnector();
         }
         return FirebaseConnector.instance;
+    }
+
+    public static async verifyUserToken(token: string) : Promise<User|null>{
+        let decodedToken : DecodedIdToken;
+        try{
+            decodedToken = await getAuth().verifyIdToken(token, true);
+        }catch(error: any){
+            //TODO: Handle errors in logging (i.e. unresolved/revoked)
+            return null;
+        }
+        const uid = decodedToken.uid; //This is safe to use
+        return User.fromFirebaseUID(uid);
     }
 
     public async sendAlert(

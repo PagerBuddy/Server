@@ -4,6 +4,7 @@ package-log.json
 data/
 backup/
 /config.json
+/firebase_credentials.json
 *.pem
 
 # Logs

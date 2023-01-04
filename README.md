@@ -9,6 +9,13 @@ Currently supported:
 * PagerBuddy administration: [Telegram](https://telegram.org/) (through bot commands and inline actions)
 * Outgoing alerts: [Firebase Cloud Messaging](https://firebase.google.com/docs/cloud-messaging) (FCM), [Apple Push Notification service](https://developer.apple.com/documentation/usernotifications) (routed through FCM), Telegram
 
+## Requirements
+
+- Node.js (>?)
+- PostgreSQL database (e.g. ElephantSQL for a quick start)
+- Firebase project (for authentication and optional for app)
+
+
 ## Installation
 
 1. Install Node.js ([download installer](https://nodejs.org/en/download/), [use package manager](https://nodejs.org/en/download/package-manager/))
@@ -27,6 +34,8 @@ Currently supported:
 
    Required parameters (have a look in the [wiki](https://github.com/PagerBuddy/Server/wiki/Configuration) for detailed descriptions and advice):
    * DATABASE_URL (e.g. retrieved from ElephantSQL)
+
+3.b. Setup Firebase app (see wiki for further details) and add a service account for Firebase Admin SDK (project settings -> Service accounts -> Firebase Admin SDK). You will get a .json file with the credentials. Add them to this project as firebase_credentials.json.
 
 4. Install dependencies
    ```
