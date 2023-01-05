@@ -136,7 +136,7 @@ export default class SystemConfiguration extends BaseEntity{
         return credentials;
     }
 
-    public constructor(){
+    private constructor(){
         super();
     }
 
