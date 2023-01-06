@@ -1,4 +1,6 @@
 import { DateTime, Duration } from "luxon";
+import EMailConnector from "./connectors/email.js";
+import TelegramConnector from "./connectors/telegram.js";
 import HealthCheckAlertSource, { HealthCheckAlertSourceReport } from "./model/health/health_check_alert_source.js";
 import HealthCheckItem, { HealthCheckItemReport } from "./model/health/health_check_item.js";
 import HealthCheckItemBool from "./model/health/health_check_item_bool.js";
@@ -7,6 +9,7 @@ import AlertSource from "./model/sources/alert_source.js";
 import AlertSourceHardwareInterface from "./model/sources/alert_source_hardware_interface.js";
 import AlertSourceKatSys from "./model/sources/alert_source_katsys.js";
 import AlertSourceManual from "./model/sources/alert_source_manual.js";
+import SystemConfiguration from "./model/system_configuration.js";
 
 export default class HealthMonitor{
 
@@ -90,7 +93,16 @@ export default class HealthMonitor{
 
     private outputHealth(message: string): void{
         const outText = "New status change:\n" + message;
-        //TODO: Output this to email/Telegram/...
+
+        const telegram = TelegramConnector.getInstance();
+        const telegramTargets = SystemConfiguration.telegramLogTargetIds;
+        telegramTargets.forEach((target) => {
+            telegram?.sendText(target.chatId, outText);
+        });
+
+        const email = EMailConnector.getInstance();
+        const emailTargets = SystemConfiguration.eMailHealthTargets;
+        email?.sendMessage(outText, "Server Health Status", emailTargets);
     }
 
     private async fillSourceChecks() : Promise<void> {
