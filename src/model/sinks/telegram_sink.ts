@@ -1,13 +1,11 @@
 import { DateTime } from "luxon";
-import { ChildEntity, PrimaryGeneratedColumn, Column, BaseEntity } from "typeorm";
+import { ChildEntity, Column } from "typeorm";
 import TelegramConnector from "../../connectors/telegram.js";
 import Log from "../../log.js";
-import Alert from "../alert.js";
+
 import AlertResponse from "../response/alert_response.js";
-import ResponseConfiguration from "../response/response_configuration.js";
 import ResponseOption from "../response/response_option.js";
 import UserResponse from "../response/user_response.js";
-import { UnitSubscription } from "../unit.js";
 import User from "../user.js";
 import GroupSink from "./group_sink.js";
 

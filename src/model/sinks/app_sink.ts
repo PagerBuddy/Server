@@ -1,10 +1,8 @@
-import { DateTime } from "luxon";
-import { Entity, PrimaryGeneratedColumn, Column, BaseEntity, Timestamp, ChildEntity, OneToOne, JoinColumn, Relation, Equal } from "typeorm";
+import { Column, ChildEntity } from "typeorm";
 import FirebaseConnector from "../../connectors/firebase.js";
 import Log from "../../log.js";
 import AlertResponse from "../response/alert_response.js";
-import UserResponse from "../response/user_response.js";
-import { UnitSubscription } from "../unit.js";
+
 import UserSink from "./user_sink.js";
 
 @ChildEntity()

@@ -1,6 +1,5 @@
 import { DateTime } from "luxon";
 import { Entity, PrimaryGeneratedColumn, Column, BaseEntity, ManyToOne, Equal, Relation } from "typeorm";
-import { isEntityName } from "typescript";
 import Alert from "./alert.js";
 import SilentConfiguration, { SerialisableSilentConfiguration, SilentNever } from "./silent_configuration.js";
 

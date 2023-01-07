@@ -2,7 +2,7 @@ import { Duration } from "luxon";
 import { resolve } from "path";
 import { Entity, PrimaryGeneratedColumn, Column, BaseEntity } from "typeorm";
 import { FirebaseCredentials } from "../connectors/firebase.js";
-import Log, { TelegramLogTarget } from "../log.js";
+import { TelegramLogTarget } from "../log.js";
 import {readFileSync} from "fs";
 import { PostgresConnectionCredentialsOptions } from "typeorm/driver/postgres/PostgresConnectionCredentialsOptions.js";
 

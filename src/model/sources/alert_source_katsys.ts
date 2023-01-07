@@ -1,5 +1,5 @@
 import { DateTime } from "luxon";
-import { ChildEntity, PrimaryGeneratedColumn, Column, BaseEntity } from "typeorm";
+import { ChildEntity, Column } from "typeorm";
 import KatSysConnector from "../../connectors/katsys.js";
 import Alert from "../alert.js";
 import AlertSource from "./alert_source.js";

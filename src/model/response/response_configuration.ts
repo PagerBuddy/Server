@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, BaseEntity, ManyToMany, JoinColumn, JoinTable, Relation } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, BaseEntity, ManyToMany, JoinTable, Relation } from "typeorm";
 import ResponseOption from "./response_option.js";
 
 @Entity()

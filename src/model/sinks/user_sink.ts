@@ -1,8 +1,6 @@
-import { ChildEntity, PrimaryGeneratedColumn, Column, BaseEntity } from "typeorm";
+import { ChildEntity } from "typeorm";
 import alert from "../alert.js";
 import AlertResponse from "../response/alert_response.js";
-import UserResponse from "../response/user_response.js";
-import { UnitSubscription } from "../unit.js";
 import AlertSink from "./alert_sink.js";
 
 @ChildEntity()
