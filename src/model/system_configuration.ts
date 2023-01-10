@@ -67,7 +67,7 @@ export default class SystemConfiguration extends BaseEntity{
         return SystemConfiguration.getInstance().sysTelegramLogTargetIds;
     }
 
-    @Column("string", {array: true})
+    @Column("text", {array: true})
     private sysEMailHealthTargets? : string[];
 
     public static get eMailHealthTargets() : string[] {
