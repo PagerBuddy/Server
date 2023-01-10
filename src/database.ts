@@ -20,7 +20,6 @@ import AlertSourceManual from "./model/sources/alert_source_manual.js";
 import SystemConfiguration from "./model/system_configuration.js";
 import Unit, { UnitSubscription } from "./model/unit.js";
 import User from "./model/user.js";
-import { PostgresConnectionCredentialsOptions } from "typeorm/driver/postgres/PostgresConnectionCredentialsOptions.js";
 
 export default class Database{
 

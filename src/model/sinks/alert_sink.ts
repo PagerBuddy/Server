@@ -1,7 +1,6 @@
-import { Entity, PrimaryGeneratedColumn, Column, BaseEntity, OneToMany, ManyToMany, JoinTable, ChildEntity, Relation, TableInheritance } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, BaseEntity, ManyToMany, JoinTable, ChildEntity, Relation, TableInheritance } from "typeorm";
 import Alert from "../alert.js";
 import AlertResponse from "../response/alert_response.js";
-import UserResponse from "../response/user_response.js";
 import { UnitSubscription } from "../unit.js";
 
 @Entity()

@@ -8,7 +8,6 @@ import HealthCheckItemTime from "./model/health/health_check_item_time.js";
 import AlertSource from "./model/sources/alert_source.js";
 import AlertSourceHardwareInterface from "./model/sources/alert_source_hardware_interface.js";
 import AlertSourceKatSys from "./model/sources/alert_source_katsys.js";
-import AlertSourceManual from "./model/sources/alert_source_manual.js";
 import SystemConfiguration from "./model/system_configuration.js";
 
 export default class HealthMonitor{

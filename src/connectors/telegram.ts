@@ -1,10 +1,10 @@
 import TelegramBot from "node-telegram-bot-api";
-import PQueue, { AbortError } from "p-queue";
+import PQueue from "p-queue";
 import http from "node:http";
 import Alert from "../model/alert.js"
 import { DateTime } from "luxon";
 import UserResponse from "../model/response/user_response.js";
-import ResponseOption, { RESPONSE_TYPE } from "../model/response/response_option.js";
+import { RESPONSE_TYPE } from "../model/response/response_option.js";
 import ResponseConfiguration from "../model/response/response_configuration.js";
 import TelegramSink from "../model/sinks/telegram_sink.js";
 import Log from "../log.js";

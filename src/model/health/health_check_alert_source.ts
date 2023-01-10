@@ -1,7 +1,7 @@
 import { Duration } from "luxon";
 import AlertSource from "../sources/alert_source.js";
 import AlertSourceHardwareInterface from "../sources/alert_source_hardware_interface.js";
-import HealthCheckItem, { HealthCheckItemReport } from "./health_check_item.js";
+import { HealthCheckItemReport } from "./health_check_item.js";
 import HealthCheckItemTime from "./health_check_item_time.js";
 
 

@@ -1,7 +1,6 @@
-import { Entity, PrimaryGeneratedColumn, Column, BaseEntity, OneToOne, JoinColumn, ManyToOne, OneToMany, Equal, Relation } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, BaseEntity, ManyToOne, OneToMany, Equal, Relation } from "typeorm";
 import Alert from "../alert.js";
 import Group from "../group.js";
-import User from "../user.js";
 import UserResponse from "./user_response.js";
 
 /**
