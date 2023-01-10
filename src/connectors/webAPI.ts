@@ -1,4 +1,4 @@
-import express, { Application, Express } from "express";
+import express, { Express } from "express";
 import AppSink from "../model/sinks/app_sink.js";
 import User from "../model/user.js";
 import FirebaseConnector from "./firebase.js";
