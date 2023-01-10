@@ -5,6 +5,7 @@ export default {
   transform: {
     "^.+\\.jsx?$": "babel-jest",
     "^.+\\.mjs$": "babel-jest",
+    "^.+\\.tsx?$": "@swc/jest",
   },
   testPathIgnorePatterns: ["<rootDir>/build/", "<rootDir>/node_modules/"],
   moduleFileExtensions: ["js", "jsx", "mjs", "ts"],
