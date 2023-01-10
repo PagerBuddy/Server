@@ -25,6 +25,7 @@
         "prompt-sync": "^4.2.0",
         "socket.io": "^4.5.1",
         "sqlite3": "^5.0.8",
+        "ts-jest": "^29.0.3",
         "ts-node": "^10.9.1",
         "typeorm": "^0.3.10",
         "websocket": "^1.0.34",

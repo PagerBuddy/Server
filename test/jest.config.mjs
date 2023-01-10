@@ -7,8 +7,10 @@ export default {
     "^.+\\.mjs$": "babel-jest",
   },
   testPathIgnorePatterns: ["<rootDir>/build/", "<rootDir>/node_modules/"],
-  moduleFileExtensions: ["js", "jsx", "mjs"],
+  moduleFileExtensions: ["js", "jsx", "mjs", "ts"],
   forceExit: true,
-  reporters: [["jest-silent-reporter", { "useDots": true, "showWarnings": true, "showPaths": true }], "summary"],
-  collectCoverage: true
+  reporters: [["jest-silent-reporter", { "useDots": true, "showWarnings": true, "showPaths": true }], "summary", 'default'],
+  collectCoverage: true,
+  preset: 'ts-jest',
+  testEnvironment: 'node',
 }
