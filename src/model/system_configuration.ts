@@ -5,6 +5,7 @@ import { FirebaseCredentials } from "../connectors/firebase.js";
 import { TelegramLogTarget } from "../log.js";
 import {readFileSync} from "fs";
 import { PostgresConnectionCredentialsOptions } from "typeorm/driver/postgres/PostgresConnectionCredentialsOptions.js";
+import SMTPTransport from "nodemailer/lib/smtp-transport/index.js";
 
 export const CONFIG_FILE_LOCATION = resolve("config.json");
 
@@ -66,6 +67,13 @@ export default class SystemConfiguration extends BaseEntity{
         return SystemConfiguration.getInstance().sysTelegramLogTargetIds;
     }
 
+    @Column("string", {array: true})
+    private sysEMailHealthTargets? : string[];
+
+    public static get eMailHealthTargets() : string[] {
+        return SystemConfiguration.getInstance().sysEMailHealthTargets ?? [];
+    }
+
     @Column({
         type: "bigint",
         transformer: {
@@ -98,6 +106,31 @@ export default class SystemConfiguration extends BaseEntity{
 
     public static get healthCheckInterval() : Duration{
         return SystemConfiguration.getInstance().sysHealthCheckInterval;
+    }
+
+    @Column({type: "simple-json"})
+    sysEMailConfiguration: SMTPTransport.Options = {};
+
+    @Column()
+    sysEmailEnable: boolean = false;
+
+    @Column()
+    sysEmailSender: string = "noreply@pagerbuddy.org";
+
+    public static get eMailConfiguration() : SMTPTransport.Options {
+        return SystemConfiguration.getInstance().sysEMailConfiguration;
+    }
+
+    public static get eMailEnable() : boolean {
+        const conf = SystemConfiguration.getInstance();
+        if(conf.sysEmailEnable && conf.sysEMailConfiguration.auth){
+            return true;
+        }
+        return false;
+    }
+
+    public static get eMailSender() : string {
+        return SystemConfiguration.getInstance().sysEmailSender;
     }
 
     private readConfig() : PagerBuddyConfig{
