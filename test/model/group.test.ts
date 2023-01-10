@@ -1,15 +1,15 @@
 import { describe, expect, test, beforeAll, afterAll, jest } from '@jest/globals'
 import Group from '../../src/model/group'
-import { TestHelper } from '../testhelper'
+import database from '../../src/database.js'
 
 describe("Some Text", () => {
 
     beforeAll(async () => {
-        await TestHelper.instance.setupTestDB();
+        await database.connect();
     });
     
-    afterAll(() => {
-        TestHelper.instance.teardownTestDB();
+    afterAll(async () => {
+        await database.disconnect();
     });
     test("Create a Group object: %s", () => {
         let g1 = Group.create({})
