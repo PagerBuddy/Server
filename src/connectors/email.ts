@@ -1,5 +1,4 @@
 import nodemailer from "nodemailer";
-import SMTPConnection from "nodemailer/lib/smtp-connection/index.js";
 import SMTPTransport from "nodemailer/lib/smtp-transport/index.js";
 import Log from "../log.js";
 import SystemConfiguration from "../model/system_configuration.js";
