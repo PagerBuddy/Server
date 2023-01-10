@@ -67,7 +67,7 @@ export default class TelegramSink extends GroupSink{
         const alertResult = telegramConnector.sendAlert(this.chatId, localisedAlert);
 
         const messageResult = await alertResult.awaitableResult;
-        if(!messageResult.success){
+        if(!messageResult?.success){
             //Something went wrong
             return;
         }
@@ -82,7 +82,7 @@ export default class TelegramSink extends GroupSink{
             const userResponses = alert.getLocalisedResponses(this.timeZone, this.locale);
             const interfaceResult = telegramConnector.sendResponseInterface(alert.id, this.chatId, userResponses, alert.group.responseConfiguration);
             interfaceAbortController = interfaceResult.cancellationToken;
-            interfaceMessageId = (await interfaceResult.awaitableResult).messageId;
+            interfaceMessageId = (await interfaceResult?.awaitableResult)?.messageId ?? 0;
             interfaceMessageText = interfaceResult.messageText;
         }
     
