@@ -1,5 +1,5 @@
 import TelegramBot from "node-telegram-bot-api";
-import PQueue from "p-queue";
+//import PQueue from "p-queue";
 import http from "node:http";
 import Alert from "../model/alert.js"
 import { DateTime } from "luxon";
@@ -23,7 +23,7 @@ export default class TelegramConnector {
     private static instance: TelegramConnector;
 
     //We need a queue to limit telegram requests
-    private outputQueue: PQueue;
+    //private outputQueue: PQueue;
 
     private static PRIORITY_ALERT = 10;
     private static PRIORITY_STANDARD = 0;
@@ -41,7 +41,7 @@ export default class TelegramConnector {
     private log = Log.getLogger(TelegramConnector.name);
 
     private constructor() {
-        this.outputQueue = new PQueue({ concurrency: 1, interval: 1000, intervalCap: TelegramConnector.OUPUT_PER_SECOND });
+        //this.outputQueue = new PQueue({ concurrency: 1, interval: 1000, intervalCap: TelegramConnector.OUPUT_PER_SECOND });
 
         this.telegramBot = new TelegramBot(SystemConfiguration.telegramBotToken, {
             polling: true,
@@ -75,7 +75,7 @@ export default class TelegramConnector {
         chatId: number,
         alert: Alert,
         msgId: number = 0,
-        msgText: string = ""): { awaitableResult: Promise<TelegramSendResult>, cancellationToken: AbortController, messageText: string } {
+        msgText: string = ""): { awaitableResult: Promise<TelegramSendResult> | null, cancellationToken: AbortController, messageText: string } {
         let outText: string[] = [];
 
         if (alert.isManualAlert) {
@@ -97,7 +97,7 @@ export default class TelegramConnector {
 
         const cancellationToken = new AbortController();
         let queueResult;
-        if (msgId != 0) {
+        /**if (msgId != 0) {
             //We have an update
             queueResult = this.outputQueue.add(async () => {
                 return await this.sendMessage(chatId, message);
@@ -106,15 +106,16 @@ export default class TelegramConnector {
             queueResult = this.outputQueue.add(async () => {
                 return await this.sendMessage(chatId, message);
             }, { priority: TelegramConnector.PRIORITY_ALERT, signal: cancellationToken.signal });
-        }
+        }*/
 
-        return { awaitableResult: queueResult, cancellationToken: cancellationToken, messageText: message };
+        return { awaitableResult: null, cancellationToken: cancellationToken, messageText: message };
     }
 
-    public async sendText(chatId: number, message: string): Promise<TelegramSendResult> {
-        return await this.outputQueue.add(async () => {
+    public async sendText(chatId: number, message: string): Promise<TelegramSendResult|null> {
+        return null;
+        /*return await this.outputQueue.add(async () => {
             return await this.sendMessage(chatId, message);
-        }, { priority: TelegramConnector.PRIORITY_STANDARD });
+        }, { priority: TelegramConnector.PRIORITY_STANDARD });*/
     }
 
     public sendResponseInterface(
@@ -123,7 +124,7 @@ export default class TelegramConnector {
         responses: UserResponse[],
         responseConfiguration: ResponseConfiguration,
         msgId: number = 0,
-        msgText: string = ""): { awaitableResult: Promise<TelegramSendResult>, cancellationToken: AbortController, messageText: string } {
+        msgText: string = ""): { awaitableResult: Promise<TelegramSendResult>|null, cancellationToken: AbortController, messageText: string } {
 
         const message = this.getResponseInterfaceMessage(responses);
 
@@ -143,7 +144,7 @@ export default class TelegramConnector {
         const controller = new AbortController();
         let queueTask;
 
-        if (msgId != 0) {
+        /*if (msgId != 0) {
             opts.message_id = msgId;
             queueTask = this.outputQueue.add(async () => {
                 return await this.sendMessageEdit(chatId, message, opts as TelegramBot.EditMessageTextOptions);
@@ -152,9 +153,9 @@ export default class TelegramConnector {
             queueTask = this.outputQueue.add(async () => {
                 return await this.sendMessage(chatId, message, opts);
             }, { priority: TelegramConnector.PRIORITY_ALERT, signal: controller.signal });
-        }
+        }*/
 
-        return { awaitableResult: queueTask, cancellationToken: controller, messageText: message };
+        return { awaitableResult: null, cancellationToken: controller, messageText: message };
     }
 
     private getResponseInterfaceMessage(responses: UserResponse[]): string {
@@ -339,10 +340,10 @@ export default class TelegramConnector {
     }
 
     private pauseQueue(period: number): void {
-        this.outputQueue.pause();
+        /*this.outputQueue.pause();
         setTimeout(() => {
             this.outputQueue.start();
-        }, period * 1000);
+        }, period * 1000);*/
     }
 
     private botErrorOperation(error: Error): void {
@@ -416,8 +417,8 @@ export default class TelegramConnector {
     * Cleanly empty queue and stop bot.
     */
     public async stop() {
-        this.outputQueue.pause();
-        this.outputQueue.clear();
+        //this.outputQueue.pause();
+        //this.outputQueue.clear();
 
         await this.telegramBot.stopPolling({cancel: true});
 
