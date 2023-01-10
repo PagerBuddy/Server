@@ -40,7 +40,6 @@
     "scripts": {
         "start": "ts-node-esm src/index.ts start",
         "preuninstall": "ts-node-esm scripts/preuninstall.ts",
-        "postinstall": "ts-node-esm scripts/postinstall.ts",
         "debug": "ts-node-esm src/index.ts start",
         "installservice": "sudo ts-node-esm scripts/service.ts install",
         "uninstallservice": "sudo ts-node-esm scripts/service.ts uninstall",
