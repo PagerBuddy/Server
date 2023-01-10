@@ -49,66 +49,68 @@ export default class TelegramSink extends GroupSink{
     }
 
     public async sendAlert(alert: AlertResponse): Promise<void>{
-        if(alert.alert && super.isRelevantAlert(alert.alert)){
+        if (!alert.alert || !super.isRelevantAlert(alert.alert)) {
+            // check first when nothing needs to be done -> simplifies this method
+            return
+        }
+        
+        //Convert timestamp to destination timezonealertMessageText
+        const localisedAlert = alert.alert.getLocalisedCopy(this.timeZone, this.locale);
 
-            //Convert timestamp to destination timezone
-            const localisedAlert = alert.alert.getLocalisedCopy(this.timeZone, this.locale);
+        const telegramConnector = TelegramConnector.getInstance();
 
-            const telegramConnector = TelegramConnector.getInstance();
+        if(!telegramConnector){
+            this.log.info("Telegram bot disabled. Cannot emit alert to Telegram.");
+            return;
+        }
 
-            if(!telegramConnector){
-                this.log.info("Telegram bot disabled. Cannot emit alert to Telegram.");
-                return;
+        const alertResult = telegramConnector.sendAlert(this.chatId, localisedAlert);
+
+        const messageResult = await alertResult.awaitableResult;
+        if(!messageResult.success){
+            //Something went wrong
+            return;
+        }
+        let alertAbortController = alertResult.cancellationToken;
+        let alertMessageText = alertResult.messageText;
+
+        let interfaceAbortController = new AbortController();
+        let interfaceMessageId = 0;
+        let interfaceMessageText = "";
+
+        if(alert.group?.responseConfiguration?.allowResponses){
+            const userResponses = alert.getLocalisedResponses(this.timeZone, this.locale);
+            const interfaceResult = telegramConnector.sendResponseInterface(alert.id, this.chatId, userResponses, alert.group.responseConfiguration);
+            interfaceAbortController = interfaceResult.cancellationToken;
+            interfaceMessageId = (await interfaceResult.awaitableResult).messageId;
+            interfaceMessageText = interfaceResult.messageText;
+        }
+    
+
+        alert.registerUpdateCallback((update: AlertResponse) => {
+            if(update.alert && messageResult.messageId != 0){
+                alertAbortController.abort();
+
+                const localisedUpdate = update.alert.getLocalisedCopy(this.timeZone, this.locale);
+                const updateResult = telegramConnector.sendAlert(this.chatId, localisedUpdate);
+                alertAbortController = updateResult.cancellationToken;
+                alertMessageText = updateResult.messageText;
             }
+            if(update.group?.responseConfiguration && interfaceMessageId != 0){
+                interfaceAbortController.abort();
 
-            const alertResult = telegramConnector.sendAlert(this.chatId, localisedAlert);
-
-            const messageResult = await alertResult.awaitableResult;
-            if(!messageResult.success){
-                //Something went wrong
-                return;
-            }
-            let alertAbortController = alertResult.cancellationToken;
-            let alertMessageText = alertResult.messageText;
-
-            let interfaceAbortController = new AbortController();
-            let interfaceMessageId = 0;
-            let interfaceMessageText = "";
-
-            if(alert.group?.responseConfiguration?.allowResponses){
-                const userResponses = alert.getLocalisedResponses(this.timeZone, this.locale);
-                const interfaceResult = telegramConnector.sendResponseInterface(alert.id, this.chatId, userResponses, alert.group.responseConfiguration);
+                const userResponses = update.getLocalisedResponses(this.timeZone, this.locale);
+                const interfaceResult = telegramConnector.sendResponseInterface(
+                    update.id, 
+                    this.chatId, 
+                    userResponses, 
+                    update.group.responseConfiguration, 
+                    interfaceMessageId, 
+                    interfaceMessageText);
                 interfaceAbortController = interfaceResult.cancellationToken;
-                interfaceMessageId = (await interfaceResult.awaitableResult).messageId;
                 interfaceMessageText = interfaceResult.messageText;
             }
-        
-
-            alert.registerUpdateCallback((update: AlertResponse) => {
-                if(update.alert && messageResult.messageId != 0){
-                    alertAbortController.abort();
-
-                    const localisedUpdate = update.alert.getLocalisedCopy(this.timeZone, this.locale);
-                    const updateResult = telegramConnector.sendAlert(this.chatId, localisedUpdate);
-                    alertAbortController = updateResult.cancellationToken;
-                    alertMessageText = updateResult.messageText;
-                }
-                if(update.group?.responseConfiguration && interfaceMessageId != 0){
-                    interfaceAbortController.abort();
-
-                    const userResponses = update.getLocalisedResponses(this.timeZone, this.locale);
-                    const interfaceResult = telegramConnector.sendResponseInterface(
-                        update.id, 
-                        this.chatId, 
-                        userResponses, 
-                        update.group.responseConfiguration, 
-                        interfaceMessageId, 
-                        interfaceMessageText);
-                    interfaceAbortController = interfaceResult.cancellationToken;
-                    interfaceMessageText = interfaceResult.messageText;
-                }
-            });
-        }
+        });
     }
 
     /**
